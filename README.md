@@ -1,144 +1,184 @@
-MD Creative – Smart Event & Booking Management System
-Project Overview
-MD Creative – Smart Event & Booking Management System is a backend application designed to manage event bookings, entertainment services, and event resources for a family business called MD Creative.
+# MD Creative – Smart Event & Booking Management System
 
-MD Creative offers a wide variety of services including mascots (such as Spider-Man, Elsa, Anna and many more), birthday and wedding decorations, bounce houses, chairs, tables, red carpets and other event equipment.
+**Author:** Flutura Hyseni  
+**Technologies:** JavaScript, Node.js, Express.js, PostgreSQL, bcrypt, JWT
 
-This system aims to digitize and simplify the process of managing customer reservations, assigning staff members, validating inventory availability, and tracking event services.
+---
 
-The project is being developed as part of the Software Engineering course (Java 3) at the University of Mitrovica “Isa Boletini” – 2026.
+# Project Overview
 
-Main Goals of the System
-The main goal of the application is to provide a centralized platform for managing:
+**MD Creative – Smart Event & Booking Management System** is a backend application designed to manage event bookings, entertainment services, and event resources for a family business called **MD Creative**.
 
-Customer bookings and reservations
+MD Creative offers a wide variety of services including mascots such as **Spider-Man, Elsa, Anna**, and many more characters. The business also provides:
 
-Event services and decorations
+- Birthday decorations
+- Wedding decorations
+- Bounce houses
+- Chairs and tables
+- Red carpets
+- Event equipment
 
-Staff assignment to events
+This system aims to **digitize and simplify the process of managing customer reservations, assigning staff members, validating inventory availability, and tracking event services.**
 
-Inventory and equipment availability
+---
 
-Event management and scheduling
+# Main Goals of the System
 
-Business analytics and reporting
+The main goal of the application is to provide a **centralized platform** for managing:
 
-By using this system, the business can avoid double bookings, manage resources efficiently, and improve overall organization.
+- Customer bookings and reservations
+- Event services and decorations
+- Staff assignment to events
+- Inventory and equipment availability
+- Event management and scheduling
+- Business analytics and reporting
 
-Key Features (Planned)
-The system is designed to support the following functionalities.
+By using this system, the business can:
 
-Authentication & Security
-Secure user registration and login
+- Avoid **double bookings**
+- Manage resources **more efficiently**
+- Improve **overall organization**
 
-Password hashing using bcrypt
+---
 
-Authentication using JWT tokens
+# Planned Features
 
-Role-based authorization (Admin, Staff, Client)
+## Authentication and Security
 
-Booking Management
-Create and manage event bookings
+- Secure user registration and login
+- Password hashing using **bcrypt**
+- Authentication using **JWT tokens**
+- Role-based authorization for:
+  - **Admin**
+  - **Staff**
+  - **Client**
 
-Support multiple services in one event
+---
 
-Prevent double booking for the same service and time
+## Booking Management
 
-Track booking status (Pending, Approved, Completed, Cancelled)
+- Create and manage event bookings
+- Support **multiple services in one event**
+- Prevent **double booking** for the same service and time
 
-Inventory Management
-Track available inventory items
+Track booking status:
 
-Validate equipment availability before booking confirmation
+- Pending
+- Approved
+- Completed
+- Cancelled
 
-Prevent booking when inventory is insufficient
+---
 
-Staff Management
-Assign staff members to specific events
+## Inventory Management
 
-Allow staff to view assigned events in their dashboard
+- Track available inventory items
+- Validate equipment availability before confirming a booking
+- Prevent booking when **inventory is insufficient**
 
-Reporting & Analytics
-Generate monthly revenue reports
+---
 
-View service popularity statistics
+## Staff Management
 
-Export reports in PDF format
+- Assign staff members to specific events
+- Allow staff to **view assigned events** in their dashboard
 
-Project Architecture
-The project follows a modular backend architecture, separating responsibilities into different layers.
+---
 
+## Reporting and Analytics
+
+- Generate **monthly revenue reports**
+- View **service popularity statistics**
+- Export reports in **PDF format**
+
+---
+
+# Project Structure
+
+```
 src
-│
-├── config        # Database configuration
-├── controllers   # Request handling logic
-├── middleware    # Authentication and error handling
-├── models        # Database models
-├── routes        # API routes
-├── services      # Business logic
-├── utils         # Utility functions
-└── app.js        # Express application setup
-This structure helps maintain a clear separation between:
+├── config
+├── controllers
+├── middleware
+├── models
+├── routes
+├── services
+├── utils
+└── app.js
+```
 
-API routing
+This structure helps keep the project **organized** and follows a **modular backend architecture**.
 
-business logic
+---
 
-database interaction
+# Technologies Used
 
-middleware handling
+- JavaScript
+- Node.js
+- Express.js
+- PostgreSQL
+- bcrypt
+- jsonwebtoken (JWT)
+- dotenv
+- cors
+- nodemon
 
-Technologies Used
-The system is built using modern backend technologies:
+---
 
-JavaScript
+# How to Run the Project
 
-Node.js
+## 1. Clone the repository
 
-Express.js
+```bash
+git clone https://github.com/fh-umib/Md-creative-event-booking-system.git
+```
 
-PostgreSQL
+## 2. Move into the project folder
 
-bcrypt (password hashing)
+```bash
+cd Md-creative-event-booking-system
+```
 
-jsonwebtoken (JWT authentication)
+## 3. Install dependencies
 
-dotenv (environment variables)
-
-cors
-
-nodemon
-
-Installation and Setup
-To run this project locally, follow these steps.
-
-1. Clone the repository
-git clone https://github.com/your-username/md-creative-event-booking-system.git
-2. Navigate to the project folder
-cd md-creative-event-booking-system
-3. Install dependencies
+```bash
 npm install
-4. Run the development server
+```
+
+## 4. Run the project
+
+Development mode:
+
+```bash
 npm run dev
-Or run normally:
+```
 
+Or run normally with:
+
+```bash
 node server.js
-Project Status
-This project is currently in initial development phase.
+```
 
-At this stage the repository contains:
+---
 
-backend project structure
+# Project Status
 
-API architecture
+This project is currently in the **initial development phase**.
 
-modular folder organization
+At this stage, the repository includes:
 
-preparation for authentication, booking, and inventory modules
+- Backend project structure
+- Initial API architecture
+- Organized modular folders
+- Preparation for **authentication, booking, and inventory modules**
 
-Future updates will include full implementation of all system features.
+Future updates will include the **full implementation of all major system features.**
 
-Author
-Flutura Hyseni
-Software Engineering Student
-University of Mitrovica “Isa Boletini”
+---
+
+# Author
+
+**Flutura Hyseni**  
+Software Engineering Student  
+University of Mitrovica “Isa Boletini”  
+2026
