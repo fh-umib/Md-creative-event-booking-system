@@ -1,14 +1,12 @@
 {
   "name": "md-creative-event-booking-system",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Backend API for MD Creative event booking system",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon server.js",
+    "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
