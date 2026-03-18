@@ -1,0 +1,16 @@
+const fs=require('fs');
+const path=require('path');
+const base='src';
+const folders=['components/booking','components/package','components/mascot','components/activity','components/extra','components/review','components/staff','components/dashboard','components/auth','pages','services','context','hooks','types','utils','data'];
+folders.forEach(f=>fs.mkdirSync(path.join(base,f),{recursive:true}));
+const filelist=['src/components/booking/BookingForm.tsx','src/components/package/PackageCard.tsx','src/components/mascot/MascotCard.tsx','src/components/activity/ActivityCard.tsx','src/components/extra/ExtraCard.tsx','src/components/review/ReviewCard.tsx','src/components/staff/StaffCard.tsx','src/components/dashboard/DashboardStats.tsx','src/components/auth/LoginForm.tsx','src/pages/Home.tsx','src/pages/Booking.tsx','src/pages/Packages.tsx','src/pages/Mascots.tsx','src/pages/Activities.tsx','src/pages/Extras.tsx','src/pages/Staff.tsx','src/pages/Reviews.tsx','src/pages/Gallery.tsx','src/pages/Login.tsx','src/pages/Register.tsx','src/pages/Profile.tsx','src/pages/MyBookings.tsx','src/pages/Dashboard.tsx','src/pages/Analytics.tsx','src/pages/NotFound.tsx','src/pages/Unauthorized.tsx','src/services/api.ts','src/services/authService.ts','src/services/bookingService.ts','src/services/packageService.ts','src/services/mascotService.ts','src/services/activityService.ts','src/services/extraService.ts','src/services/reviewService.ts','src/services/staffService.ts','src/services/reportService.ts','src/context/AuthContext.tsx','src/context/BookingContext.tsx','src/hooks/useAuth.ts','src/hooks/useBooking.ts','src/hooks/usePackages.ts','src/hooks/useMascots.ts','src/hooks/useReviews.ts','src/hooks/useReports.ts','src/types/auth.ts','src/types/booking.ts','src/types/package.ts','src/types/mascot.ts','src/types/review.ts','src/types/report.ts','src/types/index.ts','src/utils/constants.ts','src/utils/formatters.ts','src/utils/validators.ts','src/utils/helpers.ts','src/data/mockData.ts'];
+const code='export default function Placeholder(){return <div>Placeholder</div>}\n';
+filelist.forEach(p=>{const d=path.dirname(p);if(!fs.existsSync(d))fs.mkdirSync(d,{recursive:true});fs.writeFileSync(p,code);});
+const assets=['public/images/hero-banner.jpg','public/images/gallery-1.jpg','public/images/gallery-2.jpg','public/images/logo.png'];
+if(!fs.existsSync('public/images'))fs.mkdirSync('public/images',{recursive:true});
+assets.forEach(f=>fs.writeFileSync(f,''));
+const assets2=['src/assets/images/hero.jpg','src/assets/images/birthday-theme.jpg','src/assets/images/wedding-theme.jpg','src/assets/images/engagement-theme.jpg','src/assets/icons/calendar.svg','src/assets/icons/star.svg','src/assets/icons/package.svg'];
+if(!fs.existsSync('src/assets/images'))fs.mkdirSync('src/assets/images',{recursive:true});
+if(!fs.existsSync('src/assets/icons'))fs.mkdirSync('src/assets/icons',{recursive:true});
+assets2.forEach(f=>fs.writeFileSync(f,''));
+console.log('done');
