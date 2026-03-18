@@ -1,33 +1,33 @@
-const bookingService = require('../services/bookingService');
+const bookingService = require("../services/bookingService");
 
 class BookingController {
-  async getAll(req, res, next) {
+  async getAll(req, res) {
     try {
-      const bookings = await bookingService.getAllBookings();
+      const bookings = await bookingService.getAll();
       res.status(200).json(bookings);
     } catch (error) {
-      next(error);
+      res.status(500).json({ message: error.message });
     }
   }
 
-  async create(req, res, next) {
+  async create(req, res) {
     try {
-      const booking = await bookingService.createBooking(req.body, req.user?.id || null);
+      const booking = await bookingService.create(req.body);
       res.status(201).json(booking);
     } catch (error) {
-      next(error);
+      res.status(400).json({ message: error.message });
     }
   }
 
-  async updateStatus(req, res, next) {
+  async updateStatus(req, res) {
     try {
-      const booking = await bookingService.updateBookingStatus(
+      const booking = await bookingService.updateStatus(
         req.params.id,
         req.body.status
       );
       res.status(200).json(booking);
     } catch (error) {
-      next(error);
+      res.status(400).json({ message: error.message });
     }
   }
 }
