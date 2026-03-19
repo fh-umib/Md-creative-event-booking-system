@@ -12,6 +12,20 @@ It reflects the layered structure of the backend:
 
 ## UML Class Diagram
 
+# Class Diagram
+
+This class diagram presents the main architectural components of the **MD Creative – Smart Event & Booking Management System**.
+
+It reflects the layered structure of the backend:
+- **Models** for domain entities  
+- **Repositories** for data access  
+- **Services** for business logic  
+- **Controllers** for request handling  
+
+---
+
+## UML Class Diagram
+
 ```mermaid
 classDiagram
     direction TB
@@ -22,7 +36,6 @@ classDiagram
         -email: string
         -password: string
         -role: string
-        +constructor(id, fullName, email, password, role)
     }
 
     class Package {
@@ -31,7 +44,6 @@ classDiagram
         -description: string
         -price: number
         -duration: number
-        +constructor(id, name, description, price, duration)
     }
 
     class Mascot {
@@ -39,7 +51,6 @@ classDiagram
         -name: string
         -characterType: string
         -price: number
-        +constructor(id, name, characterType, price)
     }
 
     class Extra {
@@ -47,7 +58,6 @@ classDiagram
         -name: string
         -category: string
         -price: number
-        +constructor(id, name, category, price)
     }
 
     class Booking {
@@ -57,7 +67,6 @@ classDiagram
         -eventDate: string
         -location: string
         -status: string
-        +constructor(id, userId, packageId, eventDate, location, status)
     }
 
     class IRepository {
@@ -78,179 +87,84 @@ classDiagram
         +save()
     }
 
-    class BookingRepository {
-        -fileRepository: FileRepository
-        +getAll()
-        +getById(id)
-        +add(booking)
-        +save()
-    }
+    class BookingRepository
+    class PackageRepository
+    class MascotRepository
+    class ExtraRepository
+    class UserRepository
 
-    class PackageRepository {
-        -fileRepository: FileRepository
-        +getAll()
-        +getById(id)
-        +add(package)
-        +save()
-    }
+    class BookingService
+    class PackageService
+    class MascotService
+    class AuthService
 
-    class MascotRepository {
-        -fileRepository: FileRepository
-        +getAll()
-        +getById(id)
-        +add(mascot)
-        +save()
-    }
+    class BookingController
+    class PackageController
+    class MascotController
+    class AuthController
 
-    class ExtraRepository {
-        -fileRepository: FileRepository
-        +getAll()
-        +getById(id)
-        +add(extra)
-        +save()
-    }
-
-    class UserRepository {
-        -fileRepository: FileRepository
-        +getAll()
-        +getById(id)
-        +add(user)
-        +save()
-    }
-
-    class BookingService {
-        -bookingRepository: BookingRepository
-        +getAllBookings()
-        +getBookingById(id)
-        +createBooking(data)
-        +saveBookings()
-    }
-
-    class PackageService {
-        -packageRepository: PackageRepository
-        +getAllPackages()
-        +getPackageById(id)
-    }
-
-    class MascotService {
-        -mascotRepository: MascotRepository
-        +getAllMascots()
-        +getMascotById(id)
-    }
-
-    class AuthService {
-        -userRepository: UserRepository
-        +register(data)
-        +login(email, password)
-    }
-
-    class BookingController {
-        +getAllBookings(req, res)
-        +getBookingById(req, res)
-        +createBooking(req, res)
-    }
-
-    class PackageController {
-        +getAllPackages(req, res)
-        +getPackageById(req, res)
-    }
-
-    class MascotController {
-        +getAllMascots(req, res)
-        +getMascotById(req, res)
-    }
-
-    class AuthController {
-        +register(req, res)
-        +login(req, res)
-    }
-
-    class BookingRoutes {
-        +GET /api/bookings
-        +GET /api/bookings/:id
-        +POST /api/bookings
-    }
-
-    class PackageRoutes {
-        +GET /api/packages
-        +GET /api/packages/:id
-    }
-
-    class MascotRoutes {
-        +GET /api/mascots
-        +GET /api/mascots/:id
-    }
-
-    class AuthRoutes {
-        +POST /api/auth/register
-        +POST /api/auth/login
-    }
+    class BookingRoutes
+    class PackageRoutes
+    class MascotRoutes
+    class AuthRoutes
 
     IRepository <|.. FileRepository
 
-    FileRepository --> Booking : stores
-    FileRepository --> Package : stores
-    FileRepository --> Mascot : stores
-    FileRepository --> Extra : stores
-    FileRepository --> User : stores
+    FileRepository --> Booking
+    FileRepository --> Package
+    FileRepository --> Mascot
+    FileRepository --> Extra
+    FileRepository --> User
 
-    BookingRepository --> FileRepository : uses
-    PackageRepository --> FileRepository : uses
-    MascotRepository --> FileRepository : uses
-    ExtraRepository --> FileRepository : uses
-    UserRepository --> FileRepository : uses
+    BookingRepository --> FileRepository
+    PackageRepository --> FileRepository
+    MascotRepository --> FileRepository
+    ExtraRepository --> FileRepository
+    UserRepository --> FileRepository
 
-    BookingService --> BookingRepository : uses
-    PackageService --> PackageRepository : uses
-    MascotService --> MascotRepository : uses
-    AuthService --> UserRepository : uses
+    BookingService --> BookingRepository
+    PackageService --> PackageRepository
+    MascotService --> MascotRepository
+    AuthService --> UserRepository
 
-    BookingController --> BookingService : uses
-    PackageController --> PackageService : uses
-    MascotController --> MascotService : uses
-    AuthController --> AuthService : uses
+    BookingController --> BookingService
+    PackageController --> PackageService
+    MascotController --> MascotService
+    AuthController --> AuthService
 
-    BookingRoutes --> BookingController : calls
-    PackageRoutes --> PackageController : calls
-    MascotRoutes --> MascotController : calls
-    AuthRoutes --> AuthController : calls
+    BookingRoutes --> BookingController
+    PackageRoutes --> PackageController
+    MascotRoutes --> MascotController
+    AuthRoutes --> AuthController
 
-    User --> Booking : creates
-    Package --> Booking : selected in
-    Booking --> Mascot : includes
-    Booking --> Extra : includes
+    User --> Booking
+    Package --> Booking
+    Booking --> Mascot
+    Booking --> Extra
+  ```
 
-Relationships Summary
-A User can create one or more Bookings
+---
 
-A Booking is linked to one selected Package
+# Relationships Summary
+- A User can create one or more Bookings
+- A Booking is linked to one selected Package
+- A Booking may include multiple Mascots
+- A Booking may include multiple Extras
+- Controllers handle incoming HTTP requests
+- Services contain business logic
+- Repositories manage data access and CSV persistence
+- FileRepository provides a reusable file-based storage mechanism
+- IRepository defines the repository contract
 
-A Booking may include multiple Mascots
+---
+# Notes
+## This diagram was designed to match the current architecture of the project and reflect the separation of concerns between:
+- presentation/request handling
+- business logic
+- data persistence
+- domain modeling
 
-A Booking may include multiple Extras
-
-Controllers handle incoming HTTP requests
-
-Services contain business logic
-
-Repositories manage data access and CSV persistence
-
-FileRepository provides a reusable file-based storage mechanism
-
-IRepository defines the repository contract
-
-Notes
-This diagram was designed to match the current architecture of the project and reflect the separation of concerns between:
-
-presentation/request handling
-
-business logic
-
-data persistence
-
-domain modeling
-
-It also supports the applied Repository Pattern and helps document the project structure in a clear and professional way.
+**It also supports the applied Repository Pattern and helps document the project structure in a clear and professional way.**
 
 
 ---
