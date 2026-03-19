@@ -1,4 +1,4 @@
-const packageService = require("../services/packageService");
+const packageService = require("../../services/packageService");
 
 class PackageController {
   async getAll(req, res) {
