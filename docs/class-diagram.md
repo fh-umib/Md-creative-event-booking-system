@@ -1,15 +1,13 @@
 # Class Diagram
 
-This class diagram documents the main architectural components of the **MD Creative – Smart Event & Booking Management System**.
+This class diagram presents the main architectural components of the MD Creative – Smart Event & Booking Management System.
 
 It reflects the layered backend structure of the project:
-- **Models** for domain entities
-- **Repositories** for data access and persistence
-- **Services** for business logic
-- **Controllers** for request handling
-- **Routes** for API endpoint exposure
-
----
+- Models for domain entities
+- Repositories for data access and persistence
+- Services for business logic
+- Controllers for request handling
+- Routes for API exposure
 
 ## UML Class Diagram
 
@@ -54,6 +52,27 @@ classDiagram
         -name: string
         -category: string
         -price: number
+    }
+
+    class Activity {
+        -id: number
+        -name: string
+        -description: string
+        -price: number
+    }
+
+    class InventoryItem {
+        -id: number
+        -name: string
+        -quantity: number
+        -availabilityStatus: string
+    }
+
+    class StaffAssignment {
+        -id: number
+        -bookingId: number
+        -staffId: number
+        -assignedRole: string
     }
 
     class IRepository {
@@ -114,6 +133,30 @@ classDiagram
         +save()
     }
 
+    class ActivityRepository {
+        -fileRepository: FileRepository
+        +getAll()
+        +getById(id)
+        +add(activity)
+        +save()
+    }
+
+    class InventoryRepository {
+        -fileRepository: FileRepository
+        +getAll()
+        +getById(id)
+        +add(item)
+        +save()
+    }
+
+    class StaffAssignmentRepository {
+        -fileRepository: FileRepository
+        +getAll()
+        +getById(id)
+        +add(assignment)
+        +save()
+    }
+
     class AuthService {
         -userRepository: UserRepository
         +register(data)
@@ -145,9 +188,16 @@ classDiagram
         +getExtraById(id)
     }
 
-    class AuthController {
-        +register(req, res)
-        +login(req, res)
+    class ActivityService {
+        -activityRepository: ActivityRepository
+        +getAllActivities()
+        +getActivityById(id)
+    }
+
+    class InventoryService {
+        -inventoryRepository: InventoryRepository
+        +getAllInventoryItems()
+        +getInventoryItemById(id)
     }
 
     class BookingController {
@@ -171,30 +221,45 @@ classDiagram
         +getExtraById(req, res)
     }
 
-    class AuthRoutes {
-        +POST register
-        +POST login
+    class ActivityController {
+        +getAllActivities(req, res)
+        +getActivityById(req, res)
+    }
+
+    class AuthController {
+        +register(req, res)
+        +login(req, res)
     }
 
     class BookingRoutes {
-        +GET bookings
-        +GET bookingById
-        +POST createBooking
+        +GET /api/bookings
+        +GET /api/bookings/:id
+        +POST /api/bookings
     }
 
     class PackageRoutes {
-        +GET packages
-        +GET packageById
+        +GET /api/packages
+        +GET /api/packages/:id
     }
 
     class MascotRoutes {
-        +GET mascots
-        +GET mascotById
+        +GET /api/mascots
+        +GET /api/mascots/:id
     }
 
     class ExtraRoutes {
-        +GET extras
-        +GET extraById
+        +GET /api/extras
+        +GET /api/extras/:id
+    }
+
+    class ActivityRoutes {
+        +GET /api/activities
+        +GET /api/activities/:id
+    }
+
+    class AuthRoutes {
+        +POST /api/auth/register
+        +POST /api/auth/login
     }
 
     IRepository <|.. FileRepository
@@ -204,53 +269,75 @@ classDiagram
     PackageRepository --> FileRepository : uses
     MascotRepository --> FileRepository : uses
     ExtraRepository --> FileRepository : uses
+    ActivityRepository --> FileRepository : uses
+    InventoryRepository --> FileRepository : uses
+    StaffAssignmentRepository --> FileRepository : uses
 
     AuthService --> UserRepository : uses
     BookingService --> BookingRepository : uses
     PackageService --> PackageRepository : uses
     MascotService --> MascotRepository : uses
     ExtraService --> ExtraRepository : uses
+    ActivityService --> ActivityRepository : uses
+    InventoryService --> InventoryRepository : uses
 
     AuthController --> AuthService : uses
     BookingController --> BookingService : uses
     PackageController --> PackageService : uses
     MascotController --> MascotService : uses
     ExtraController --> ExtraService : uses
+    ActivityController --> ActivityService : uses
 
     AuthRoutes --> AuthController : calls
     BookingRoutes --> BookingController : calls
     PackageRoutes --> PackageController : calls
     MascotRoutes --> MascotController : calls
     ExtraRoutes --> ExtraController : calls
+    ActivityRoutes --> ActivityController : calls
 
     User --> Booking : creates
     Package --> Booking : selected in
     Booking --> Mascot : includes
     Booking --> Extra : includes
-```
----
+    Booking --> Activity : may include
+    Booking --> StaffAssignment : has
+    InventoryItem --> Booking : supports
+    
+ ```
+ ---
 
 # Relationships Summary
-- A User can create one or more Bookings
-- A Booking is linked to one selected Package
-- A Booking may include multiple Mascots
-- A Booking may include multiple Extras
-- Routes forward API requests to controllers
-- Controllers handle incoming HTTP requests and responses
-- Services contain business logic
-- Repositories manage data access and CSV/file persistence
-- FileRepository provides reusable file-based storage operations
-- IRepository defines the common repository contract
+
+## This system defines several important relationships between domain entities:
+- User → Booking (1:N)
+**One user can create multiple bookings, but each booking belongs to a single user.**
+- Package → Booking (1:N)
+**A package can be selected in many bookings, while each booking is associated with one package.**
+- Booking → Mascot (M:N)
+**A booking can include multiple mascots, and a mascot can be part of multiple bookings.**
+- Booking → Extra (M:N)
+**A booking may include multiple extras, and extras can be reused across different bookings.**
+- Booking → Activity (M:N)
+**Activities are optional and can be included in multiple bookings.**
+- Booking → StaffAssignment (1:N)
+**One booking can have multiple staff assignments (e.g., different roles like animator, coordinator).**
+- StaffAssignment → User (N:1) (recommended to consider)
+**Each staff assignment refers to one staff member (user), while a user can be assigned to multiple bookings.**
+- InventoryItem → Booking (M:N / logical association)
+**Inventory items support bookings (e.g., costumes, equipment), and the same item may be used across multiple bookings.**
 
 ---
+
+# Notes on Relationships
+- Many-to-many (M:N) relationships can be implemented using junction tables (e.g., BookingMascots, BookingExtras, BookingActivities).
+- These relationships are currently represented conceptually in the diagram and can be extended in implementation if needed.
+- The design keeps flexibility for future scaling (e.g., adding availability tracking, conflicts, or scheduling).
 
 # Notes
-## This diagram was designed to match the project architecture and to reflect the separation of concerns between:
-- presentation and request handling
-- business logic
-- data access and persistence
+## This diagram was designed to match the current project architecture and to reflect the separation of concerns between:
 - domain modeling
+- request handling
+- business logic
+- data persistence
 
-**It also documents the applied Repository Pattern in a clean and professional way.**
-
----
+**It also documents the Repository Pattern through the use of IRepository and FileRepository.**
