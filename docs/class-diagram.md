@@ -302,42 +302,45 @@ classDiagram
     Booking --> Activity : may include
     Booking --> StaffAssignment : has
     InventoryItem --> Booking : supports
-    
- ```
- ---
+```
+---
 
 # Relationships Summary
-
-## This system defines several important relationships between domain entities:
+This system defines several important relationships between domain entities:
 - User → Booking (1:N)
-**One user can create multiple bookings, but each booking belongs to a single user.**
+One user can create multiple bookings, while each booking belongs to one user.
 - Package → Booking (1:N)
-**A package can be selected in many bookings, while each booking is associated with one package.**
-- Booking → Mascot (M:N)
-**A booking can include multiple mascots, and a mascot can be part of multiple bookings.**
-- Booking → Extra (M:N)
-**A booking may include multiple extras, and extras can be reused across different bookings.**
-- Booking → Activity (M:N)
-**Activities are optional and can be included in multiple bookings.**
+One package can be selected in multiple bookings, while each booking is associated with one package.
+- Booking → Mascot (conceptual M:N)
+A booking can include multiple mascots, and a mascot can appear in different bookings.
+-Booking → Extra (conceptual M:N)
+A booking may include multiple extras, and extras can be reused across multiple bookings.
+- Booking → Activity (conceptual M:N)
+Activities are optional and may be included in multiple bookings.
 - Booking → StaffAssignment (1:N)
-**One booking can have multiple staff assignments (e.g., different roles like animator, coordinator).**
-- StaffAssignment → User (N:1) (recommended to consider)
-**Each staff assignment refers to one staff member (user), while a user can be assigned to multiple bookings.**
-- InventoryItem → Booking (M:N / logical association)
-**Inventory items support bookings (e.g., costumes, equipment), and the same item may be used across multiple bookings.**
+One booking can have multiple staff assignments.
+- InventoryItem → Booking (support relationship)
+Inventory items support bookings through equipment and resource usage.
 
 ---
 
 # Notes on Relationships
-- Many-to-many (M:N) relationships can be implemented using junction tables (e.g., BookingMascots, BookingExtras, BookingActivities).
-- These relationships are currently represented conceptually in the diagram and can be extended in implementation if needed.
-- The design keeps flexibility for future scaling (e.g., adding availability tracking, conflicts, or scheduling).
+Some relationships in the diagram are conceptual and may be implemented with additional junction structures in future versions of the project, such as:
+- BookingMascots
+- BookingExtras
+- BookingActivities
+
+This keeps the design flexible and scalable for future improvements.
+
+---
 
 # Notes
-## This diagram was designed to match the current project architecture and to reflect the separation of concerns between:
+This diagram was designed to match the current project architecture and reflect the separation of concerns between:
 - domain modeling
 - request handling
 - business logic
 - data persistence
 
-**It also documents the Repository Pattern through the use of IRepository and FileRepository.**
+It also documents the Repository Pattern through the use of IRepository and FileRepository.
+
+---
