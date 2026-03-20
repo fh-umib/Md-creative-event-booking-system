@@ -61,21 +61,19 @@ This makes the system more practical for real event planning, where services are
 
 ## Tech Stack
 
-### Backend
-- Node.js
-- Express.js
-- PostgreSQL
-- JWT
-- bcrypt
-- dotenv
-- cors
-
-### Frontend
-- React
-- TypeScript
-- Vite
-- React Router DOM
-- CSS
+| Layer       | Technology         | Purpose |
+|------------|------------------|---------|
+| Backend Runtime | Node.js           | JavaScript runtime for server-side code |
+| Backend Framework | Express.js       | API routing, middleware, and server logic |
+| Database    | PostgreSQL        | Relational database for bookings, users, and inventory |
+| Authentication | JWT + bcrypt     | Authentication, password hashing, and token management |
+| Configuration | dotenv           | Environment variable management |
+| CORS        | cors              | Enable cross-origin requests |
+| Frontend Framework | React          | Component-based UI |
+| Language    | TypeScript        | Type safety across frontend and backend |
+| Build Tool  | Vite              | Fast development server and bundling |
+| Routing     | React Router DOM  | Client-side navigation |
+| Styling     | CSS               | Layout and presentation |
 
 ---
 
@@ -83,40 +81,45 @@ This makes the system more practical for real event planning, where services are
 
 ```bash
 Md-creative-event-booking-system/
-├── docs/                  # Project documentation
-├── frontend/              # React frontend application
-│   ├── public/
-│   ├── src/
-│   │   ├── assets/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── data/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   ├── types/
-│   │   ├── utils/
-│   │   ├── App.tsx
-│   │   ├── App.css
-│   │   ├── index.css
-│   │   └── main.tsx
-│   └── package.json
-├── sql/                   # Database scripts
-├── src/                   # Backend source code
-│   ├── config/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── services/
-│   ├── utils/
-│   └── app.js
-├── server.js              # Backend entry point
+├── docs/                   # Architecture and UML documentation
+├── frontend/               # React + Vite application with base pages and components
+├── sql/                    # Database scripts
+├── src/                    # Backend source code
+│   ├── config/             # Configuration files
+│   ├── data/               # Data access layer
+│   │   ├── repositories/   # IRepository, FileRepository, entity repositories
+│   │   └── storage/        # CSV storage files
+│   ├── middleware/         # Express middleware
+│   ├── models/             # Domain entities
+│   ├── services/           # Business logic layer
+│   ├── ui/                 # Presentation layer
+│   │   ├── controllers/    # Request handlers
+│   │   └── routes/         # API routes
+│   ├── utils/              # Helper utilities
+│   └── app.js              # Express app configuration
+├── .gitignore
 ├── package.json
+├── server.js               # Application entry point
 └── README.md
 ```
+
+---
+
+# Project architecture is organized into four main layers:
+- Models: represent the core domain entities of the system
+- Services: contain business logic and application rules
+- Data: manage persistence through repositories and CSV/file storage
+- UI: handle API requests through controllers and routes
+
+**This layered structure improves separation of concerns, readability, and maintainability.**
+
+---
+
 # Current Status
 
-This project is currently in the development phase.
+**This project is currently in the development phase.**
+
+---
 
 # Completed
 - backend project structure
@@ -206,7 +209,8 @@ These pages will be expanded further with real UI components and backend integra
 
 ---
 
-# Author
-**Flutura Hyseni**
-Software Engineering Student
+## Author
+
+**Flutura Hyseni**  
+Software Engineering Student  
 University of Mitrovica “Isa Boletini”
