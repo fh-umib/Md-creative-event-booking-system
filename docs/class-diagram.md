@@ -183,15 +183,6 @@ classDiagram
     PackageRepository --> Package : manages
     MascotRepository --> Mascot : manages
     FileBookingRepository --> Booking : stores CSV booking data
-
-    %% Notes
-    note for AuthController "Handles authentication-related HTTP requests."
-    note for BookingController "Handles booking API requests and delegates logic to BookingService."
-    note for BookingService "Contains booking business rules and coordinates repository operations."
-    note for BookingRepository "Main database repository for bookings using PostgreSQL."
-    note for IRepository "Defines the repository contract with GetAll, GetById, Add, and Save methods."
-    note for FileRepository "Generic CSV-based repository implementation."
-    note for FileBookingRepository "Concrete FileRepository for bookings.csv used to demonstrate CSV persistence."
 ```
 
 ---
