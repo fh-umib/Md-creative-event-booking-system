@@ -11,6 +11,7 @@ It reflects the layered backend structure of the project:
 - Repository Pattern with CSV file support through `IRepository` and `FileRepository`
 
 ## UML Class Diagram
+
     ```mermaid
 classDiagram
     direction TB
