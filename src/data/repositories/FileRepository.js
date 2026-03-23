@@ -1,33 +1,43 @@
-const fs = require("fs");
-const path = require("path");
-const IRepository = require("./IRepository");
+const fs = require('fs');
+const path = require('path');
+const IRepository = require('./IRepository');
 
 class FileRepository extends IRepository {
   constructor(filePath) {
     super();
     this.filePath = filePath;
-    this.items = this.load();
+    this.items = this.loadFromFile();
   }
 
-  load() {
-    if (!fs.existsSync(this.filePath)) return [];
+  loadFromFile() {
+    try {
+      if (!fs.existsSync(this.filePath)) {
+        return [];
+      }
 
-    const content = fs.readFileSync(this.filePath, "utf-8").trim();
-    if (!content) return [];
+      const data = fs.readFileSync(this.filePath, 'utf8').trim();
 
-    const lines = content.split("\n");
-    const dataLines = lines.slice(1);
+      if (!data) {
+        return [];
+      }
 
-    return dataLines.map((line) => {
-      const [id, userId, packageId, eventDate, status] = line.split(",");
-      return {
-        id: Number(id),
-        userId: Number(userId),
-        packageId: Number(packageId),
-        eventDate,
-        status,
-      };
-    });
+      const lines = data.split('\n');
+      const headers = lines[0].split(',');
+
+      return lines.slice(1).map((line) => {
+        const values = line.split(',');
+        const item = {};
+
+        headers.forEach((header, index) => {
+          item[header.trim()] = values[index] ? values[index].trim() : '';
+        });
+
+        return item;
+      });
+    } catch (error) {
+      console.error('Error reading CSV file:', error.message);
+      return [];
+    }
   }
 
   getAll() {
@@ -35,21 +45,38 @@ class FileRepository extends IRepository {
   }
 
   getById(id) {
-    return this.items.find((item) => item.id === Number(id));
+    return this.items.find((item) => String(item.id) === String(id)) || null;
   }
 
-  add(item) {
-    this.items.push(item);
+  add(entity) {
+    this.items.push(entity);
+    this.save();
+    return entity;
   }
 
   save() {
-    const header = "id,userId,packageId,eventDate,status";
-    const rows = this.items.map(
-      (item) =>
-        `${item.id},${item.userId},${item.packageId},${item.eventDate},${item.status}`
-    );
+    try {
+      const dir = path.dirname(this.filePath);
 
-    fs.writeFileSync(this.filePath, [header, ...rows].join("\n"), "utf-8");
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+
+      if (this.items.length === 0) {
+        fs.writeFileSync(this.filePath, '');
+        return;
+      }
+
+      const headers = Object.keys(this.items[0]);
+      const rows = this.items.map((item) =>
+        headers.map((header) => item[header] ?? '').join(',')
+      );
+
+      const csvContent = [headers.join(','), ...rows].join('\n');
+      fs.writeFileSync(this.filePath, csvContent, 'utf8');
+    } catch (error) {
+      console.error('Error saving CSV file:', error.message);
+    }
   }
 }
 
