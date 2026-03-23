@@ -2,213 +2,153 @@
 
 ## Overview
 
-The backend of the **MD Creative – Smart Event & Booking Management System** is organized using a layered architecture.
+The **MD Creative – Smart Event & Booking Management System** follows a layered backend architecture to improve maintainability, readability, and separation of concerns.
 
-The purpose of this architecture is to separate responsibilities across different parts of the system, making the code easier to understand, maintain, and extend.
+The system is organized into the following main layers:
 
-The project is structured around four main layers:
-- Model Layer
-- Service Layer
-- Data Layer
-- UI Layer
+- **Models**
+- **Services**
+- **Data**
+- **UI**
 
-This organization supports cleaner code structure and follows good software engineering practices.
+This structure makes the application easier to extend, test, and maintain as the project grows.
 
 ---
 
-## Layers of the Project
+## 1. Models Layer
 
-### 1. Model Layer
-
-The Model Layer contains the main domain entities of the system.
+The **Models** layer contains the core domain entities of the system.
 
 Examples include:
-- User
-- Booking
-- Package
-- Mascot
-- Extra
-- Activity
-- InventoryItem
-- StaffAssignment
+- `User`
+- `Booking`
+- `Package`
+- `Mascot`
 
-Responsibilities of this layer:
-- represent the structure of domain data
-- define the core entities used in the application
-- provide a clear separation between data models and business logic
+### Responsibilities
+- Represent the main business entities
+- Store object attributes
+- Provide a clean domain structure for the rest of the application
 
-This layer does not handle HTTP requests, persistence, or application rules.
+### Why this layer is important
+Keeping models separate helps define the system clearly and avoids mixing domain definitions with business logic or database operations.
 
 ---
 
-### 2. Service Layer
+## 2. Services Layer
 
-The Service Layer contains the business logic of the application.
+The **Services** layer contains the business logic of the application.
 
-Responsibilities of this layer:
-- process application rules
-- coordinate operations between controllers and repositories
-- keep controllers lightweight
-- isolate business logic from request handling and persistence
+Examples include:
+- `AuthService`
+- `BookingService`
 
-Examples:
-- BookingService
-- PackageService
-- MascotService
-- ExtraService
-- ActivityService
-- InventoryService
-- AuthService
+### Responsibilities
+- Process business rules
+- Validate and transform data
+- Coordinate operations between controllers and repositories
 
-This layer improves maintainability because business rules are managed in one place.
+### Why this layer is important
+This layer keeps controllers lightweight and prevents business logic from being scattered across routes or repository classes.
 
 ---
 
-### 3. Data Layer
+## 3. Data Layer
 
-The Data Layer is responsible for data access and persistence.
+The **Data** layer is responsible for persistence and data access.
 
-Responsibilities of this layer:
-- provide repository-based access to stored data
-- abstract file operations from the service layer
-- manage reading and saving records through CSV files
-- support the Repository Pattern
+It includes:
+- database repositories such as `BookingRepository`, `UserRepository`, `PackageRepository`, and `MascotRepository`
+- repository abstractions such as `IRepository`
+- file-based persistence through `FileRepository`
+- CSV storage files such as `bookings.csv`
 
-This layer includes:
-- IRepository
-- FileRepository
-- entity-specific repositories
-- storage folder with CSV files
+### Responsibilities
+- Read and write data
+- Communicate with PostgreSQL for the main application data
+- Demonstrate CSV-based persistence using the Repository Pattern
 
-### Repository Pattern
-
-The Repository Pattern is used to separate business logic from storage logic.
-
-The repository contract is represented through `IRepository`, which defines the following methods:
-- `getAll()`
-- `getById(id)`
-- `add(item)`
-- `save()`
-
-`FileRepository` implements this behavior using file-based CSV persistence.
-
-In the current version of the project, the file-based repository is used as a simple persistence mechanism for demonstrating repository-based architecture without coupling the service layer directly to raw file operations.
-
-This makes the code cleaner and easier to extend in the future.
+### Why this layer is important
+Separating data access from business logic makes the system easier to maintain and allows different persistence strategies to coexist.
 
 ---
 
-### 4. UI Layer
+## 4. UI Layer
 
-The UI Layer handles incoming API requests.
+The **UI** layer handles incoming HTTP requests and outgoing responses.
 
-Responsibilities of this layer:
-- define API routes
-- receive HTTP requests
-- call the appropriate service methods
-- return responses to the client
-
-This layer contains:
-- controllers
+It includes:
 - routes
+- controllers
+- middleware
 
-Controllers are responsible for request and response handling, while routes define the API endpoints.
+Examples include:
+- `authRoutes`
+- `bookingRoutes`
+- `AuthController`
+- `BookingController`
 
-This keeps the entry points of the application organized and separated from business logic.
+### Responsibilities
+- Expose API endpoints
+- Receive requests from clients
+- Delegate logic to services or repositories
+- Return JSON responses
+
+### Why this layer is important
+This separation ensures that request handling stays clean and focused, while business and data logic remain in their own layers.
 
 ---
 
-## Request Flow
+## Repository Pattern
 
-The request flow in the system follows this path:
+The project applies the **Repository Pattern** to separate persistence logic from the rest of the system.
 
-Route → Controller → Service → Repository → Storage
+### Implementations
+- `IRepository` defines the common contract:
+  - `getAll()`
+  - `getById(id)`
+  - `add(entity)`
+  - `save()`
+- `FileRepository` provides a generic CSV-based implementation
+- `FileBookingRepository` is a concrete repository for booking data stored in `bookings.csv`
 
-This means:
-1. a route receives the request
-2. the controller handles the request and response
-3. the service processes the business logic
-4. the repository manages data access
-5. the storage layer reads or saves data in CSV files
-
-This flow keeps each layer focused on a single responsibility.
+### Purpose
+This pattern improves abstraction and demonstrates how the same architecture can support both:
+- **database repositories** for the main application
+- **file-based repositories** for CSV persistence
 
 ---
 
 ## Architectural Decisions
 
-### Why layered architecture was used
+### 1. Layered Structure
+A layered structure was chosen to improve separation of concerns and make the application easier to understand.
 
-Layered architecture was chosen because it:
-- improves separation of concerns
-- makes the project easier to maintain
-- allows clearer organization of code
-- makes future expansion easier
-- helps document the system in a structured way
+### 2. Thin Controllers
+Controllers are kept focused on request/response handling, while services and repositories perform the actual application work.
 
-### Why repository pattern was used
+### 3. Mixed Persistence Strategy
+The project uses PostgreSQL repositories for the main backend logic and a CSV-based file repository to demonstrate the Repository Pattern in a simpler persistence form.
 
-The Repository Pattern was used because it:
-- isolates persistence logic from business logic
-- avoids direct file access inside services
-- keeps data handling centralized
-- makes the design cleaner and more reusable
-
-### Why CSV storage was used
-
-CSV file storage was used because:
-- it is simple for demonstration purposes
-- it supports file-based persistence without requiring a full database integration
-- it clearly shows the role of the repository layer in the current phase of the project
+### 4. Scalable Organization
+The architecture is designed so new entities, routes, services, and repositories can be added without heavily restructuring the codebase.
 
 ---
 
-## SOLID Principle Applied
+## Benefits of This Architecture
 
-### Single Responsibility Principle (SRP)
-
-The project applies the **Single Responsibility Principle**.
-
-This principle states that each class or component should have one main responsibility.
-
-In this project:
-- models represent domain entities
-- repositories handle data access and persistence
-- services handle business logic
-- controllers handle request and response processing
-- `server.js` handles application startup only
-
-This improves:
-- readability
-- maintainability
-- debugging
-- extensibility
-
-Applying SRP makes the architecture more structured and easier to manage.
-
----
-
-## Frontend Integration (Optional Layer)
-
-Although this documentation focuses on the backend architecture, the system is designed to be used together with a frontend application.
-
-The frontend is responsible for:
-- user interaction and UI rendering
-- sending HTTP requests to the backend API
-- displaying data received from the system
-
-The communication between frontend and backend follows a standard client-server model using HTTP requests.
-This separation ensures that the backend remains independent and can support different types of clients (web, mobile, etc.).
+- Better separation of concerns
+- Easier maintenance
+- Cleaner code organization
+- Better scalability
+- Clear demonstration of the Repository Pattern
+- Support for both database and file-based persistence
 
 ---
 
 ## Conclusion
 
-The architecture of the project has been improved by organizing the backend into distinct layers and by applying the Repository Pattern.
+This architecture provides a clear and modular foundation for the **MD Creative – Smart Event & Booking Management System**.
 
-The system now has:
-- clearer responsibility separation
-- better code organization
-- documented UML structure
-- documented architecture decisions
-- a cleaner and more professional backend design
+By separating the project into **Models**, **Services**, **Data**, and **UI**, the system becomes easier to manage and extend.  
+The addition of `IRepository`, `FileRepository`, and `FileBookingRepository` also strengthens the design by clearly demonstrating the Repository Pattern in practice.
