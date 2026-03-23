@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const userRepository = require('../repositories/userRepository');
+const userRepository = require('../data/repositories/userRepository');
 const generateToken = require('../utils/generateToken');
 
 class AuthService {

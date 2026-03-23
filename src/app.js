@@ -5,7 +5,7 @@ const authRoutes = require('./ui/routes/authRoutes');
 const bookingRoutes = require('./ui/routes/bookingRoutes');
 const packageRoutes = require('./ui/routes/packageRoutes');
 const mascotRoutes = require('./ui/routes/mascotRoutes');
-const errorMiddleware = require('./middleware/errorMiddleware');
+const errorMiddleware = require('./ui/middleware/errorMiddleware');
 
 const app = express();
 

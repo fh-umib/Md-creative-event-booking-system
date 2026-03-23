@@ -1,4 +1,4 @@
-const mascotService = require("../services/mascotService");
+const mascotService = require("../../services/mascotService");
 
 class MascotController {
   async getAll(req, res) {

@@ -1,8 +1,8 @@
-const pool = require('../config/db');
-const bookingRepository = require('../repositories/bookingRepository');
-const packageRepository = require('../repositories/packageRepository');
-const userRepository = require('../repositories/userRepository');
-const inventoryRepository = require('../repositories/inventoryRepository');
+const pool = require('../data/db/db');
+const bookingRepository = require('../data/repositories/bookingRepository');
+const packageRepository = require('../data/repositories/packageRepository');
+const userRepository = require('../data/repositories/userRepository');
+const inventoryRepository = require('../data/repositories/inventoryRepository');
 
 class BookingService {
   generateBookingCode() {

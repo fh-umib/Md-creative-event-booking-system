@@ -1,4 +1,4 @@
-const pool = require('../../config/db');
+const pool = require('../db/db');
 
 class UserRepository {
   async create(user) {

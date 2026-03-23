@@ -1,5 +1,5 @@
 const express = require("express");
-const mascotController = require("../ui/controllers/mascotController");
+const mascotController = require("../controllers/mascotController");
 const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
