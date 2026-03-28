@@ -9,7 +9,7 @@ import {
   getMascots,
   updateMascot,
   type Mascot,
-} from "../services/mascot/mascotsService";
+} from "../../services/mascots/mascotService";
 
 type AvailabilityFilter = "All" | "Available" | "Booked Soon";
 

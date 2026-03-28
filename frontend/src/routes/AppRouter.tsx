@@ -1,18 +1,18 @@
 import { Routes, Route } from "react-router-dom";
-import HomePage from "../pages/HomePage";
-import BookingPage from "../pages/BookingPage";
-import DecorationsPage from "../pages/DecorationsPage";
-import MascotsPage from "../pages/MascotsPage";
-import ActivitiesPage from "../pages/ActivitiesPage";
-import PackagesPage from "../pages/PackagesPage";
-import GalleryPage from "../pages/GalleryPage";
-import StaffPage from "../pages/StaffPage";
-import ReviewsPage from "../pages/ReviewsPage";
-import LoginPage from "../pages/LoginPage";
-import RegisterPage from "../pages/RegisterPage";
-import AdminDashboardPage from "../pages/AdminDashboardPage";
-import AnalyticsPage from "../pages/AnalyticsPage";
-import NotFoundPage from "../pages/NotFoundPage";
+import HomePage from "../pages/public/HomePage";
+import BookingPage from "../pages/public/BookingPage";
+import DecorationsPage from "../pages/public/DecorationsPage";
+import MascotsPage from "../pages/public/MascotsPage";
+import ActivitiesPage from "../pages/public/ActivitiesPage";
+import PackagesPage from "../pages/public/PackagesPage";
+import GalleryPage from "../pages/public/GalleryPage";
+import StaffPage from "../pages/admin/StaffPage";
+import ReviewsPage from "../pages/public/ReviewsPage";
+import LoginPage from "../pages/auth/LoginPage";
+import RegisterPage from "../pages/auth/RegisterPage";
+import AdminDashboardPage from "../pages/admin/DashboardPage";
+import AnalyticsPage from "../pages/admin/AnalyticsPage";
+import NotFoundPage from "../pages/public/NotFoundPage";
 
 export default function AppRouter() {
   return (
