@@ -4,7 +4,7 @@ const cors = require('cors');
 const authRoutes = require('./ui/routes/authRoutes');
 const bookingRoutes = require('./ui/routes/bookingRoutes');
 const packageRoutes = require('./ui/routes/packageRoutes');
-const mascotRoutes = require('./ui/routes/mascotRoutes');
+const mascotRoutes = require('./ui/routes/public/mascotRoutes');
 const errorMiddleware = require('./ui/middleware/errorMiddleware');
 
 const app = express();
