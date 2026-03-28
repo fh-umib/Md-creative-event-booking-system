@@ -4,14 +4,15 @@ class Mascot {
     name,
     characterName,
     theme = null,
-    description = '',
+    description = "",
     price = 0,
     durationMinutes = 60,
     minAge = null,
     maxAge = null,
     isAvailable = true,
+    image = "",
     createdAt = null,
-    updatedAt = null
+    updatedAt = null,
   }) {
     this.id = id;
     this.name = name;
@@ -23,6 +24,7 @@ class Mascot {
     this.minAge = minAge;
     this.maxAge = maxAge;
     this.isAvailable = isAvailable;
+    this.image = image;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
