@@ -522,11 +522,3 @@ This means the assignment was not completed only at the minimum level, but expan
 
 ---
 
-## Final Submission Steps
-
-Before submission, the final steps are:
-
-1. save screenshots inside `docs/screenshots/`
-2. keep this file as `docs/implementation.md`
-3. commit and push the project to GitHub
-4. submit the GitHub repository link
