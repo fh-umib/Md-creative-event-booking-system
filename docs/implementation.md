@@ -161,18 +161,18 @@ I also tested the package pages in the frontend.
 
 #### Postman
 
-![Package Get All](docs/screenshots/Package/package-get-all.png)
-![Package Filter by Name](docs/screenshots/Package/package-filter-name.png)
-![Package Filter by Price](docs/screenshots/Package/package-filter-price.png)
-![Package Get By Id](docs/screenshots/Package/package-get-by-id.png)
-![Package Post](docs/screenshots/Package/package-post.png)
-![Package Put](docs/screenshots/Package/package-put.png)
-![Package Delete](docs/screenshots/Package/package-delete.png)
+![Package Get All](screenshots/Package/package-get-all.png)
+![Package Filter by Name](screenshots/Package/package-filter-name.png)
+![Package Filter by Price](screenshots/Package/package-filter-price.png)
+![Package Get By Id](screenshots/Package/package-get-by-id.png)
+![Package Post](screenshots/Package/package-post.png)
+![Package Put](screenshots/Package/package-put.png)
+![Package Delete](screenshots/Package/package-delete.png)
 
 #### Frontend
 
-![Package Admin Page](docs/screenshots/Package/package-admin-page.png)
-![Package Public Page](docs/screenshots/Package/package-public-page.png)
+![Package Admin Page](screenshots/Package/package-admin-page.png)
+![Package Public Page](screenshots/Package/package-public-page.png)
 
 ---
 
@@ -290,18 +290,18 @@ In the frontend, I tested:
 
 #### Postman
 
-![Mascot Get All](docs/screenshots/Mascot/mascot-get-all.png)
-![Mascot Filter by Name](docs/screenshots/Mascot/mascot-filter-name.png)
-![Mascot Filter by Price](docs/screenshots/Mascot/mascot-filter-price.png)
-![Mascot Get By Id](docs/screenshots/Mascot/mascot-get-by-id.png)
-![Mascot Post](docs/screenshots/Mascot/mascot-post.png)
-![Mascot Put](docs/screenshots/Mascot/mascot-put.png)
-![Mascot Delete](docs/screenshots/Mascot/mascot-delete.png)
+![Mascot Get All](screenshots/Mascot/mascot-get-all.png)
+![Mascot Filter by Name](screenshots/Mascot/mascot-filter-name.png)
+![Mascot Filter by Price](screenshots/Mascot/mascot-filter-price.png)
+![Mascot Get By Id](screenshots/Mascot/mascot-get-by-id.png)
+![Mascot Post](screenshots/Mascot/mascot-post.png)
+![Mascot Put](screenshots/Mascot/mascot-put.png)
+![Mascot Delete](screenshots/Mascot/mascot-delete.png)
 
 #### Frontend
 
-![Mascot Admin Page](docs/screenshots/Mascot/mascot-admin-page.png)
-![Mascot Public Page](docs/screenshots/Mascot/mascot-public-page.png)
+![Mascot Admin Page](screenshots/Mascot/mascot-admin-page.png)
+![Mascot Public Page](screenshots/Mascot/mascot-public-page.png)
 
 ---
 
@@ -422,19 +422,19 @@ In the frontend, I tested:
 
 #### Postman
 
-![Review Get All](docs/screenshots/Review/review-get-all.png)
-![Review Filter by Name](docs/screenshots/Review/review-filter-name.png)
-![Review Filter by Rating](docs/screenshots/Review/review-filter-rating.png)
-![Review Filter Approved](docs/screenshots/Review/review-filter-approved.png)
-![Review Get By Id](docs/screenshots/Review/review-get-by-id.png)
-![Review Post](docs/screenshots/Review/review-post.png)
-![Review Put](docs/screenshots/Review/review-put.png)
-![Review Delete](docs/screenshots/Review/review-delete.png)
+![Review Get All](screenshots/Review/review-get-all.png)
+![Review Filter by Name](screenshots/Review/review-filter-name.png)
+![Review Filter by Rating](screenshots/Review/review-filter-rating.png)
+![Review Filter Approved](screenshots/Review/review-filter-approved.png)
+![Review Get By Id](screenshots/Review/review-get-by-id.png)
+![Review Post](screenshots/Review/review-post.png)
+![Review Put](screenshots/Review/review-put.png)
+![Review Delete](screenshots/Review/review-delete.png)
 
 #### Frontend
 
-![Review Admin Page](docs/screenshots/Review/review-admin-page.png)
-![Review Public Page](docs/screenshots/Review/review-public-page.png)
+![Review Admin Page](screenshots/Review/review-admin-page.png)
+![Review Public Page](screenshots/Review/review-public-page.png)
 
 ---
 
@@ -496,15 +496,6 @@ docs/
 ```
 
 These screenshots prove that CRUD, filtering, UI integration, and testing were completed successfully.
-
----
-
-## Additional Screenshots
-
-These screenshots are also useful for the final submission:
-
-![Admin Dashboard](docs/screenshots/admin-dashboard.png)
-![Project Structure](docs/screenshots/project-structure.png)
 
 ---
 
