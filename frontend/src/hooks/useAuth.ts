@@ -1,1 +1,12 @@
-// export default function Placeholder(){return <div>Placeholder</div>}
+import { useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+
+  return context;
+}
