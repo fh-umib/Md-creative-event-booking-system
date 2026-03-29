@@ -80,8 +80,30 @@ export function AuthProvider({ children }: Props) {
           setUser(JSON.parse(savedUser));
         }
 
-        const profile = await authService.getProfile();
-        setUser(profile);
+        useEffect(() => {
+  const initializeAuth = async () => {
+    try {
+      const savedToken = localStorage.getItem(STORAGE_KEYS.TOKEN);
+      const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
+
+      if (!savedToken) {
+        setIsLoading(false);
+        return;
+      }
+
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+        setToken(savedToken);
+      }
+    } catch {
+      clearAuth();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  initializeAuth();
+}, []); 
       } catch {
         clearAuth();
       } finally {

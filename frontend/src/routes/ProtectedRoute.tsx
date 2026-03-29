@@ -1,9 +1,8 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import type { UserRole } from '../types';
 
 interface Props {
-  allowedRoles?: UserRole[];
+  allowedRoles?: string[];
 }
 
 export default function ProtectedRoute({ allowedRoles }: Props) {
@@ -17,8 +16,13 @@ export default function ProtectedRoute({ allowedRoles }: Props) {
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
+  if (allowedRoles && user) {
+    const normalizedRole = user.role?.toLowerCase();
+    const normalizedAllowedRoles = allowedRoles.map((role) => role.toLowerCase());
+
+    if (!normalizedAllowedRoles.includes(normalizedRole)) {
+      return <Navigate to="/" replace />;
+    }
   }
 
   return <Outlet />;

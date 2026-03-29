@@ -6,6 +6,7 @@ const bookingRoutes = require('./ui/routes/public/bookingRoutes');
 const packageRoutes = require('./ui/routes/public/packageRoutes');
 const mascotRoutes = require('./ui/routes/public/mascotRoutes');
 const errorMiddleware = require('./ui/middleware/errorMiddleware');
+const reviewRoutes = require('./ui/routes/public/reviewRoutes');
 
 const app = express();
 
@@ -22,5 +23,6 @@ app.use('/api/packages', packageRoutes);
 app.use('/api/mascots', mascotRoutes);
 
 app.use(errorMiddleware);
+app.use('/api/reviews', reviewRoutes);
 
 module.exports = app;

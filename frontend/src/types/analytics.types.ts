@@ -1,1 +1,6 @@
-export default function Placeholder(){return <div>Placeholder</div>}
+export interface DashboardStats {
+  totalBookings: number;
+  totalPackages: number;
+  totalMascots: number;
+  totalReviews: number;
+}

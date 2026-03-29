@@ -1,4 +1,8 @@
-import axios from 'axios';
+import axios, {
+  AxiosError,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from 'axios';
 import { STORAGE_KEYS } from '../../utils/constants';
 
 const axiosInstance = axios.create({
@@ -9,7 +13,7 @@ const axiosInstance = axios.create({
 });
 
 axiosInstance.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
 
     if (token) {
@@ -18,23 +22,12 @@ axiosInstance.interceptors.request.use(
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error: AxiosError) => Promise.reject(error)
 );
 
 axiosInstance.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error?.response?.status === 401) {
-      localStorage.removeItem(STORAGE_KEYS.TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.USER);
-
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
-      }
-    }
-
-    return Promise.reject(error);
-  }
+  (response: AxiosResponse) => response,
+  (error: AxiosError) => Promise.reject(error)
 );
 
 export default axiosInstance;

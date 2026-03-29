@@ -9,7 +9,9 @@ export default function GuestRoute() {
   }
 
   if (isAuthenticated) {
-    if (user?.role === 'admin' || user?.role === 'staff') {
+    const normalizedRole = user?.role?.toLowerCase();
+
+    if (normalizedRole === 'admin' || normalizedRole === 'staff') {
       return <Navigate to="/admin/dashboard" replace />;
     }
 
