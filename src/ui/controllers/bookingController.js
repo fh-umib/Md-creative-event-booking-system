@@ -1,4 +1,4 @@
-const bookingService = require("../../services/bookingService");
+const bookingService = require('../../services/bookingService');
 
 class BookingController {
   async getAll(req, res) {

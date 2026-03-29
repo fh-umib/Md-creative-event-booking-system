@@ -1,82 +1,115 @@
 const fs = require('fs');
 const path = require('path');
-const IRepository = require('./IRepository');
 
-class FileRepository extends IRepository {
+class FileRepository {
   constructor(filePath) {
-    super();
     this.filePath = filePath;
-    this.items = this.loadFromFile();
+
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    if (!fs.existsSync(filePath)) {
+      fs.writeFileSync(filePath, '');
+    }
   }
 
-  loadFromFile() {
-    try {
-      if (!fs.existsSync(this.filePath)) {
-        return [];
-      }
+  readRaw() {
+    return fs.readFileSync(this.filePath, 'utf-8');
+  }
 
-      const data = fs.readFileSync(this.filePath, 'utf8').trim();
+  writeRaw(content) {
+    fs.writeFileSync(this.filePath, content, 'utf-8');
+  }
 
-      if (!data) {
-        return [];
-      }
+  parseCSV(content) {
+    if (!content.trim()) return [];
 
-      const lines = data.split('\n');
-      const headers = lines[0].split(',');
+    const lines = content.trim().split('\n');
+    const headers = this.parseCSVLine(lines[0]);
 
-      return lines.slice(1).map((line) => {
-        const values = line.split(',');
-        const item = {};
+    return lines.slice(1).map((line) => {
+      const values = this.parseCSVLine(line);
+      const item = {};
 
-        headers.forEach((header, index) => {
-          item[header.trim()] = values[index] ? values[index].trim() : '';
-        });
-
-        return item;
+      headers.forEach((header, index) => {
+        item[header] = values[index] ?? '';
       });
-    } catch (error) {
-      console.error('Error reading CSV file:', error.message);
-      return [];
+
+      return item;
+    });
+  }
+
+  parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let insideQuotes = false;
+
+    for (let i = 0; i < line.length; i += 1) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+
+      if (char === '"') {
+        if (insideQuotes && nextChar === '"') {
+          current += '"';
+          i += 1;
+        } else {
+          insideQuotes = !insideQuotes;
+        }
+      } else if (char === ',' && !insideQuotes) {
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
     }
+
+    result.push(current);
+    return result;
+  }
+
+  stringifyCSV(items) {
+    if (!items.length) return '';
+
+    const headers = Object.keys(items[0]);
+    const headerLine = headers.join(',');
+
+    const rows = items.map((item) =>
+      headers
+        .map((header) => this.escapeCSVValue(item[header]))
+        .join(',')
+    );
+
+    return [headerLine, ...rows].join('\n');
+  }
+
+  escapeCSVValue(value) {
+    const stringValue = value === undefined || value === null ? '' : String(value);
+
+    if (
+      stringValue.includes(',') ||
+      stringValue.includes('"') ||
+      stringValue.includes('\n')
+    ) {
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+
+    return stringValue;
   }
 
   getAll() {
-    return this.items;
+    const content = this.readRaw();
+    return this.parseCSV(content);
   }
 
   getById(id) {
-    return this.items.find((item) => String(item.id) === String(id)) || null;
+    return this.getAll().find((item) => String(item.id) === String(id)) || null;
   }
 
-  add(entity) {
-    this.items.push(entity);
-    this.save();
-    return entity;
-  }
-
-  save() {
-    try {
-      const dir = path.dirname(this.filePath);
-
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-      }
-
-      if (this.items.length === 0) {
-        fs.writeFileSync(this.filePath, '');
-        return;
-      }
-
-      const headers = Object.keys(this.items[0]);
-      const rows = this.items.map((item) =>
-        headers.map((header) => item[header] ?? '').join(',')
-      );
-
-      const csvContent = [headers.join(','), ...rows].join('\n');
-      fs.writeFileSync(this.filePath, csvContent, 'utf8');
-    } catch (error) {
-      console.error('Error saving CSV file:', error.message);
-    }
+  save(items) {
+    const csv = this.stringifyCSV(items);
+    this.writeRaw(csv);
   }
 }
 

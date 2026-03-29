@@ -1,43 +1,85 @@
-const pool = require('../db/db');
+const path = require('path');
+const FileRepository = require('./FileRepository');
+const Package = require('../../models/Package');
 
-class PackageRepository {
-  async getAll() {
-    const result = await pool.query(
-      'SELECT * FROM packages WHERE is_active = TRUE ORDER BY id DESC'
-    );
-    return result.rows;
+class FilePackageRepository extends FileRepository {
+  constructor(filePath) {
+    super(filePath);
   }
 
-  async getById(id) {
-    const result = await pool.query(
-      'SELECT * FROM packages WHERE id = $1 LIMIT 1',
-      [id]
-    );
-    return result.rows[0] || null;
+  getAll() {
+    return super.getAll().map((item) => this.mapToPackage(item));
   }
 
-  async create(pkg) {
-    const query = `
-      INSERT INTO packages (
-        title, description, category, duration_minutes,
-        min_mascots, max_mascots, base_price, is_active
-      )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *;
-    `;
-    const values = [
-      pkg.title,
-      pkg.description,
-      pkg.category,
-      pkg.durationMinutes,
-      pkg.minMascots,
-      pkg.maxMascots,
-      pkg.basePrice,
-      pkg.isActive
-    ];
-    const result = await pool.query(query, values);
-    return result.rows[0];
+  getById(id) {
+    const item = super.getById(id);
+    return item ? this.mapToPackage(item) : null;
+  }
+
+  add(data) {
+    const items = super.getAll();
+
+    const newItem = {
+      id:
+        items.length > 0
+          ? Math.max(...items.map((item) => Number(item.id) || 0)) + 1
+          : 1,
+      name: data.name,
+      description: data.description || '',
+      price: Number(data.price),
+      imageUrl: data.imageUrl || '',
+      isActive: data.isActive !== undefined ? String(data.isActive) : 'true',
+    };
+
+    items.push(newItem);
+    this.save(items);
+
+    return this.mapToPackage(newItem);
+  }
+
+  update(id, updatedData) {
+    const items = super.getAll();
+    const index = items.findIndex((item) => String(item.id) === String(id));
+
+    if (index === -1) {
+      return null;
+    }
+
+    items[index] = {
+      ...items[index],
+      ...updatedData,
+      id: items[index].id,
+    };
+
+    this.save(items);
+    return this.mapToPackage(items[index]);
+  }
+
+  delete(id) {
+    const items = super.getAll();
+    const index = items.findIndex((item) => String(item.id) === String(id));
+
+    if (index === -1) {
+      return false;
+    }
+
+    items.splice(index, 1);
+    this.save(items);
+    return true;
+  }
+
+  mapToPackage(item) {
+    return new Package({
+      id: Number(item.id),
+      name: item.name,
+      description: item.description,
+      price: Number(item.price),
+      imageUrl: item.imageUrl || '',
+      isActive: String(item.isActive).toLowerCase() === 'true',
+    });
   }
 }
 
-module.exports = new PackageRepository();
+module.exports = new FilePackageRepository(
+  path.join(__dirname, '../storage/packages.csv')
+);

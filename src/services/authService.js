@@ -1,45 +1,53 @@
 const bcrypt = require('bcrypt');
-const userRepository = require('../data/repositories/userRepository');
+const path = require('path');
 const generateToken = require('../utils/generateToken');
+const FileStaffRepository = require('../data/repositories/FileStaffRepository');
+
+const userRepository = new FileStaffRepository(
+  path.join(__dirname, '../data/storage/staff.json')
+);
 
 class AuthService {
   async register(data) {
-    const existingUser = await userRepository.findByEmail(data.email);
+    const existingUser = userRepository.findByEmail(data.email);
+
     if (existingUser) {
       throw new Error('Email already exists');
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);
 
-    const user = await userRepository.create({
+    const user = userRepository.create({
       fullName: data.fullName,
       email: data.email,
       passwordHash,
       phone: data.phone || null,
-      role: data.role || 'Client',
-      isActive: true
+      role: data.role || 'Admin',
+      isActive: true,
     });
 
     return {
       user,
-      token: generateToken(user)
+      token: generateToken(user),
     };
   }
 
   async login(data) {
-    const user = await userRepository.findByEmail(data.email);
+    const user = userRepository.findByEmail(data.email);
+
     if (!user) {
       throw new Error('Invalid credentials');
     }
 
-    const validPassword = await bcrypt.compare(data.password, user.password_hash);
+    const validPassword = await bcrypt.compare(data.password, user.passwordHash);
+
     if (!validPassword) {
       throw new Error('Invalid credentials');
     }
 
     return {
       user,
-      token: generateToken(user)
+      token: generateToken(user),
     };
   }
 }

@@ -1,0 +1,6 @@
+id,name,description,price,imageUrl,isActive
+2,Party Fun,Fun package with mascot and activities,149,https://example.com/package2.jpg,true
+3,Kids Celebration,Colorful celebration package for children,179,https://example.com/package3.jpg,true
+4,Premium Event,Premium package for larger birthday parties,249,https://example.com/package4.jpg,true
+5,Mini Party,Affordable package for small family celebrations,79,https://example.com/package5.jpg,true
+6,Birthday Basic,Simple birthday package for small events,99,https://example.com/package.jpg,true

@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "fullName": "Flutura Hyseni",
+    "email": "flutura.hyseni@umib.net",
+    "passwordHash": "$2b$10$HpscEyNOEQXBOWHFJbsgOOp.GXz9ryM8TFwCa5.RSoZrKEVrdB9l.",
+    "phone": null,
+    "role": "Admin",
+    "isActive": true,
+    "createdAt": "2026-03-29T00:00:00.000Z"
+  }
+]
