@@ -1,7 +1,6 @@
-id,name,characterName,theme,description,price,durationMinutes,minAge,maxAge,isAvailable,image
-1,Spiderman,Superhero,Marvel,Popular superhero mascot for birthday events,90,60,4,12,true,https://images.unsplash.com/photo-1519340333755-c1aa5571fd46?auto=format&fit=crop&w=900&q=80
-2,Elsa,Princess,Frozen,Frozen princess mascot for girls parties,85,60,3,10,true,https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=900&q=80
-3,Batman,Superhero,DC,Dark knight themed mascot for action parties,95,60,5,12,false,https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=900&q=80
-4,Anna,Princess,Frozen,Fun and friendly princess mascot for kids,80,60,3,10,true,https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=900&q=80
-5,Captain America,Superhero,Marvel,Hero mascot for themed birthday celebrations,100,60,5,12,false,https://images.unsplash.com/photo-1511988617509-a57c8a288659?auto=format&fit=crop&w=900&q=80
-6,Mickey Mouse,Classic,Disney,Classic mascot loved by all children,88,60,2,10,true,https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=900&q=80
+id,name,description,price,imageUrl,isActive
+2,Elsa,Frozen princess mascot for girls parties,85,https://example.com/elsa.jpg,true
+3,Mickey Mouse,Classic mascot for kids celebrations,80,https://example.com/mickey.jpg,true
+4,Minion,Funny mascot loved by children,75,https://example.com/minion.jpg,true
+5,Batman,Hero mascot for themed birthday parties,95,https://example.com/batman.jpg,true
+6,Birthday Basic,Simple birthday package for small events,99,https://example.com/package.jpg,true

@@ -1,32 +1,18 @@
 class Mascot {
   constructor({
-    id = null,
+    id,
     name,
-    characterName,
-    theme = null,
-    description = "",
-    price = 0,
-    durationMinutes = 60,
-    minAge = null,
-    maxAge = null,
-    isAvailable = true,
-    image = "",
-    createdAt = null,
-    updatedAt = null,
+    description,
+    price,
+    imageUrl = '',
+    isActive = true,
   }) {
-    this.id = id;
+    this.id = Number(id);
     this.name = name;
-    this.characterName = characterName;
-    this.theme = theme;
-    this.description = description;
-    this.price = price;
-    this.durationMinutes = durationMinutes;
-    this.minAge = minAge;
-    this.maxAge = maxAge;
-    this.isAvailable = isAvailable;
-    this.image = image;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
+    this.description = description || '';
+    this.price = Number(price);
+    this.imageUrl = imageUrl || '';
+    this.isActive = Boolean(isActive);
   }
 }
 

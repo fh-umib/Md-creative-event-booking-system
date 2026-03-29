@@ -1,138 +1,90 @@
-const path = require("path");
-const Mascot = require("../models/Mascot");
-const FileMascotRepository = require("../data/repositories/FileMascotRepository");
+const fileMascotRepository = require('../data/repositories/FileMascotRepository');
 
 class MascotService {
-  constructor(repository) {
-    this.repository = repository;
+  constructor(mascotRepository) {
+    this.mascotRepository = mascotRepository;
   }
 
-  list(filter = {}) {
-    let mascots = this.repository.getAll();
+  listMascots(filters = {}) {
+    let mascots = this.mascotRepository.getAll();
 
-    if (filter.isAvailable !== undefined && filter.isAvailable !== "") {
-      const availability =
-        String(filter.isAvailable).toLowerCase() === "true";
-      mascots = mascots.filter((item) => item.isAvailable === availability);
-    }
-
-    if (filter.theme) {
-      mascots = mascots.filter(
-        (item) =>
-          item.theme &&
-          item.theme.toLowerCase().includes(String(filter.theme).toLowerCase())
+    if (filters.name) {
+      mascots = mascots.filter((item) =>
+        item.name.toLowerCase().includes(filters.name.toLowerCase())
       );
     }
 
-    if (filter.characterName) {
-      mascots = mascots.filter((item) =>
-        item.characterName
-          .toLowerCase()
-          .includes(String(filter.characterName).toLowerCase())
+    if (filters.maxPrice) {
+      mascots = mascots.filter(
+        (item) => Number(item.price) <= Number(filters.maxPrice)
       );
     }
 
     return mascots;
   }
 
-  getById(id) {
-    const mascot = this.repository.getById(id);
+  getMascotById(id) {
+    const item = this.mascotRepository.getById(id);
 
-    if (!mascot) {
-      throw new Error("Mascot not found");
+    if (!item) {
+      throw new Error('Mascot not found');
     }
 
-    return mascot;
+    return item;
   }
 
-  add(data) {
-    this.validateMascot(data);
+  createMascot(data) {
+    if (!data.name || !data.name.trim()) {
+      throw new Error('Mascot name is required');
+    }
 
-    const allMascots = this.repository.getAll();
-    const nextId =
-      allMascots.length > 0
-        ? Math.max(...allMascots.map((item) => Number(item.id))) + 1
-        : 1;
+    if (data.price === undefined || Number(data.price) <= 0) {
+      throw new Error('Mascot price must be greater than 0');
+    }
 
-    const mascot = new Mascot({
-      id: nextId,
+    return this.mascotRepository.add({
       name: data.name.trim(),
-      characterName: data.characterName.trim(),
-      theme: data.theme ? data.theme.trim() : null,
-      description: data.description ? data.description.trim() : "",
+      description: data.description || '',
       price: Number(data.price),
-      durationMinutes: data.durationMinutes ? Number(data.durationMinutes) : 60,
-      minAge: data.minAge ? Number(data.minAge) : null,
-      maxAge: data.maxAge ? Number(data.maxAge) : null,
-      isAvailable:
-        typeof data.isAvailable === "boolean"
-          ? data.isAvailable
-          : String(data.isAvailable).toLowerCase() === "true",
-      image: data.image ? data.image.trim() : "",
+      imageUrl: data.imageUrl || '',
+      isActive: data.isActive !== undefined ? data.isActive : true,
     });
-
-    return this.repository.add(mascot);
   }
 
-  update(id, data) {
-    const existingMascot = this.repository.getById(id);
-
-    if (!existingMascot) {
-      throw new Error("Mascot not found");
+  updateMascot(id, data) {
+    if (!data.name || !data.name.trim()) {
+      throw new Error('Mascot name is required');
     }
 
-    const mergedData = {
-      ...existingMascot,
-      ...data,
-    };
+    if (data.price === undefined || Number(data.price) <= 0) {
+      throw new Error('Mascot price must be greater than 0');
+    }
 
-    this.validateMascot(mergedData);
-
-    return this.repository.update(id, {
-      name: mergedData.name.trim(),
-      characterName: mergedData.characterName.trim(),
-      theme: mergedData.theme ? mergedData.theme.trim() : null,
-      description: mergedData.description ? mergedData.description.trim() : "",
-      price: Number(mergedData.price),
-      durationMinutes: mergedData.durationMinutes
-        ? Number(mergedData.durationMinutes)
-        : 60,
-      minAge: mergedData.minAge ? Number(mergedData.minAge) : null,
-      maxAge: mergedData.maxAge ? Number(mergedData.maxAge) : null,
-      isAvailable:
-        typeof mergedData.isAvailable === "boolean"
-          ? mergedData.isAvailable
-          : String(mergedData.isAvailable).toLowerCase() === "true",
-      image: mergedData.image ? mergedData.image.trim() : "",
+    const updated = this.mascotRepository.update(id, {
+      name: data.name.trim(),
+      description: data.description || '',
+      price: Number(data.price),
+      imageUrl: data.imageUrl || '',
+      isActive: data.isActive !== undefined ? String(data.isActive) : 'true',
     });
+
+    if (!updated) {
+      throw new Error('Mascot not found');
+    }
+
+    return updated;
   }
 
-  delete(id) {
-    const deleted = this.repository.delete(id);
+  deleteMascot(id) {
+    const deleted = this.mascotRepository.delete(id);
 
     if (!deleted) {
-      throw new Error("Mascot not found");
+      throw new Error('Mascot not found');
     }
 
-    return true;
-  }
-
-  validateMascot(data) {
-    if (!data.name || String(data.name).trim() === "") {
-      throw new Error("Name is required");
-    }
-
-    if (!data.characterName || String(data.characterName).trim() === "") {
-      throw new Error("Character name is required");
-    }
-
-    if (Number(data.price) <= 0 || Number.isNaN(Number(data.price))) {
-      throw new Error("Price must be greater than 0");
-    }
+    return { message: 'Mascot deleted successfully' };
   }
 }
 
-const filePath = path.join(__dirname, "../data/storage/mascots.csv");
-const repository = new FileMascotRepository(filePath);
-
-module.exports = new MascotService(repository);
+module.exports = new MascotService(fileMascotRepository);
+module.exports.MascotService = MascotService;

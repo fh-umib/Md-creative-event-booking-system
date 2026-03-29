@@ -1,5 +1,6 @@
-const FileRepository = require("./FileRepository");
-const Mascot = require("../../models/Mascot");
+const path = require('path');
+const FileRepository = require('./FileRepository');
+const Mascot = require('../../models/Mascot');
 
 class FileMascotRepository extends FileRepository {
   constructor(filePath) {
@@ -15,40 +16,55 @@ class FileMascotRepository extends FileRepository {
     return item ? this.mapToMascot(item) : null;
   }
 
-  add(entity) {
-    const mascot = entity instanceof Mascot ? entity : new Mascot(entity);
-    return super.add(this.mapToPlainObject(mascot));
+  add(data) {
+    const items = super.getAll();
+
+    const newItem = {
+      id:
+        items.length > 0
+          ? Math.max(...items.map((item) => Number(item.id) || 0)) + 1
+          : 1,
+      name: data.name,
+      description: data.description || '',
+      price: Number(data.price),
+      imageUrl: data.imageUrl || '',
+      isActive: data.isActive !== undefined ? String(data.isActive) : 'true',
+    };
+
+    items.push(newItem);
+    this.save(items);
+
+    return this.mapToMascot(newItem);
   }
 
   update(id, updatedData) {
-    const index = this.items.findIndex((item) => String(item.id) === String(id));
+    const items = super.getAll();
+    const index = items.findIndex((item) => String(item.id) === String(id));
 
     if (index === -1) {
       return null;
     }
 
-    const updatedMascot = {
-      ...this.items[index],
+    items[index] = {
+      ...items[index],
       ...updatedData,
-      id: this.items[index].id,
+      id: items[index].id,
     };
 
-    this.items[index] = updatedMascot;
-    this.save();
-
-    return this.mapToMascot(updatedMascot);
+    this.save(items);
+    return this.mapToMascot(items[index]);
   }
 
   delete(id) {
-    const index = this.items.findIndex((item) => String(item.id) === String(id));
+    const items = super.getAll();
+    const index = items.findIndex((item) => String(item.id) === String(id));
 
     if (index === -1) {
       return false;
     }
 
-    this.items.splice(index, 1);
-    this.save();
-
+    items.splice(index, 1);
+    this.save(items);
     return true;
   }
 
@@ -56,33 +72,14 @@ class FileMascotRepository extends FileRepository {
     return new Mascot({
       id: Number(item.id),
       name: item.name,
-      characterName: item.characterName,
-      theme: item.theme || null,
-      description: item.description || "",
+      description: item.description,
       price: Number(item.price),
-      durationMinutes: Number(item.durationMinutes),
-      minAge: item.minAge ? Number(item.minAge) : null,
-      maxAge: item.maxAge ? Number(item.maxAge) : null,
-      isAvailable: String(item.isAvailable).toLowerCase() === "true",
-      image: item.image || "",
+      imageUrl: item.imageUrl || '',
+      isActive: String(item.isActive).toLowerCase() === 'true',
     });
-  }
-
-  mapToPlainObject(mascot) {
-    return {
-      id: mascot.id,
-      name: mascot.name,
-      characterName: mascot.characterName,
-      theme: mascot.theme,
-      description: mascot.description,
-      price: mascot.price,
-      durationMinutes: mascot.durationMinutes,
-      minAge: mascot.minAge,
-      maxAge: mascot.maxAge,
-      isAvailable: mascot.isAvailable,
-      image: mascot.image || "",
-    };
   }
 }
 
-module.exports = FileMascotRepository;
+module.exports = new FileMascotRepository(
+  path.join(__dirname, '../storage/mascots.csv')
+);
