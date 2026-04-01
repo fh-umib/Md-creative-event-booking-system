@@ -1,256 +1,282 @@
-# Sprint 2 Plan — Flutura Hyseni
+# Sprint 2 Plan — Flutura Hyseni  
 
-## Gjendja Aktuale
+## 1. Current Project Status
 
-MD Creative – Smart Event & Booking Management System është një projekt full-stack i ndërtuar për menaxhimin e rezervimeve të eventeve, paketave të argëtimit, mascot characters, shërbimeve shtesë dhe koordinimit të stafit. Projekti synon të shndërrohet në një sistem të plotë, funksional dhe të përdorshëm në praktikë, jo vetëm në një demonstrim strukturor.
+**MD Creative – Smart Event & Booking Management System** is a full-stack project designed to manage event bookings, entertainment packages, mascot characters, extra services, and staff coordination. The long-term goal of the project is to become a complete, functional, and deployable real-world system rather than only a structural academic prototype.
 
-Në këtë fazë, projekti ka tashmë bazë të fortë teknike, organizim të qartë arkitekturor dhe dokumentim profesional.
+At this stage, the project already has a strong technical foundation, a clear layered architecture, and professional documentation.
 
-### Çka funksionon tani?
-Deri tani janë realizuar dhe organizuar këto pjesë kryesore:
+### What currently works?
 
-- është krijuar repository kryesor i projektit me ndarje të qartë mes backend dhe frontend
-- ekziston një frontend i ndërtuar me React, TypeScript dhe Vite
-- ekziston një backend i ndërtuar me Node.js dhe Express
-- është planifikuar dhe përdorur PostgreSQL si pjesë e stack-ut kryesor të backend-it
-- backend-i është i organizuar me layered architecture
-- projekti ka ndarje të qartë në:
-  - `models`
-  - `services`
-  - `data`
-  - `ui`
-  - `utils`
-- është ngritur Express server setup dhe konfigurimi bazë i aplikacionit
-- janë krijuar themelet e authentication dhe booking service structure
-- është organizuar repository layer
-- është demonstruar Repository Pattern përmes:
-  - `IRepository`
-  - `FileRepository`
-  - `FileBookingRepository`
-- projekti përdor qasje hibride të persistence:
-  - PostgreSQL repositories për logjikën kryesore të backend-it
-  - CSV/file persistence për demonstrim të Repository Pattern
-- projekti përmban dokumentim teknik në folderin `docs`
-- dokumentimi aktual përfshin pjesë të arkitekturës, class diagram dhe materiale shpjeguese
-- README është i strukturuar dhe e përshkruan qartë:
-  - qëllimin e sistemit
-  - features kryesore
-  - planned system features
-  - tech stack-un
-  - project structure
-  - backend architecture
-  - repository pattern
-  - current status
-
-### Çka është përfunduar deri tani?
-Bazuar në gjendjen aktuale të projektit, pjesët e përfunduara ose të ngritura qartë janë:
-
-- backend project structure
-- frontend project structure
-- layered backend architecture
-- Express server setup
-- authentication and booking service structure
-- repository layer organization
-- Repository Pattern demonstration with CSV support
-- UML documentation
-- architecture documentation
-
-### Çka nuk është përfunduar ende plotësisht?
-Edhe pse projekti starton dhe ka bazë funksionale, ende ka disa pjesë që kërkojnë kompletim dhe stabilizim në nivel final:
-
-- frontend UI duhet të rregullohet dhe të finalizohet më mirë
-- integrimi frontend-backend duhet të përfundohet në rrjedhat kryesore
-- authentication duhet të zgjerohet dhe të forcohet
-- booking workflow duhet të bëhet i plotë nga fundi në fund
-- database CRUD me PostgreSQL duhet të kompletohet
-- validimet dhe error handling duhet të unifikohen në të gjitha shtresat
-- modulet shtesë të biznesit dhe reporting duhet të avancohen
-- unit tests ende nuk e mbulojnë nivelin e kërkuar për sprintin
-- deploy publik për përdorim në pajisje të ndryshme ende nuk është bërë
-
-### A kompajlohet dhe ekzekutohet programi?
-- Po. Projekti starton pa problem, por ende nuk është full funksional në çdo modul dhe në çdo rrjedhë reale përdorimi.
+| Area | Current Status |
+|---|---|
+| Repository Structure | The project repository is clearly separated into frontend and backend parts |
+| Frontend | A frontend application exists using React, TypeScript, and Vite |
+| Backend | A backend application exists using Node.js and Express |
+| Database Direction | PostgreSQL is planned and used as a core part of the backend stack |
+| Architecture | The backend follows a layered architecture |
+| Layer Separation | The project is clearly divided into `models`, `services`, `data`, `ui`, and `utils` |
+| Server Setup | Express server setup and base application configuration are in place |
+| Authentication | Initial authentication structure has been prepared |
+| Booking Logic | Initial booking service structure has been prepared |
+| Repository Layer | Repository layer organization is already established |
+| Repository Pattern | The project demonstrates the Repository Pattern using `IRepository`, `FileRepository`, and `FileBookingRepository` |
+| Persistence Strategy | The project uses a hybrid persistence approach: PostgreSQL repositories for the main backend logic and CSV/file persistence for academic demonstration |
+| Documentation | The `docs` folder contains technical documentation |
+| README | The README clearly describes the system purpose, features, planned features, tech stack, project structure, backend architecture, repository pattern, and current status |
 
 ---
 
-## Plani i Sprintit
+## 2. What Has Been Completed So Far
 
-Qëllimi i Sprint 2 është që projekti të kalojë nga një bazë e mirë teknike dhe arkitekturore në një version shumë më të plotë, të integruar dhe të demonstrueshëm si sistem real.
-
-Ky sprint do të fokusohet në një **feature kryesore end-to-end**, si dhe në disa përmirësime mbështetëse që e afrojnë projektin drejt një aplikacioni full funksional.
-
-### Feature e Re (feature kryesore e sprintit)
-Feature kryesore e këtij sprinti do të jetë **krijimi i një rezervimi të ri (Create Booking)** në mënyrë të plotë dhe funksionale nga frontend deri në databazë.
-
-#### Përshkrimi i feature-it
-Qëllimi është që përdoruesi të mund të plotësojë një formë rezervimi në frontend dhe sistemi ta ruajë rezervimin me sukses në PostgreSQL, duke kaluar në mënyrë të rregullt nëpër shtresat e aplikacionit.
-
-#### Rrjedha e plotë e feature-it
-- **UI / Frontend:** përdoruesi plotëson formën e rezervimit me të dhënat përkatëse
-- **API / Controller:** kërkesa dërgohet nga frontend te endpoint-i për krijimin e rezervimit
-- **Service:** bëhet validimi i të dhënave dhe logjika e biznesit për krijimin e rezervimit
-- **Repository:** të dhënat ruhen në PostgreSQL
-- **Response back to UI:** sistemi kthen përgjigje suksesi ose gabimi dhe frontend shfaq mesazhin përkatës për përdoruesin
-
-#### Çka do të përfshijë kjo feature?
-- formë funksionale për krijimin e rezervimit në frontend
-- lidhje reale të formës me backend API
-- validim të inputeve para ruajtjes
-- ruajtje reale të të dhënave në PostgreSQL
-- mesazh suksesi nëse rezervimi krijohet me sukses
-- mesazh i qartë gabimi nëse inputi është jo valid ose nëse ruajtja dështon
-
-#### Pse kjo është feature kryesore?
-Kjo feature përfaqëson funksionalitetin më të rëndësishëm të sistemit, sepse booking workflow është pjesa qendrore e projektit MD Creative. Për këtë arsye, implementimi i kësaj rrjedhe nga fillimi deri në fund do të jetë fokusi kryesor i sprintit dhe demonstrimi kryesor i arkitekturës **UI → Service → Repository**.
+| Completed Part | Notes |
+|---|---|
+| Backend project structure | Established and organized |
+| Frontend project structure | Established and organized |
+| Layered backend architecture | Implemented as the main design approach |
+| Express server setup | Configured and running |
+| Authentication and booking service structure | Initial structure exists |
+| Repository layer organization | Clearly separated and designed |
+| Repository Pattern with CSV support | Demonstrated for academic and architectural purposes |
+| UML documentation | Prepared |
+| Architecture documentation | Prepared |
 
 ---
 
-### Përmirësime dhe objektiva mbështetëse të sprintit
+## 3. What Is Not Fully Completed Yet
 
-#### 1. PostgreSQL CRUD Completion
-Përveç feature-it kryesor, një nga objektivat kryesore të këtij sprinti është kompletimi i CRUD operacioneve me PostgreSQL për entitetet kryesore të sistemit.
+Even though the project starts correctly and already has a solid base, several parts still need to be completed and stabilized at a final level.
 
-##### Çka do të bëj?
-- do të përfundoj lidhjen reale të backend-it me PostgreSQL aty ku kërkohet CRUD funksional
-- do të siguroj që repository-t e databazës të përdoren në mënyrë të rregullt për:
-  - krijim
-  - lexim
-  - përditësim
-  - fshirje
-- do të përmirësoj rrjedhën `controller → service → repository → database`
-- do të plotësoj pjesët që janë ende vetëm strukturë me implementim real funksional
+| Incomplete / In Progress Part | What still needs improvement |
+|---|---|
+| Frontend UI | Needs refinement, cleanup, and better usability |
+| Frontend–Backend Integration | Needs to be completed across the main workflows |
+| Authentication | Needs to be expanded and strengthened |
+| Booking Workflow | Needs to be completed end-to-end |
+| PostgreSQL CRUD | Needs to be fully implemented |
+| Validation and Error Handling | Needs to be unified across all layers |
+| Business / Reporting Modules | Need further development |
+| Unit Testing | Minimum sprint testing requirements are not yet fully covered |
+| Public Deployment | The project is not yet deployed for cross-device access |
 
-#### 2. Frontend UI Finalization
-Në këtë sprint do të fokusohem edhe në rregullimin dhe finalizimin e frontend-it.
-
-##### Çka do të përfshijë kjo?
-- rregullim të layout-it dhe strukturës së faqeve kryesore
-- përmirësim të formave dhe inputeve
-- organizim më të pastër të komponenteve
-- përmirësim të përdorshmërisë dhe qartësisë vizuale
-- shfaqje më profesionale të të dhënave për përdoruesin
-- trajtim më të mirë të loading, empty dhe error states
-
-#### 3. Frontend–Backend API Integration
-Një pjesë shumë e rëndësishme e sprintit do të jetë integrimi më i plotë i frontend-it me backend-in.
-
-##### Çka do të bëj?
-- do të lidh format dhe komponentët e frontend-it me API routes të backend-it
-- do të siguroj që të dhënat reale të vijnë nga backend-i dhe databaza
-- do të rregulloj request/response flow në rrjedhat kryesore
-- do të përmirësoj mënyrën si UI reagon ndaj përgjigjeve të backend-it
-
-#### 4. Authentication Expansion
-Authentication tashmë ekziston si strukturë, por në sprint do ta zgjeroj dhe forcoj këtë pjesë.
-
-##### Çka do të përfshijë kjo?
-- validim më i mirë i login/register flows
-- kontroll më i mirë i kredencialeve
-- trajtim më i qartë i rasteve kur qasja refuzohet
-- përmirësim të mbrojtjes së routes sipas nevojës së projektit
-- përgatitje më të mirë për role-based access, nëse kjo pjesë arrin të përfshihet në sprint
-
-#### 5. Booking Workflow Improvements
-Meqenëse booking management është pjesa qendrore e sistemit, ky sprint do të fokusohet edhe në përmirësimin e workflow të rezervimeve.
-
-##### Çka do të bëj?
-- do ta bëj rrjedhën e krijimit dhe menaxhimit të rezervimeve më të plotë
-- do të lidh rezervimin me entitetet relevante si packages, mascots dhe extras aty ku është planifikuar nga sistemi
-- do të shtoj validime më të mira për të dhënat e rezervimit
-- do të trajtoj rastet kur rezervimi nuk mund të krijohet ose kur mungojnë të dhëna
-- do të përmirësoj logjikën nga inputi i userit deri te ruajtja e rezervimit
-
-#### 6. Search / Filter dhe përdorshmëri më e mirë
-Për ta bërë sistemin më praktik për përdoruesin, do të shtoj ose përmirësoj funksionalitete kërkimi dhe filtrimi.
-
-##### Çka do të përfshijë kjo?
-- kërkim sipas emrit për iteme, paketa ose rezervime
-- filtrim më i lehtë në listat ekzistuese
-- paraqitje më e qartë e rezultateve
-- mesazhe të kuptueshme kur nuk gjendet asnjë rezultat
-
-#### 7. Deployment
-Në fund të sprintit synoj që projekti të vendoset online në mënyrë që të jetë i qasshëm nga pajisje të ndryshme dhe nga përdorues të tjerë.
-
-##### Çka synoj?
-- deploy të frontend-it në një platformë si Vercel ose zgjidhje të ngjashme
-- deploy të backend-it në një platformë të përshtatshme
-- konfigurim korrekt të environment variables
-- lidhje të saktë mes frontend-it të deploy-uar dhe backend-it
-- testim të funksionaliteteve kryesore pas deploy-it
+### Does the project compile and run?
+**Yes.** The project starts successfully, but it is not yet fully functional in every module and in every real usage flow.
 
 ---
 
-## Error Handling (çka do të shtosh)
+## 4. Sprint Goal
 
-Një nga synimet kryesore të këtij sprinti është që aplikacioni të mos crashojë dhe të japë gjithmonë mesazhe të qarta për përdoruesin.
+The goal of **Sprint 2** is to move the project from a strong architectural and structural foundation to a more complete, integrated, and demonstrable real-world application.
 
-### Rastet konkrete që do t’i trajtoj
-1. database / file read-write errors  
-2. input validation errors  
-3. missing resource / not found errors  
-4. authentication / authorization errors  
-5. API response errors ndërmjet frontend-it dhe backend-it  
-
-### Ku do ta shtoj?
-- në Repository: për operacione me database dhe file
-- në Service: për validim, business rules dhe logjikë
-- në UI / Frontend: për inpute, forma dhe mesazhe
-- në API layer: për request/response handling
-
-### Shembuj konkretë të error handling
-- nëse përdoruesi dërgon formë rezervimi me fusha të zbrazëta, sistemi nuk e ruan rezervimin dhe frontend shfaq mesazh si: `Ju lutem plotësoni të gjitha fushat e detyrueshme`
-- nëse kërkohet një booking ID që nuk ekziston, backend kthen përgjigje `404 Not Found`, ndërsa UI shfaq mesazh si: `Rezervimi nuk u gjet`
-- nëse ndodh problem gjatë ruajtjes në databazë, sistemi kthen mesazh të kontrolluar dhe aplikacioni nuk crashon
-- nëse useri jep kredenciale të pasakta, sistemi nuk lejon hyrjen dhe shfaq mesazh të qartë pa e ndërprerë aplikacionin
-
-### Qëllimi
-Që sistemi të vazhdojë ekzekutimin, të mos mbyllet dhe të komunikojë qartë edhe kur ndodhin gabime.
+This sprint will focus on **one main end-to-end feature**, supported by several additional improvements that move the project closer to becoming fully functional.
 
 ---
 
-## Teste (çka do të testosh)
+## 5. Main New Feature
 
-Në këtë sprint do të shtoj testim automatik për pjesët më të rëndësishme që implementohen ose përmirësohen.
+## **Create a New Booking (Main Sprint Feature)**
 
-### Metodat / rrjedhat që do të testohen
-- service methods që lidhen me krijimin e rezervimit
-- booking-related logic
-- authentication methods
-- search/filter methods
-- validime për input jo valid
-- rrjedha bazë e përgjigjeve të sistemit në raste gabimi
+The main feature of this sprint will be the **creation of a new booking** in a complete and functional way from the frontend all the way to the database.
 
-### Rastet që do të kontrollohen
-1. rast normal — rezervimi krijohet me sukses dhe ruhet në databazë  
-2. rast negativ — rezervimi dështon sepse mungojnë të dhënat ose entiteti nuk ekziston  
-3. rast kufitar — input bosh, input jo valid, data jo e plotë  
-4. rast error — dështim në database, file layer ose API flow  
+### Feature Description
+The goal is to allow the user to fill out a booking form in the frontend and save that booking successfully in PostgreSQL, while following the application architecture in a clean and structured way.
 
-### Synimi minimal i testimit
-- projekti i testimit të ekzistojë dhe të kompajlohet
-- minimum 3 teste të kalojnë
-- testet të mbulojnë së paku një rast normal, një rast negativ dhe një rast kufitar
+### End-to-End Flow of the Feature
 
-### Shembuj të testeve që synoj të shtoj
-- krijimi i një rezervimi valid kthen sukses
-- krijimi i një rezervimi me fusha të zbrazëta refuzohet
-- kërkimi i një rezervimi që ekziston kthen rezultat
-- kërkimi i një rezervimi që nuk ekziston kthen përgjigje pa rezultat
+| Layer | Responsibility |
+|---|---|
+| UI / Frontend | The user fills out the booking form |
+| API / Controller | The frontend sends a request to the booking endpoint |
+| Service | The application validates the data and applies business logic |
+| Repository | The booking data is saved into PostgreSQL |
+| Response back to UI | The system returns success or error feedback and the frontend displays a proper message |
+
+### What this feature will include
+
+| Feature Part | Planned Work |
+|---|---|
+| Booking Form | Functional frontend form for creating a booking |
+| API Integration | Real connection between the frontend form and backend API |
+| Validation | Validation of required input fields before saving |
+| Database Save | Real booking persistence in PostgreSQL |
+| Success Feedback | Clear success message if the booking is created |
+| Error Feedback | Clear error message if input is invalid or saving fails |
+
+### Why this is the main feature
+This feature represents the core business functionality of the MD Creative system, because the booking workflow is the central purpose of the project. For that reason, implementing this feature from beginning to end will be the main focus of the sprint and the clearest demonstration of the architecture:
+
+**UI → Service → Repository**
 
 ---
 
-## Rezultati i synuar i Sprint 2
+## 6. Supporting Sprint Improvements
 
-Në fund të këtij sprinti synoj që projekti të ketë:
+In addition to the main feature, this sprint will include several supporting improvements.
 
-- një feature kryesore end-to-end për krijimin e rezervimit të ri
-- backend më funksional dhe më të lidhur me PostgreSQL
-- frontend më të rregullt dhe më profesional
-- integrim më të plotë ndërmjet frontend-it dhe backend-it
-- authentication më të fortë
-- booking workflow më të plotë
-- search/filter më praktik
-- error handling më të mirë
-- unit tests bazë për pjesët kyçe
-- deploy publik për qasje në pajisje të ndryshme
+### 6.1 PostgreSQL CRUD Completion
+
+| Planned Improvement | Description |
+|---|---|
+| Real PostgreSQL connection | Complete the real backend-to-database connection where CRUD is required |
+| CRUD operations | Support create, read, update, and delete for the main entities |
+| Layer flow improvement | Strengthen the `controller → service → repository → database` flow |
+| Replace placeholders | Turn structural/incomplete parts into working implementations |
+
+### 6.2 Frontend UI Finalization
+
+| Planned Improvement | Description |
+|---|---|
+| Layout refinement | Improve the layout and structure of key pages |
+| Form improvements | Improve inputs, forms, and usability |
+| Component organization | Make the frontend structure cleaner and easier to maintain |
+| Better presentation | Display data in a more professional and user-friendly way |
+| State handling | Improve loading, empty-state, and error-state handling |
+
+### 6.3 Frontend–Backend API Integration
+
+| Planned Improvement | Description |
+|---|---|
+| Connect forms to API | Link frontend components to backend endpoints |
+| Use real backend data | Display actual data coming from the backend and database |
+| Improve request/response flow | Make communication between layers more reliable |
+| Better UI reaction | Improve how the UI reacts to success and failure responses |
+
+### 6.4 Authentication Expansion
+
+| Planned Improvement | Description |
+|---|---|
+| Login/Register validation | Improve input validation for authentication flows |
+| Credential handling | Strengthen credential verification |
+| Unauthorized access handling | Show clear responses when access is denied |
+| Route protection | Improve route protection where required |
+| Role-based preparation | Prepare the system better for role-based access if included in this sprint |
+
+### 6.5 Booking Workflow Improvements
+
+| Planned Improvement | Description |
+|---|---|
+| Better booking creation flow | Make the booking process more complete |
+| Entity relationships | Connect bookings with packages, mascots, and extras where required |
+| Stronger validation | Validate booking-related inputs more carefully |
+| Missing data handling | Handle incomplete booking submissions correctly |
+| Logic improvement | Improve the full booking flow from user input to storage |
+
+### 6.6 Search / Filter Improvements
+
+| Planned Improvement | Description |
+|---|---|
+| Search by name | Allow searching for items, packages, or bookings by name |
+| Easier filtering | Improve filtering of existing data lists |
+| Clearer results | Display search/filter results more clearly |
+| Better empty-state feedback | Show understandable messages when no results are found |
+
+### 6.7 Deployment
+
+| Planned Improvement | Description |
+|---|---|
+| Frontend deployment | Deploy the frontend to a platform such as Vercel or a similar service |
+| Backend deployment | Deploy the backend to a suitable hosting platform |
+| Environment configuration | Configure environment variables correctly |
+| Live integration | Ensure the deployed frontend communicates correctly with the deployed backend |
+| Cross-device access | Make the project accessible on laptops, phones, and other devices |
+
+---
+
+## 7. Error Handling
+
+One of the most important sprint goals is to make sure the application does not crash and always provides clear user-facing feedback.
+
+### Error cases that will be handled
+
+| Error Type | Planned Handling |
+|---|---|
+| Database / file read-write errors | Catch failures during persistence operations and return controlled messages |
+| Input validation errors | Prevent invalid or incomplete input from being processed |
+| Missing resource / not found errors | Return clear messages when a booking, item, or user does not exist |
+| Authentication / authorization errors | Deny access safely and show proper feedback |
+| API response errors | Handle frontend-backend communication issues in a controlled way |
+
+### Where error handling will be added
+
+| Layer | Planned Handling |
+|---|---|
+| Repository | Database and file operation handling |
+| Service | Validation, business rule checks, and safe processing |
+| UI / Frontend | Form validation and user-facing messages |
+| API Layer | Request/response handling and controlled status codes |
+
+### Concrete examples
+
+| Scenario | Expected Behavior |
+|---|---|
+| User submits a booking form with empty required fields | The booking is not saved and the frontend shows a message such as `Please fill in all required fields` |
+| A booking ID does not exist | The backend returns `404 Not Found` and the UI shows `Booking not found` |
+| Database save fails | The system returns a controlled error response and does not crash |
+| User enters incorrect login credentials | The system denies access safely and displays a clear error message |
+
+### Goal
+The system should continue running, avoid unexpected crashes, and communicate clearly with the user even when errors occur.
+
+---
+
+## 8. Testing Plan
+
+This sprint will also include automated testing for the most important implemented or improved parts.
+
+### Methods / flows to be tested
+
+| Area | What will be tested |
+|---|---|
+| Booking Service | Methods related to booking creation |
+| Booking Logic | Core booking workflow behavior |
+| Authentication | Login-related logic and validation |
+| Search / Filter | Search and filtering methods |
+| Validation | Handling of invalid and edge-case input |
+| Error Responses | Basic behavior in failure scenarios |
+
+### Test cases
+
+| Test Case Type | Example |
+|---|---|
+| Normal case | A booking is created successfully and saved in the database |
+| Negative case | Booking creation fails because required data is missing or an entity does not exist |
+| Edge case | Empty input, invalid input, or incomplete data |
+| Error case | Failure in database persistence, file layer, or API flow |
+
+### Minimum testing target
+- The test project must exist and compile
+- At least **3 tests** must pass
+- The tests must cover at least:
+  - one normal case
+  - one negative case
+  - one edge case
+
+### Example tests I plan to include
+
+| Planned Test | Expected Result |
+|---|---|
+| Creating a valid booking returns success | Pass |
+| Creating a booking with empty required fields is rejected | Pass |
+| Searching for an existing booking returns a result | Pass |
+| Searching for a non-existing booking returns no result | Pass |
+
+---
+
+## 9. Expected Sprint 2 Outcome
+
+By the end of this sprint, I aim for the project to have:
+
+| Expected Outcome | Result |
+|---|---|
+| Main end-to-end feature | New booking creation implemented through the full flow |
+| PostgreSQL functionality | Backend more fully connected to PostgreSQL |
+| Frontend quality | Cleaner, more professional frontend |
+| Integration | Better frontend-backend integration |
+| Authentication | Stronger authentication flow |
+| Booking workflow | More complete and practical |
+| Search / filter | Improved usability |
+| Error handling | Safer and clearer behavior |
+| Testing | Basic automated tests for key parts |
+| Deployment | Public access across multiple devices |
+
+---
