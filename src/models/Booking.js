@@ -1,9 +1,10 @@
 class Booking {
   constructor({
     id = null,
-    bookingCode,
+    bookingCode = null,
     customerId,
     packageId = null,
+    category = null,
     eventTitle,
     eventType = null,
     eventDate,
@@ -12,7 +13,7 @@ class Booking {
     venueName = null,
     venueAddress = null,
     guestCount = 0,
-    specialRequests = '',
+    specialRequests = null,
     status = 'Pending',
     paymentStatus = 'Unpaid',
     subtotal = 0,
@@ -20,19 +21,15 @@ class Booking {
     totalPrice = 0,
     depositAmount = 0,
     remainingBalance = 0,
-    selectedMascots = [],
-    selectedActivities = [],
-    selectedExtras = [],
-    reservedInventory = [],
-    assignedStaff = [],
     createdBy = null,
     createdAt = null,
-    updatedAt = null
+    updatedAt = null,
   }) {
     this.id = id;
     this.bookingCode = bookingCode;
     this.customerId = customerId;
     this.packageId = packageId;
+    this.category = category;
     this.eventTitle = eventTitle;
     this.eventType = eventType;
     this.eventDate = eventDate;
@@ -49,11 +46,6 @@ class Booking {
     this.totalPrice = totalPrice;
     this.depositAmount = depositAmount;
     this.remainingBalance = remainingBalance;
-    this.selectedMascots = selectedMascots;
-    this.selectedActivities = selectedActivities;
-    this.selectedExtras = selectedExtras;
-    this.reservedInventory = reservedInventory;
-    this.assignedStaff = assignedStaff;
     this.createdBy = createdBy;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;

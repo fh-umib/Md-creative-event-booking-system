@@ -1,17 +1,36 @@
-function successResponse(res, data, message = "Success") {
-  return res.status(200).json({
+const successResponse = ({
+  message = 'Request completed successfully.',
+  data = null,
+  meta = null,
+} = {}) => {
+  const response = {
     success: true,
     message,
     data,
-  });
-}
+  };
 
-function errorResponse(res, message = "Error", status = 500) {
-  return res.status(status).json({
+  if (meta) {
+    response.meta = meta;
+  }
+
+  return response;
+};
+
+const errorResponse = ({
+  message = 'Something went wrong.',
+  errors = null,
+} = {}) => {
+  const response = {
     success: false,
     message,
-  });
-}
+  };
+
+  if (errors) {
+    response.errors = errors;
+  }
+
+  return response;
+};
 
 module.exports = {
   successResponse,

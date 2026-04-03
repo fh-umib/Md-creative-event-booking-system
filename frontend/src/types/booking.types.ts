@@ -1,32 +1,38 @@
-export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed';
+export type BookingStep = 1 | 2 | 3 | 4;
 
-export interface Booking {
+export type BookingAddOnCategory = 'decorations' | 'activities' | 'photoBooth';
+
+export interface BookingAddOn {
   id: string;
-  fullName: string;
-  email: string;
-  phone?: string;
-  eventDate: string;
-  eventLocation?: string;
-  notes?: string;
-  status: BookingStatus;
-  totalPrice?: number;
-  packageId?: string;
-  mascotIds?: string[];
-  createdAt?: string;
-  updatedAt?: string;
+  title: string;
+  description: string;
+  price: number;
+  category: BookingAddOnCategory;
+  imageUrl: string;
 }
 
-export interface CreateBookingRequest {
+export interface BookingDetailsForm {
   fullName: string;
+  phone: string;
   email: string;
-  phone?: string;
   eventDate: string;
-  eventLocation?: string;
-  notes?: string;
-  packageId?: string;
-  mascotIds?: string[];
+  eventTime: string;
+  location: string;
+  childName: string;
+  childAge: string;
+  notes: string;
 }
 
-export interface UpdateBookingStatusRequest {
-  status: BookingStatus;
+export interface BookingSelectionState {
+  packageId: string;
+  mascotIds: string[];
+  addOnIds: string[];
+  details: BookingDetailsForm;
+}
+
+export interface BookingSummary {
+  packagePrice: number;
+  mascotsPrice: number;
+  addOnsPrice: number;
+  total: number;
 }

@@ -6,8 +6,6 @@ const router = express.Router();
 router.get('/', (req, res, next) => bookingController.getAll(req, res, next));
 router.get('/:id', (req, res, next) => bookingController.getById(req, res, next));
 
-router.post('/', (req, res, next) => bookingController.create(req, res, next));
-
 router.patch('/:id/status', (req, res, next) =>
   bookingController.updateStatus(req, res, next)
 );

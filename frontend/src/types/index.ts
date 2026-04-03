@@ -4,7 +4,6 @@ export type {
   UpdatePackageRequest,
 } from './package.types';
 
-
 export type {
   Mascot,
   CreateMascotRequest,
@@ -16,3 +15,12 @@ export type {
   CreateReviewRequest,
   UpdateReviewRequest,
 } from './review.types';
+
+export type {
+  BookingStep,
+  BookingAddOn,
+  BookingAddOnCategory,
+  BookingDetailsForm,
+  BookingSelectionState,
+  BookingSummary,
+} from './booking.types';

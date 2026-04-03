@@ -1,4 +1,4 @@
-const fileMascotRepository = require('../data/repositories/FileMascotRepository');
+const fileMascotRepository = require('../data/repositories/mascotRepository');
 
 class MascotService {
   constructor(mascotRepository) {
