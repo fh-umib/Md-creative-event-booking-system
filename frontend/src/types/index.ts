@@ -17,10 +17,27 @@ export type {
 } from './review.types';
 
 export type {
-  BookingStep,
-  BookingAddOn,
-  BookingAddOnCategory,
+  BookingStatus,
+  PaymentStatus,
   BookingDetailsForm,
-  BookingSelectionState,
-  BookingSummary,
+  BookingItemInput,
+  CreateBookingPayload,
+  BookingRecord,
 } from './booking.types';
+
+export type {
+  BookingCategoryKey,
+  BookingFlowStepKey,
+  BookingCategoryOption,
+  BookingFlowStep,
+  BookingCustomizationSection,
+  BookingCustomizationConfig,
+  BookingFlowConfiguration,
+  BookingCustomizationSelections,
+} from './booking-flow.types';
+
+export type {
+  AdminBookingStats,
+  AdminBookingFilters,
+  AdminBookingListResponse,
+} from './booking-admin.types';

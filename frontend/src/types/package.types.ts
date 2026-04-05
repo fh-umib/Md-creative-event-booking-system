@@ -1,24 +1,39 @@
 export interface Package {
   id: number | string;
-  name: string;
-  description: string;
-  price: number;
+  title?: string;
+  name?: string;
+  description?: string | null;
+  category?: string | null;
+  duration_minutes?: number | null;
+  duration?: number | null;
+  min_mascots?: number | null;
+  max_mascots?: number | null;
+  base_price?: number | null;
+  price?: number | null;
+  is_active?: boolean;
   imageUrl?: string;
-  isActive?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CreatePackageRequest {
-  name: string;
-  description: string;
-  price: number;
-  imageUrl?: string;
+  title: string;
+  description?: string | null;
+  category?: string | null;
+  durationMinutes?: number;
+  minMascots?: number;
+  maxMascots?: number;
+  basePrice?: number;
   isActive?: boolean;
 }
 
 export interface UpdatePackageRequest {
-  name: string;
-  description: string;
-  price: number;
-  imageUrl?: string;
+  title?: string;
+  description?: string | null;
+  category?: string | null;
+  durationMinutes?: number;
+  minMascots?: number;
+  maxMascots?: number;
+  basePrice?: number;
   isActive?: boolean;
 }

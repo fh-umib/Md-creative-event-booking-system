@@ -1,24 +1,26 @@
 export interface Mascot {
   id: number | string;
-  name: string;
-  description: string;
-  price: number;
+  name?: string;
+  character_name?: string;
+  description?: string | null;
+  price?: number | null;
   imageUrl?: string;
-  isActive?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CreateMascotRequest {
   name: string;
-  description: string;
-  price: number;
+  character_name?: string;
+  description?: string | null;
+  price?: number;
   imageUrl?: string;
-  isActive?: boolean;
 }
 
 export interface UpdateMascotRequest {
-  name: string;
-  description: string;
-  price: number;
+  name?: string;
+  character_name?: string;
+  description?: string | null;
+  price?: number;
   imageUrl?: string;
-  isActive?: boolean;
 }
