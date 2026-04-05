@@ -1,316 +1,304 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPublicBooking } from '../../services/bookingApi';
+import { getPublicPackages } from '../../services/packageApi';
+import type { PackageItem } from '../../services/packageApi';
 
-import BookingCategoryStep from '../../components/public/booking/BookingCategoryStep';
-import BookingCustomizationStep from '../../components/public/booking/BookingCustomizationStep';
-import BookingDetailsStep from '../../components/public/booking/BookingDetailsStep';
-import BookingReviewStep from '../../components/public/booking/BookingReviewStep';
-import BookingStepper from '../../components/public/booking/BookingStepper';
-import BookingSummaryCard from '../../components/public/booking/BookingSummaryCard';
-import BookingErrorState from '../../components/public/booking/BookingErrorState';
-import BookingPackageStep from '../../components/public/booking/BookingPackageStep';
+type BookingFormState = {
+  full_name: string;
+  email: string;
+  phone: string;
+  event_title: string;
+  event_type: string;
+  event_date: string;
+  start_time: string;
+  end_time: string;
+  venue_name: string;
+  venue_address: string;
+  guest_count: number;
+  special_requests: string;
+  package_id: number | '';
+};
 
-import { bookingFlowService } from '../../services/bookings/bookingFlowService';
-import { bookingService } from '../../services/bookings/bookingService';
-import { useBookingFlow } from '../../hooks/useBookingFlow';
-import { useMascots } from '../../hooks/useMascots';
-
-import type {
-  BookingCategoryOption,
-  BookingCategoryKey,
-  BookingCustomizationConfig,
-  Package,
-} from '../../types';
+const initialForm: BookingFormState = {
+  full_name: '',
+  email: '',
+  phone: '',
+  event_title: '',
+  event_type: '',
+  event_date: '',
+  start_time: '',
+  end_time: '',
+  venue_name: '',
+  venue_address: '',
+  guest_count: 0,
+  special_requests: '',
+  package_id: '',
+};
 
 export default function BookingPage() {
-  const {
-    stepOrder,
-    currentStep,
-    selectedCategory,
-    selectedPackage,
-    customizationConfig,
-    customization,
-    details,
-    setSelectedCategory,
-    setSelectedPackage,
-    setCustomizationConfig,
-    setCustomization,
-    setDetails,
-    goToNextStep,
-    goToPreviousStep,
-    resetFlow,
-  } = useBookingFlow();
-
-  const { mascots } = useMascots();
-
-  const [categories, setCategories] = useState<BookingCategoryOption[]>([]);
-  const [packages, setPackages] = useState<Package[]>([]);
-  const [packagesLoading, setPackagesLoading] = useState(false);
-  const [packagesError, setPackagesError] = useState<string | null>(null);
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const [form, setForm] = useState<BookingFormState>(initialForm);
+  const [submitting, setSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [error, setError] = useState('');
+  const [packages, setPackages] = useState<PackageItem[]>([]);
 
   useEffect(() => {
-    bookingFlowService
-      .getCategories()
-      .then(setCategories)
-      .catch(() => setCategories([]));
+    const loadPackages = async () => {
+      try {
+        const data = await getPublicPackages();
+        setPackages(data.filter((item) => item.is_active));
+      } catch {
+        setPackages([]);
+      }
+    };
+
+    loadPackages();
   }, []);
 
-  useEffect(() => {
-    if (!selectedCategory) {
-      setPackages([]);
-      setCustomizationConfig(null);
-      return;
-    }
-
-    setPackagesLoading(true);
-    setPackagesError(null);
-
-    Promise.all([
-      bookingFlowService.getPackagesByCategory(selectedCategory),
-      bookingFlowService.getCustomizationConfig(selectedCategory),
-    ])
-      .then(([packagesData, customization]) => {
-        setPackages(packagesData);
-        setCustomizationConfig(customization as BookingCustomizationConfig);
-      })
-      .catch((error: Error) => {
-        setPackages([]);
-        setPackagesError(error.message || 'Failed to load packages.');
-      })
-      .finally(() => {
-        setPackagesLoading(false);
-      });
-  }, [selectedCategory, setCustomizationConfig]);
-
-  const totalPrice = useMemo(() => {
-    return Number(
-      selectedPackage?.base_price ?? (selectedPackage as any)?.price ?? 0
-    );
-  }, [selectedPackage]);
-
-  const currentStepLabel = useMemo(() => {
-    const index = stepOrder.findIndex((step) => step === currentStep);
-    return `Step ${index + 1} of ${stepOrder.length}`;
-  }, [currentStep, stepOrder]);
-
-  const canContinue = useMemo(() => {
-    if (currentStep === 'category') return Boolean(selectedCategory);
-    if (currentStep === 'package') return Boolean(selectedPackage);
-    if (currentStep === 'customization') return true;
-    if (currentStep === 'details') {
-      return Boolean(
-        details.fullName &&
-          details.phone &&
-          details.eventTitle &&
-          details.eventDate &&
-          details.venueName
-      );
-    }
-    return true;
-  }, [currentStep, selectedCategory, selectedPackage, details]);
-
-  const handleCategorySelect = (category: BookingCategoryKey) => {
-    setSelectedCategory(category);
-    setSelectedPackage(null);
-    setCustomization({
-      mascots: [],
-      activities: [],
-      extras: [],
-      theme: null,
-      backdrop: null,
-      bounceUnit: null,
-      bubbleExperience: null,
-    });
-  };
-
-  const handleDetailsChange = (field: keyof typeof details, value: string | number) => {
-    setDetails({
-      ...details,
-      [field]: value,
-    });
-  };
-
-  const toggleValueInArray = (values: number[], id: number) => {
-    return values.includes(id)
-      ? values.filter((item) => item !== id)
-      : [...values, id];
-  };
-
-  const handleToggleMascot = (id: number) => {
-    setCustomization({
-      ...customization,
-      mascots: toggleValueInArray(customization.mascots, id),
-    });
-  };
-
-  const handleToggleActivity = (id: number) => {
-    setCustomization({
-      ...customization,
-      activities: toggleValueInArray(customization.activities, id),
-    });
-  };
-
-  const handleToggleExtra = (id: number) => {
-    setCustomization({
-      ...customization,
-      extras: toggleValueInArray(customization.extras, id),
-    });
-  };
-
-  const handleSelectSingleValue = (
-    field: 'theme' | 'backdrop' | 'bounceUnit' | 'bubbleExperience',
-    value: string
+  const handleChange = (
+    key: keyof BookingFormState,
+    value: string | number
   ) => {
-    setCustomization({
-      ...customization,
-      [field]: value,
-    });
+    setForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
-  const handleSubmit = async () => {
-    if (!selectedCategory || !selectedPackage) return;
+  const selectedPackage = packages.find(
+    (item) => item.id === Number(form.package_id)
+  );
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
     try {
-      setSubmitLoading(true);
-      setSubmitMessage(null);
+      setSubmitting(true);
+      setError('');
+      setSuccessMessage('');
 
-      await bookingService.create({
-        customerId: 1,
-        packageId: Number(selectedPackage.id),
-        category: selectedCategory,
-        eventTitle: details.eventTitle,
-        eventType: selectedCategory,
-        eventDate: details.eventDate,
-        startTime: details.startTime || null,
-        endTime: details.endTime || null,
-        venueName: details.venueName,
-        venueAddress: details.venueAddress || null,
-        guestCount: Number(details.guestCount || 0),
-        specialRequests: details.specialRequests || null,
-        discountAmount: 0,
-        depositAmount: 0,
-        createdBy: null,
-        mascots: customization.mascots.map((id) => ({
-          itemId: id,
-          quantity: 1,
-          unitPrice: 0,
-          totalPrice: 0,
-        })),
-        activities: customization.activities.map((id) => ({
-          itemId: id,
-          quantity: 1,
-          unitPrice: 0,
-          totalPrice: 0,
-        })),
-        extras: customization.extras.map((id) => ({
-          itemId: id,
-          quantity: 1,
-          unitPrice: 0,
-          totalPrice: 0,
-        })),
-      });
+      await createPublicBooking(form);
 
-      setSubmitMessage('Booking submitted successfully.');
-      resetFlow();
-    } catch (error: any) {
-      setSubmitMessage(error.message || 'Failed to submit booking.');
+      setSuccessMessage(
+        'Your booking request has been submitted successfully. Our team will contact you soon.'
+      );
+      setForm(initialForm);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit booking');
     } finally {
-      setSubmitLoading(false);
+      setSubmitting(false);
     }
-  };
-
-  const renderStepContent = () => {
-    if (currentStep === 'category') {
-      return (
-        <BookingCategoryStep
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onSelect={handleCategorySelect}
-        />
-      );
-    }
-
-    if (currentStep === 'package') {
-      return (
-        <BookingPackageStep
-          packages={packages}
-          selectedPackage={selectedPackage}
-          isLoading={packagesLoading}
-          error={packagesError}
-          onSelect={setSelectedPackage}
-        />
-      );
-    }
-
-    if (currentStep === 'customization') {
-      return (
-        <BookingCustomizationStep
-          selectedCategory={selectedCategory}
-          config={customizationConfig}
-          customization={customization}
-          mascots={mascots as any}
-          onToggleMascot={handleToggleMascot}
-          onToggleActivity={handleToggleActivity}
-          onToggleExtra={handleToggleExtra}
-          onSelectSingleValue={handleSelectSingleValue}
-        />
-      );
-    }
-
-    if (currentStep === 'details') {
-      return <BookingDetailsStep details={details} onChange={handleDetailsChange} />;
-    }
-
-    return (
-      <BookingReviewStep
-        selectedCategory={selectedCategory}
-        selectedPackage={selectedPackage}
-        customization={customization}
-        details={details}
-        totalPrice={totalPrice}
-      />
-    );
   };
 
   return (
     <section style={pageStyle}>
-      <div style={containerStyle}>
-        <BookingStepper stepOrder={stepOrder} currentStep={currentStep} />
+      <div style={heroStyle}>
+        <div style={heroTextStyle}>
+          <p style={eyebrowStyle}>Book Your Event</p>
+          <h1 style={titleStyle}>Let’s Plan Something Beautiful Together</h1>
+          <p style={subtitleStyle}>
+            Fill in your booking details and our team will review your request,
+            prepare the best setup for your event, and contact you with the next steps.
+          </p>
+        </div>
 
-        <div style={contentGridStyle}>
-          <div style={mainPanelStyle}>
-            {packagesError && currentStep === 'package' ? (
-              <BookingErrorState message={packagesError} />
-            ) : (
-              renderStepContent()
-            )}
+        <div style={heroImageStyle} />
+      </div>
 
-            {submitMessage ? <div style={messageBoxStyle}>{submitMessage}</div> : null}
+      <div style={contentGridStyle}>
+        <div style={infoCardStyle}>
+          <p style={sectionEyebrowStyle}>Why Book With Us</p>
+          <h2 style={sectionTitleStyle}>A Creative Experience from Start to Finish</h2>
+
+          <ul style={listStyle}>
+            <li style={listItemStyle}>Premium event styling and decoration</li>
+            <li style={listItemStyle}>Responsive and professional communication</li>
+            <li style={listItemStyle}>Custom packages for different event types</li>
+            <li style={listItemStyle}>Smooth booking flow with real follow-up</li>
+          </ul>
+
+          {selectedPackage ? (
+            <div style={selectedPackageCardStyle}>
+              <p style={selectedPackageLabelStyle}>Selected Package</p>
+              <h3 style={selectedPackageTitleStyle}>{selectedPackage.title}</h3>
+              <p style={selectedPackageTextStyle}>
+                {selectedPackage.description || 'No description available.'}
+              </p>
+              <p style={selectedPackagePriceStyle}>
+                Starting from €{selectedPackage.base_price}
+              </p>
+            </div>
+          ) : null}
+        </div>
+
+        <div style={formCardStyle}>
+          <div style={formHeaderStyle}>
+            <h2 style={formTitleStyle}>Booking Form</h2>
+            <p style={formSubtitleStyle}>
+              Complete the form below to send your booking request.
+            </p>
           </div>
 
-          <BookingSummaryCard
-            currentStepLabel={currentStepLabel}
-            selectedCategory={selectedCategory}
-            selectedPackage={selectedPackage}
-            totalPrice={totalPrice}
-            onBack={currentStep !== 'category' ? goToPreviousStep : undefined}
-            onNext={
-              currentStep === 'review'
-                ? handleSubmit
-                : canContinue
-                ? goToNextStep
-                : undefined
-            }
-            nextDisabled={currentStep !== 'review' && !canContinue}
-            nextLabel={
-              currentStep === 'review'
-                ? submitLoading
-                  ? 'Submitting...'
-                  : 'Submit'
-                : 'Continue'
-            }
-          />
+          {successMessage ? <div style={successBoxStyle}>{successMessage}</div> : null}
+          {error ? <div style={errorBoxStyle}>{error}</div> : null}
+
+          <form onSubmit={handleSubmit} style={formStyle}>
+            <div style={twoColumnStyle}>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Full Name</label>
+                <input
+                  type="text"
+                  value={form.full_name}
+                  onChange={(e) => handleChange('full_name', e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Email</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => handleChange('email', e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            <div style={twoColumnStyle}>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Phone</label>
+                <input
+                  type="text"
+                  value={form.phone}
+                  onChange={(e) => handleChange('phone', e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Event Title</label>
+                <input
+                  type="text"
+                  value={form.event_title}
+                  onChange={(e) => handleChange('event_title', e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            <div style={twoColumnStyle}>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Event Type</label>
+                <input
+                  type="text"
+                  value={form.event_type}
+                  onChange={(e) => handleChange('event_type', e.target.value)}
+                  style={inputStyle}
+                  placeholder="Birthday, Baby Shower..."
+                />
+              </div>
+
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Guests</label>
+                <input
+                  type="number"
+                  value={form.guest_count}
+                  onChange={(e) => handleChange('guest_count', Number(e.target.value))}
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            <div style={twoColumnStyle}>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Event Date</label>
+                <input
+                  type="date"
+                  value={form.event_date}
+                  onChange={(e) => handleChange('event_date', e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Start Time</label>
+                <input
+                  type="time"
+                  value={form.start_time}
+                  onChange={(e) => handleChange('start_time', e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            <div style={twoColumnStyle}>
+              <div style={fieldStyle}>
+                <label style={labelStyle}>End Time</label>
+                <input
+                  type="time"
+                  value={form.end_time}
+                  onChange={(e) => handleChange('end_time', e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
+
+              <div style={fieldStyle}>
+                <label style={labelStyle}>Package</label>
+                <select
+                  value={form.package_id}
+                  onChange={(e) =>
+                    handleChange(
+                      'package_id',
+                      e.target.value ? Number(e.target.value) : ''
+                    )
+                  }
+                  style={inputStyle}
+                >
+                  <option value="">Select a package</option>
+                  {packages.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.title} - €{item.base_price}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Venue Name</label>
+              <input
+                type="text"
+                value={form.venue_name}
+                onChange={(e) => handleChange('venue_name', e.target.value)}
+                style={inputStyle}
+              />
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Venue Address</label>
+              <input
+                type="text"
+                value={form.venue_address}
+                onChange={(e) => handleChange('venue_address', e.target.value)}
+                style={inputStyle}
+              />
+            </div>
+
+            <div style={fieldStyle}>
+              <label style={labelStyle}>Special Requests</label>
+              <textarea
+                value={form.special_requests}
+                onChange={(e) => handleChange('special_requests', e.target.value)}
+                style={textareaStyle}
+                placeholder="Tell us about your event vision, colors, theme or special notes..."
+              />
+            </div>
+
+            <button type="submit" style={submitButtonStyle} disabled={submitting}>
+              {submitting ? 'Submitting...' : 'Submit Booking Request'}
+            </button>
+          </form>
         </div>
       </div>
     </section>
@@ -318,37 +306,240 @@ export default function BookingPage() {
 }
 
 const pageStyle: React.CSSProperties = {
-  background: '#f7f4ef',
-  padding: '40px 24px 72px',
+  maxWidth: '1280px',
+  margin: '0 auto',
+  padding: '42px 24px 28px',
 };
 
-const containerStyle: React.CSSProperties = {
-  maxWidth: '1200px',
-  margin: '0 auto',
+const heroStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '1.05fr 0.95fr',
+  gap: '30px',
+  alignItems: 'center',
+  marginBottom: '34px',
+};
+
+const heroTextStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const eyebrowStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#c88d12',
+  fontSize: '14px',
+  fontWeight: 700,
+  letterSpacing: '2px',
+  textTransform: 'uppercase',
+};
+
+const titleStyle: React.CSSProperties = {
+  margin: '14px 0',
+  fontSize: '56px',
+  lineHeight: 1.06,
+  color: '#0f1b3d',
+  fontWeight: 800,
+};
+
+const subtitleStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: '18px',
+  lineHeight: 1.9,
+  color: '#6d665b',
+  maxWidth: '760px',
+};
+
+const heroImageStyle: React.CSSProperties = {
+  minHeight: '420px',
+  borderRadius: '28px',
+  backgroundImage:
+    'linear-gradient(rgba(15,27,61,0.12), rgba(15,27,61,0.12)), url("https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80")',
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  border: '1px solid #ece3d5',
+  boxShadow: '0 16px 30px rgba(15, 23, 42, 0.06)',
 };
 
 const contentGridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 2fr) minmax(320px, 380px)',
-  gap: '28px',
+  gridTemplateColumns: '0.8fr 1.2fr',
+  gap: '24px',
   alignItems: 'start',
 };
 
-const mainPanelStyle: React.CSSProperties = {
-  background: '#ffffff',
-  border: '1px solid #ebe4da',
-  borderRadius: '28px',
+const infoCardStyle: React.CSSProperties = {
+  backgroundColor: '#fffaf2',
+  border: '1px solid #ece3d5',
+  borderRadius: '24px',
   padding: '28px',
-  boxShadow: '0 22px 45px rgba(15, 23, 42, 0.06)',
 };
 
-const messageBoxStyle: React.CSSProperties = {
-  marginTop: '20px',
+const sectionEyebrowStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#c88d12',
+  fontSize: '13px',
+  fontWeight: 700,
+  letterSpacing: '2px',
+  textTransform: 'uppercase',
+};
+
+const sectionTitleStyle: React.CSSProperties = {
+  margin: '14px 0 18px',
+  fontSize: '34px',
+  fontWeight: 800,
+  color: '#0f1b3d',
+};
+
+const listStyle: React.CSSProperties = {
+  margin: 0,
+  paddingLeft: '20px',
+};
+
+const listItemStyle: React.CSSProperties = {
+  marginBottom: '12px',
+  color: '#6d665b',
+  fontSize: '15px',
+  lineHeight: 1.8,
+};
+
+const selectedPackageCardStyle: React.CSSProperties = {
+  marginTop: '24px',
+  backgroundColor: '#ffffff',
+  border: '1px solid #ece3d5',
+  borderRadius: '20px',
+  padding: '20px',
+};
+
+const selectedPackageLabelStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#c88d12',
+  fontSize: '12px',
+  fontWeight: 700,
+  letterSpacing: '1px',
+  textTransform: 'uppercase',
+};
+
+const selectedPackageTitleStyle: React.CSSProperties = {
+  margin: '10px 0 8px',
+  fontSize: '24px',
+  fontWeight: 800,
+  color: '#0f1b3d',
+};
+
+const selectedPackageTextStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#6d665b',
+  fontSize: '14px',
+  lineHeight: 1.7,
+};
+
+const selectedPackagePriceStyle: React.CSSProperties = {
+  margin: '14px 0 0 0',
+  color: '#0f1b3d',
+  fontSize: '15px',
+  fontWeight: 800,
+};
+
+const formCardStyle: React.CSSProperties = {
+  backgroundColor: '#ffffff',
+  border: '1px solid #ece3d5',
+  borderRadius: '24px',
+  padding: '28px',
+  boxShadow: '0 14px 28px rgba(15, 23, 42, 0.05)',
+};
+
+const formHeaderStyle: React.CSSProperties = {
+  marginBottom: '18px',
+};
+
+const formTitleStyle: React.CSSProperties = {
+  margin: 0,
+  fontSize: '30px',
+  fontWeight: 800,
+  color: '#0f1b3d',
+};
+
+const formSubtitleStyle: React.CSSProperties = {
+  margin: '10px 0 0 0',
+  color: '#6d665b',
+  fontSize: '15px',
+  lineHeight: 1.7,
+};
+
+const successBoxStyle: React.CSSProperties = {
+  backgroundColor: '#ecfdf3',
+  color: '#166534',
+  border: '1px solid #b7ebc6',
   borderRadius: '16px',
   padding: '14px 16px',
-  background: '#ecfdf5',
-  border: '1px solid #a7f3d0',
-  color: '#065f46',
+  fontSize: '14px',
   fontWeight: 600,
-  lineHeight: 1.6,
+  marginBottom: '16px',
+};
+
+const errorBoxStyle: React.CSSProperties = {
+  backgroundColor: '#fff1f1',
+  color: '#a33b3b',
+  border: '1px solid #f2caca',
+  borderRadius: '16px',
+  padding: '14px 16px',
+  fontSize: '14px',
+  fontWeight: 600,
+  marginBottom: '16px',
+};
+
+const formStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
+};
+
+const twoColumnStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: '14px',
+};
+
+const fieldStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+};
+
+const labelStyle: React.CSSProperties = {
+  fontSize: '14px',
+  fontWeight: 700,
+  color: '#0f1b3d',
+};
+
+const inputStyle: React.CSSProperties = {
+  height: '46px',
+  borderRadius: '14px',
+  border: '1px solid #e5dccf',
+  padding: '0 14px',
+  fontSize: '14px',
+  outline: 'none',
+  backgroundColor: '#ffffff',
+};
+
+const textareaStyle: React.CSSProperties = {
+  minHeight: '110px',
+  borderRadius: '14px',
+  border: '1px solid #e5dccf',
+  padding: '12px 14px',
+  fontSize: '14px',
+  outline: 'none',
+  resize: 'vertical',
+};
+
+const submitButtonStyle: React.CSSProperties = {
+  height: '50px',
+  border: 'none',
+  borderRadius: '14px',
+  background: 'linear-gradient(135deg, #d89b12, #ec4899)',
+  color: '#ffffff',
+  fontSize: '15px',
+  fontWeight: 800,
+  cursor: 'pointer',
+  marginTop: '6px',
 };

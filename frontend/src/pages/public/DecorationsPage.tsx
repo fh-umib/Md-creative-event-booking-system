@@ -1,48 +1,44 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-const decorationCategories = [
-  {
-    title: 'Bride to Be',
-    description:
-      'Elegant bridal shower concepts with premium floral styling, balloons and soft feminine details.',
-    path: '/decorations/bride-to-be',
-    image:
-      'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80',
-  },
-  {
-    title: 'Baby Shower',
-    description:
-      'Charming and delicate baby shower themes designed to create warm and memorable family moments.',
-    path: '/decorations/baby-shower',
-    image:
-      'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=1200&q=80',
-  },
-  {
-    title: 'Birthday Decor',
-    description:
-      'Creative birthday setups for children, teenagers and adults with modern and playful concepts.',
-    path: '/decorations/birthday-decor',
-    image:
-      'https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?auto=format&fit=crop&w=1200&q=80',
-  },
-  {
-    title: 'Engagement Setup',
-    description:
-      'Romantic engagement designs with luxurious backdrops, floral accents and beautiful table styling.',
-    path: '/decorations/engagement-setup',
-    image:
-      'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1200&q=80',
-  },
-];
-
-const highlights = [
-  { value: '120+', label: 'Decoration Concepts' },
-  { value: '5,000+', label: 'Happy Clients' },
-  { value: '800+', label: 'Events Delivered' },
-];
+import { getPublicDecorations } from '../../services/decorationApi';
+import type { Decoration } from '../../services/decorationApi';
 
 export default function DecorationsPage() {
+  const [decorations, setDecorations] = useState<Decoration[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadDecorations = async () => {
+      try {
+        const data = await getPublicDecorations();
+        setDecorations(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load decorations');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDecorations();
+  }, []);
+
+  if (loading) {
+    return (
+      <section style={pageStyle}>
+        <div style={stateBoxStyle}>Loading decorations...</div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section style={pageStyle}>
+        <div style={stateBoxStyle}>{error}</div>
+      </section>
+    );
+  }
+
   return (
     <section style={pageStyle}>
       <div style={heroSectionStyle}>
@@ -51,9 +47,8 @@ export default function DecorationsPage() {
           <h1 style={titleStyle}>Decorations</h1>
           <p style={subtitleStyle}>
             Discover elegant decoration services crafted to transform your event
-            into a visually unforgettable experience. From bridal themes to
-            birthdays and engagements, every concept is styled with detail,
-            beauty and emotion.
+            into a visually unforgettable experience. Explore our categories and
+            choose the concept that matches your special moment.
           </p>
 
           <div style={buttonRowStyle}>
@@ -77,12 +72,26 @@ export default function DecorationsPage() {
       </div>
 
       <div style={statsWrapperStyle}>
-        {highlights.map((item) => (
-          <div key={item.label} style={statCardStyle}>
-            <h3 style={statValueStyle}>{item.value}</h3>
-            <p style={statLabelStyle}>{item.label}</p>
-          </div>
-        ))}
+        <div style={statCardStyle}>
+          <h3 style={statValueStyle}>{decorations.length}+</h3>
+          <p style={statLabelStyle}>Decoration Categories</p>
+        </div>
+        <div style={statCardStyle}>
+          <h3 style={statValueStyle}>
+            {decorations.filter((item) => item.is_featured).length}+
+          </h3>
+          <p style={statLabelStyle}>Featured Concepts</p>
+        </div>
+        <div style={statCardStyle}>
+          <h3 style={statValueStyle}>
+            €
+            {decorations.length > 0
+              ? Math.min(...decorations.map((item) => Number(item.price_from || 0)))
+              : 0}
+            +
+          </h3>
+          <p style={statLabelStyle}>Starting Price</p>
+        </div>
       </div>
 
       <div style={introSectionStyle}>
@@ -90,50 +99,33 @@ export default function DecorationsPage() {
         <h2 style={sectionTitleStyle}>Decoration Categories</h2>
         <p style={sectionTextStyle}>
           Select a category and explore decoration concepts tailored for your
-          special occasion. Each category is designed to help you quickly find
-          the style that matches your vision.
+          special occasion. Each category is loaded directly from your backend.
         </p>
       </div>
 
       <div id="categories" style={gridStyle}>
-        {decorationCategories.map((item) => (
-          <Link key={item.path} to={item.path} style={cardLinkStyle}>
+        {decorations.map((item) => (
+          <Link key={item.id} to={`/decorations/${item.slug}`} style={cardLinkStyle}>
             <article style={cardStyle}>
               <div
                 style={{
                   ...cardImageStyle,
-                  backgroundImage: `linear-gradient(rgba(15,27,61,0.18), rgba(15,27,61,0.18)), url(${item.image})`,
+                  backgroundImage: `linear-gradient(rgba(15,27,61,0.18), rgba(15,27,61,0.18)), url(${item.image_url})`,
                 }}
               />
               <div style={cardContentStyle}>
+                <div style={cardTopRowStyle}>
+                  <span style={categoryBadgeStyle}>{item.category}</span>
+                  <span style={priceStyle}>From €{item.price_from}</span>
+                </div>
+
                 <h3 style={cardTitleStyle}>{item.title}</h3>
-                <p style={cardTextStyle}>{item.description}</p>
+                <p style={cardTextStyle}>{item.short_description}</p>
                 <span style={cardActionStyle}>View Details →</span>
               </div>
             </article>
           </Link>
         ))}
-      </div>
-
-      <div style={infoSectionStyle}>
-        <div style={infoTextBlockStyle}>
-          <p style={sectionEyebrowStyle}>Why Choose Us</p>
-          <h2 style={sectionTitleStyle}>Styled with Elegance and Precision</h2>
-          <p style={infoTextStyle}>
-            Our decoration team focuses on creating balanced, refined and
-            memorable event visuals. We combine premium materials, beautiful
-            color palettes and clean design execution to bring every celebration
-            to life.
-          </p>
-          <ul style={listStyle}>
-            <li style={listItemStyle}>Tailored themes for each event type</li>
-            <li style={listItemStyle}>Modern balloon and floral concepts</li>
-            <li style={listItemStyle}>Elegant table, backdrop and entry styling</li>
-            <li style={listItemStyle}>Professional setup with attention to detail</li>
-          </ul>
-        </div>
-
-        <div style={infoImageStyle} />
       </div>
     </section>
   );
@@ -143,6 +135,16 @@ const pageStyle: React.CSSProperties = {
   maxWidth: '1280px',
   margin: '0 auto',
   padding: '42px 24px 20px',
+};
+
+const stateBoxStyle: React.CSSProperties = {
+  backgroundColor: '#ffffff',
+  border: '1px solid #ece3d5',
+  borderRadius: '24px',
+  padding: '40px',
+  textAlign: 'center',
+  color: '#6d665b',
+  fontSize: '18px',
 };
 
 const heroSectionStyle: React.CSSProperties = {
@@ -314,7 +316,7 @@ const gridStyle: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
   gap: '24px',
-  marginBottom: '60px',
+  marginBottom: '40px',
 };
 
 const cardLinkStyle: React.CSSProperties = {
@@ -339,6 +341,31 @@ const cardContentStyle: React.CSSProperties = {
   padding: '22px',
 };
 
+const cardTopRowStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: '12px',
+  marginBottom: '12px',
+  flexWrap: 'wrap',
+};
+
+const categoryBadgeStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  padding: '7px 12px',
+  borderRadius: '999px',
+  backgroundColor: '#f8edd6',
+  color: '#b68417',
+  fontSize: '12px',
+  fontWeight: 700,
+};
+
+const priceStyle: React.CSSProperties = {
+  fontSize: '14px',
+  fontWeight: 700,
+  color: '#0f1b3d',
+};
+
 const cardTitleStyle: React.CSSProperties = {
   margin: 0,
   fontSize: '28px',
@@ -357,48 +384,4 @@ const cardActionStyle: React.CSSProperties = {
   color: '#c88d12',
   fontSize: '15px',
   fontWeight: 700,
-};
-
-const infoSectionStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: '30px',
-  alignItems: 'center',
-};
-
-const infoTextBlockStyle: React.CSSProperties = {
-  backgroundColor: '#fffaf2',
-  border: '1px solid #ece3d5',
-  borderRadius: '26px',
-  padding: '30px',
-};
-
-const infoTextStyle: React.CSSProperties = {
-  margin: 0,
-  fontSize: '17px',
-  lineHeight: 1.9,
-  color: '#6d665b',
-};
-
-const listStyle: React.CSSProperties = {
-  margin: '20px 0 0 0',
-  paddingLeft: '20px',
-  color: '#5f584d',
-};
-
-const listItemStyle: React.CSSProperties = {
-  marginBottom: '10px',
-  fontSize: '15px',
-  lineHeight: 1.7,
-};
-
-const infoImageStyle: React.CSSProperties = {
-  minHeight: '420px',
-  borderRadius: '26px',
-  backgroundImage:
-    'linear-gradient(rgba(15,27,61,0.12), rgba(15,27,61,0.12)), url("https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80")',
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  border: '1px solid #ece3d5',
-  boxShadow: '0 16px 30px rgba(15, 23, 42, 0.06)',
 };

@@ -4,6 +4,7 @@ import AdminLayout from './layouts/AdminLayout';
 
 import HomePage from './pages/public/HomePage';
 import DecorationsPage from './pages/public/DecorationsPage';
+import DecorationDetailPage from './pages/public/DecorationDetailPage';
 import BookingPage from './pages/public/BookingPage';
 import MascotsPage from './pages/public/MascotsPage';
 import ActivitiesPage from './pages/public/ActivitiesPage';
@@ -12,10 +13,6 @@ import PackagesPage from './pages/public/PackagesPage';
 import GalleryPage from './pages/public/GalleryPage';
 import OurTeamPage from './pages/public/OurTeamPage';
 import ReviewsPage from './pages/public/ReviewsPage';
-import BrideToBePage from './pages/public/BrideToBePage';
-import BabyShowerPage from './pages/public/BabyShowerPage';
-import BirthdayDecorPage from './pages/public/BirthdayDecorPage';
-import EngagementSetupPage from './pages/public/EngagementSetupPage';
 
 import SignInPage from './pages/auth/SignInPage';
 import AdminLoginPage from './pages/auth/AdminLoginPage';
@@ -36,6 +33,7 @@ export default function App() {
       <Route path="/" element={<PublicLayout />}>
         <Route index element={<HomePage />} />
         <Route path="decorations" element={<DecorationsPage />} />
+        <Route path="decorations/:slug" element={<DecorationDetailPage />} />
         <Route path="mascots" element={<MascotsPage />} />
         <Route path="activities" element={<ActivitiesPage />} />
         <Route path="photo-booth" element={<PhotoBoothPage />} />
@@ -44,10 +42,6 @@ export default function App() {
         <Route path="our-team" element={<OurTeamPage />} />
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="booking" element={<BookingPage />} />
-        <Route path="decorations/bride-to-be" element={<BrideToBePage />} />
-        <Route path="decorations/baby-shower" element={<BabyShowerPage />} />
-        <Route path="decorations/birthday-decor" element={<BirthdayDecorPage />} />
-        <Route path="decorations/engagement-setup" element={<EngagementSetupPage />} />
       </Route>
 
       <Route path="/signin" element={<SignInPage />} />
@@ -64,7 +58,6 @@ export default function App() {
         <Route path="staff" element={<StaffPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
       </Route>
-      
     </Routes>
   );
 }

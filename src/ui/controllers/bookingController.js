@@ -1,25 +1,23 @@
 const bookingService = require('../../services/bookingService');
+const bookingAdminService = require('../../services/bookingAdminService');
+const pool = require('../../data/config/db');
 
 class BookingController {
   async getAll(req, res, next) {
     try {
-      const filters = {
-        status: req.query.status || undefined,
-        paymentStatus: req.query.paymentStatus || undefined,
-        customerId: req.query.customerId ? Number(req.query.customerId) : undefined,
-        packageId: req.query.packageId ? Number(req.query.packageId) : undefined,
-        eventDate: req.query.eventDate || undefined,
-        category: req.query.category || undefined,
-        search: req.query.search || undefined,
-      };
+      const { rows } = await pool.query(`
+        SELECT
+          b.*,
+          u.full_name AS customer_name,
+          u.email AS customer_email,
+          p.title AS package_title
+        FROM bookings b
+        JOIN users u ON b.customer_id = u.id
+        LEFT JOIN packages p ON b.package_id = p.id
+        ORDER BY b.created_at DESC
+      `);
 
-      const bookings = await bookingService.getAll(filters);
-
-      return res.status(200).json({
-        success: true,
-        message: 'Bookings fetched successfully.',
-        data: bookings,
-      });
+      res.status(200).json(rows);
     } catch (error) {
       next(error);
     }
@@ -27,14 +25,13 @@ class BookingController {
 
   async getById(req, res, next) {
     try {
-      const bookingId = Number(req.params.id);
-      const booking = await bookingService.getById(bookingId);
+      const booking = await bookingAdminService.getBookingById(Number(req.params.id));
 
-      return res.status(200).json({
-        success: true,
-        message: 'Booking fetched successfully.',
-        data: booking,
-      });
+      if (!booking) {
+        return res.status(404).json({ message: 'Booking not found.' });
+      }
+
+      res.status(200).json(booking);
     } catch (error) {
       next(error);
     }
@@ -42,13 +39,8 @@ class BookingController {
 
   async create(req, res, next) {
     try {
-      const createdBooking = await bookingService.create(req.body);
-
-      return res.status(201).json({
-        success: true,
-        message: 'Booking created successfully.',
-        data: createdBooking,
-      });
+      const created = await bookingService.createBooking(req.body);
+      res.status(201).json(created);
     } catch (error) {
       next(error);
     }
@@ -56,16 +48,18 @@ class BookingController {
 
   async updateStatus(req, res, next) {
     try {
-      const bookingId = Number(req.params.id);
       const { status } = req.body;
 
-      const updatedBooking = await bookingService.updateStatus(bookingId, status);
+      if (!status) {
+        return res.status(400).json({ message: 'Status is required.' });
+      }
 
-      return res.status(200).json({
-        success: true,
-        message: 'Booking status updated successfully.',
-        data: updatedBooking,
-      });
+      const updated = await bookingAdminService.updateBookingStatus(
+        Number(req.params.id),
+        status
+      );
+
+      res.status(200).json(updated);
     } catch (error) {
       next(error);
     }
@@ -73,19 +67,37 @@ class BookingController {
 
   async updatePaymentStatus(req, res, next) {
     try {
-      const bookingId = Number(req.params.id);
-      const { paymentStatus } = req.body;
+      const { payment_status } = req.body;
 
-      const updatedBooking = await bookingService.updatePaymentStatus(
-        bookingId,
-        paymentStatus
-      );
+      if (!payment_status) {
+        return res.status(400).json({ message: 'Payment status is required.' });
+      }
 
-      return res.status(200).json({
-        success: true,
-        message: 'Booking payment status updated successfully.',
-        data: updatedBooking,
-      });
+      const allowed = ['Unpaid', 'Partially Paid', 'Paid', 'Refunded'];
+
+      if (!allowed.includes(payment_status)) {
+        return res.status(400).json({ message: 'Invalid payment status.' });
+      }
+
+      const query = `
+        UPDATE bookings
+        SET
+          payment_status = $1,
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2
+        RETURNING *
+      `;
+
+      const { rows } = await pool.query(query, [
+        payment_status,
+        Number(req.params.id),
+      ]);
+
+      if (!rows[0]) {
+        return res.status(404).json({ message: 'Booking not found.' });
+      }
+
+      res.status(200).json(rows[0]);
     } catch (error) {
       next(error);
     }
@@ -93,14 +105,8 @@ class BookingController {
 
   async delete(req, res, next) {
     try {
-      const bookingId = Number(req.params.id);
-      const result = await bookingService.delete(bookingId);
-
-      return res.status(200).json({
-        success: true,
-        message: 'Booking deleted successfully.',
-        data: result,
-      });
+      const deleted = await bookingAdminService.deleteBooking(Number(req.params.id));
+      res.status(200).json(deleted);
     } catch (error) {
       next(error);
     }

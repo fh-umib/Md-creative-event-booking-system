@@ -1,209 +1,147 @@
-const bookingRepository = require('../data/repositories/bookingRepository');
-const bookingItemRepository = require('../data/repositories/bookingItemRepository');
-const packageRepository = require('../data/repositories/packageRepository');
-const { BOOKING_CATEGORY_VALUES } = require('../models/BookingCategory');
+const pool = require('../data/config/db');
+
+function generateBookingCode() {
+  const randomPart = Math.floor(1000 + Math.random() * 9000);
+  return `MD-${randomPart}`;
+}
+
 class BookingService {
-  validateCategory(category) {
-    if (!category) return;
+  async createBooking(payload) {
+    const {
+      full_name,
+      email,
+      phone,
+      event_title,
+      event_type,
+      event_date,
+      start_time,
+      end_time,
+      venue_name,
+      venue_address,
+      guest_count,
+      special_requests,
+      package_id,
+    } = payload;
 
-    if (!BOOKING_CATEGORY_VALUES.includes(category)) {
-      throw new Error(
-        `Invalid booking category. Allowed values: ${BOOKING_CATEGORY_VALUES.join(', ')}`
-      );
+    if (!full_name?.trim()) {
+      throw new Error('Full name is required.');
     }
-  }
 
-  validateDetails(data) {
-    if (!data.customerId) {
-      throw new Error('Customer ID is required.');
+    if (!email?.trim()) {
+      throw new Error('Email is required.');
     }
 
-    if (!data.eventTitle || String(data.eventTitle).trim() === '') {
+    if (!event_title?.trim()) {
       throw new Error('Event title is required.');
     }
 
-    if (!data.eventDate) {
+    if (!event_date) {
       throw new Error('Event date is required.');
     }
 
-    if (!data.venueName || String(data.venueName).trim() === '') {
-      throw new Error('Venue name is required.');
+    const clientQuery = `
+      INSERT INTO users (
+        full_name,
+        email,
+        password_hash,
+        phone,
+        role,
+        is_active
+      )
+      VALUES ($1, $2, $3, $4, 'Client', TRUE)
+      ON CONFLICT (email)
+      DO UPDATE SET
+        full_name = EXCLUDED.full_name,
+        phone = EXCLUDED.phone
+      RETURNING id
+    `;
+
+    const clientValues = [
+      full_name.trim(),
+      email.trim().toLowerCase(),
+      'public-booking-no-password',
+      phone?.trim() || null,
+    ];
+
+    const clientResult = await pool.query(clientQuery, clientValues);
+    const customerId = clientResult.rows[0].id;
+
+    const bookingCode = generateBookingCode();
+
+    const packagePriceQuery = `
+      SELECT id, base_price
+      FROM packages
+      WHERE id = $1
+      LIMIT 1
+    `;
+
+    let subtotal = 0;
+    let validPackageId = null;
+
+    if (package_id) {
+      const packageResult = await pool.query(packagePriceQuery, [package_id]);
+
+      if (packageResult.rows[0]) {
+        validPackageId = packageResult.rows[0].id;
+        subtotal = Number(packageResult.rows[0].base_price || 0);
+      }
     }
-  }
 
-  async validatePackage(packageId, category = null) {
-    if (!packageId) {
-      throw new Error('Package ID is required.');
-    }
+    const totalPrice = subtotal;
+    const depositAmount = 0;
+    const remainingBalance = totalPrice;
 
-    const packageItem = await packageRepository.getById(packageId);
+    const bookingQuery = `
+      INSERT INTO bookings (
+        booking_code,
+        customer_id,
+        package_id,
+        event_title,
+        event_type,
+        event_date,
+        start_time,
+        end_time,
+        venue_name,
+        venue_address,
+        guest_count,
+        special_requests,
+        status,
+        payment_status,
+        subtotal,
+        discount_amount,
+        total_price,
+        deposit_amount,
+        remaining_balance,
+        created_by
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+        $11, $12, 'Pending', 'Unpaid', $13, 0, $14, $15, $16, NULL
+      )
+      RETURNING *
+    `;
 
-    if (!packageItem) {
-      throw new Error('Selected package was not found.');
-    }
-
-    if (!packageItem.is_active) {
-      throw new Error('Selected package is not active.');
-    }
-
-    if (category && packageItem.category !== category) {
-      throw new Error('Selected package does not belong to the chosen category.');
-    }
-
-    return packageItem;
-  }
-
-  calculateItemsTotal(items = []) {
-    return items.reduce((sum, item) => {
-      const quantity = Number(item.quantity || 1);
-      const unitPrice = Number(item.unitPrice || 0);
-      return sum + quantity * unitPrice;
-    }, 0);
-  }
-
-  calculateBookingTotals({ packageBasePrice = 0, mascots = [], activities = [], extras = [], discountAmount = 0, depositAmount = 0 }) {
-    const mascotsTotal = this.calculateItemsTotal(mascots);
-    const activitiesTotal = this.calculateItemsTotal(activities);
-    const extrasTotal = this.calculateItemsTotal(extras);
-
-    const subtotal =
-      Number(packageBasePrice) + mascotsTotal + activitiesTotal + extrasTotal;
-
-    const totalPrice = Math.max(subtotal - Number(discountAmount || 0), 0);
-    const remainingBalance = Math.max(totalPrice - Number(depositAmount || 0), 0);
-
-    return {
+    const bookingValues = [
+      bookingCode,
+      customerId,
+      validPackageId,
+      event_title.trim(),
+      event_type?.trim() || null,
+      event_date,
+      start_time || null,
+      end_time || null,
+      venue_name?.trim() || null,
+      venue_address?.trim() || null,
+      Number(guest_count || 0),
+      special_requests?.trim() || null,
       subtotal,
       totalPrice,
+      depositAmount,
       remainingBalance,
-    };
-  }
+    ];
 
-  generateBookingCode() {
-    const randomPart = Math.random().toString(36).slice(2, 8).toUpperCase();
-    const timestampPart = Date.now().toString().slice(-5);
-    return `MD-${timestampPart}-${randomPart}`;
-  }
-
-  async getAll(filters = {}) {
-    if (filters.category) {
-      this.validateCategory(filters.category);
-    }
-
-    return bookingRepository.getAll(filters);
-  }
-
-  async getById(id) {
-    const booking = await bookingRepository.getById(id);
-
-    if (!booking) {
-      throw new Error('Booking not found.');
-    }
-
-    const items = await bookingItemRepository.getByBookingId(id);
-
-    return {
-      ...booking,
-      items,
-    };
-  }
-
-  async create(data) {
-    this.validateCategory(data.category);
-    this.validateDetails(data);
-
-    const packageItem = await this.validatePackage(data.packageId, data.category);
-
-    const mascots = Array.isArray(data.mascots) ? data.mascots : [];
-    const activities = Array.isArray(data.activities) ? data.activities : [];
-    const extras = Array.isArray(data.extras) ? data.extras : [];
-
-    const discountAmount = Number(data.discountAmount || 0);
-    const depositAmount = Number(data.depositAmount || 0);
-
-    const totals = this.calculateBookingTotals({
-      packageBasePrice: Number(packageItem.base_price || 0),
-      mascots,
-      activities,
-      extras,
-      discountAmount,
-      depositAmount,
-    });
-
-    const bookingPayload = {
-      bookingCode: this.generateBookingCode(),
-      customerId: Number(data.customerId),
-      packageId: Number(data.packageId),
-      eventTitle: String(data.eventTitle).trim(),
-      eventType: data.eventType?.trim() || data.category || null,
-      eventDate: data.eventDate,
-      startTime: data.startTime || null,
-      endTime: data.endTime || null,
-      venueName: String(data.venueName).trim(),
-      venueAddress: data.venueAddress?.trim() || null,
-      guestCount: Number(data.guestCount || 0),
-      specialRequests: data.specialRequests?.trim() || null,
-      status: data.status || 'Pending',
-      paymentStatus: data.paymentStatus || 'Unpaid',
-      subtotal: totals.subtotal,
-      discountAmount,
-      totalPrice: totals.totalPrice,
-      depositAmount,
-      remainingBalance: totals.remainingBalance,
-      createdBy: data.createdBy ? Number(data.createdBy) : null,
-    };
-
-    const createdBooking = await bookingRepository.create(bookingPayload);
-
-    await bookingItemRepository.replaceItems(createdBooking.id, 'mascots', mascots);
-    await bookingItemRepository.replaceItems(createdBooking.id, 'activities', activities);
-    await bookingItemRepository.replaceItems(createdBooking.id, 'extras', extras);
-
-    return this.getById(createdBooking.id);
-  }
-
-  async updateStatus(id, status) {
-    const allowedStatuses = ['Pending', 'Approved', 'Completed', 'Cancelled'];
-
-    if (!allowedStatuses.includes(status)) {
-      throw new Error(`Invalid booking status. Allowed values: ${allowedStatuses.join(', ')}`);
-    }
-
-    const updated = await bookingRepository.updateStatus(id, status);
-
-    if (!updated) {
-      throw new Error('Booking not found.');
-    }
-
-    return updated;
-  }
-
-  async updatePaymentStatus(id, paymentStatus) {
-    const allowedStatuses = ['Unpaid', 'Partially Paid', 'Paid', 'Refunded'];
-
-    if (!allowedStatuses.includes(paymentStatus)) {
-      throw new Error(
-        `Invalid payment status. Allowed values: ${allowedStatuses.join(', ')}`
-      );
-    }
-
-    const updated = await bookingRepository.updatePaymentStatus(id, paymentStatus);
-
-    if (!updated) {
-      throw new Error('Booking not found.');
-    }
-
-    return updated;
-  }
-
-  async delete(id) {
-    const deleted = await bookingRepository.delete(id);
-
-    if (!deleted) {
-      throw new Error('Booking not found or could not be deleted.');
-    }
-
-    return { success: true };
+    const bookingResult = await pool.query(bookingQuery, bookingValues);
+    return bookingResult.rows[0];
   }
 }
 
