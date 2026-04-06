@@ -1,220 +1,531 @@
-import React from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+createActivity,
+deleteActivity,
+getAdminActivities,
+updateActivity,
+} from '../../services/activityAdminApi';
+import type { Activity, ActivityPayload } from '../../services/activityAdminApi';
 
-type ExtraService = {
-  id: number;
-  name: string;
-  category: string;
-  price: string;
-  status: 'Active' | 'Inactive';
+const initialForm: ActivityPayload = {
+name: '',
+description: '',
+price: 0,
+duration_minutes: 30,
+is_active: true,
 };
 
-const extraServices: ExtraService[] = [
-  {
-    id: 1,
-    name: 'Face Painting',
-    category: 'Kids Activity',
-    price: '€40',
-    status: 'Active',
-  },
-  {
-    id: 2,
-    name: 'Magic Show',
-    category: 'Entertainment',
-    price: '€90',
-    status: 'Active',
-  },
-  {
-    id: 3,
-    name: 'Balloon Decoration',
-    category: 'Decoration Add-on',
-    price: '€55',
-    status: 'Active',
-  },
-  {
-    id: 4,
-    name: 'Photo Corner Setup',
-    category: 'Photo Service',
-    price: '€70',
-    status: 'Inactive',
-  },
-];
-
 export default function ExtrasPage() {
-  return (
-    <div style={pageStyle}>
-      <div style={headerStyle}>
-        <div>
-          <h2 style={titleStyle}>Extra Services</h2>
-          <p style={subtitleStyle}>
-            Manage additional services offered for events and celebrations.
-          </p>
-        </div>
+const [activities, setActivities] = useState<Activity[]>([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState('');
+const [search, setSearch] = useState('');
+const [form, setForm] = useState<ActivityPayload>(initialForm);
+const [editingId, setEditingId] = useState<number | null>(null);
 
-        <button type="button" style={addButtonStyle}>
-          Add Extra Service
-        </button>
-      </div>
+const loadActivities = async () => {
+try {
+setLoading(true);
+setError('');
+const data = await getAdminActivities();
+setActivities(data);
+} catch (err) {
+setError(err instanceof Error ? err.message : 'Failed to load activities');
+} finally {
+setLoading(false);
+}
+};
 
-      <div style={statsGridStyle}>
-        <div style={statCardStyle}>
-          <p style={statLabelStyle}>Total Extras</p>
-          <h3 style={statValueStyle}>12</h3>
-        </div>
+useEffect(() => {
+loadActivities();
+}, []);
 
-        <div style={statCardStyle}>
-          <p style={statLabelStyle}>Active Services</p>
-          <h3 style={statValueStyle}>9</h3>
-        </div>
+const filteredActivities = useMemo(() => {
+return activities.filter((item) => {
+const text = `${item.name} ${item.description || ''}`.toLowerCase();
+return text.includes(search.toLowerCase());
+});
+}, [activities, search]);
 
-        <div style={statCardStyle}>
-          <p style={statLabelStyle}>Popular Category</p>
-          <h3 style={statValueStyle}>Entertainment</h3>
-        </div>
-      </div>
+const handleChange = (
+key: keyof ActivityPayload,
+value: string | number | boolean
+) => {
+setForm((prev) => ({
+...prev,
+[key]: value,
+}));
+};
 
-      <div style={tableCardStyle}>
-        <div style={tableHeaderStyle}>
-          <span style={{ ...cellHeaderStyle, flex: 0.7 }}>ID</span>
-          <span style={{ ...cellHeaderStyle, flex: 2 }}>Service Name</span>
-          <span style={{ ...cellHeaderStyle, flex: 1.5 }}>Category</span>
-          <span style={{ ...cellHeaderStyle, flex: 1 }}>Price</span>
-          <span style={{ ...cellHeaderStyle, flex: 1 }}>Status</span>
-        </div>
+const resetForm = () => {
+setForm(initialForm);
+setEditingId(null);
+};
 
-        {extraServices.map((service) => (
-          <div key={service.id} style={tableRowStyle}>
-            <span style={{ ...cellStyle, flex: 0.7 }}>#{service.id}</span>
-            <span style={{ ...cellStyle, flex: 2 }}>{service.name}</span>
-            <span style={{ ...cellStyle, flex: 1.5 }}>{service.category}</span>
-            <span style={{ ...cellStyle, flex: 1 }}>{service.price}</span>
-            <span style={{ ...cellStyle, flex: 1 }}>
-              <span
-                style={{
-                  ...statusBadgeStyle,
-                  backgroundColor:
-                    service.status === 'Active' ? '#dcfce7' : '#fee2e2',
-                  color: service.status === 'Active' ? '#166534' : '#991b1b',
-                }}
-              >
-                {service.status}
-              </span>
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+const handleEdit = (item: Activity) => {
+setEditingId(item.id);
+setForm({
+name: item.name,
+description: item.description || '',
+price: Number(item.price),
+duration_minutes: item.duration_minutes,
+is_active: item.is_active,
+});
+
+window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+e.preventDefault();
+
+try {
+setError('');
+
+if (editingId) {
+await updateActivity(editingId, form);
+} else {
+await createActivity(form);
+}
+
+await loadActivities();
+resetForm();
+} catch (err) {
+setError(err instanceof Error ? err.message : 'Request failed');
+}
+};
+
+const handleDelete = async (id: number) => {
+const confirmed = window.confirm('Are you sure you want to delete this activity?');
+if (!confirmed) return;
+
+try {
+await deleteActivity(id);
+await loadActivities();
+
+if (editingId === id) {
+resetForm();
+}
+} catch (err) {
+setError(err instanceof Error ? err.message : 'Delete failed');
+}
+};
+
+return (
+<section style={pageStyle}>
+<div style={headerStyle}>
+<div>
+<h1 style={titleStyle}>Activities & Extras</h1>
+<p style={subtitleStyle}>Manage add-on services and activities</p>
+</div>
+
+<input
+type="text"
+placeholder="Search..."
+value={search}
+onChange={(e) => setSearch(e.target.value)}
+style={searchInputStyle}
+/>
+</div>
+
+{error ? <div style={errorBoxStyle}>{error}</div> : null}
+
+<div style={layoutStyle}>
+<div style={formCardStyle}>
+<div style={formHeaderStyle}>
+<h2 style={cardTitleStyle}>
+{editingId ? 'Edit Activity' : 'Add Activity'}
+</h2>
+
+{editingId ? (
+<button type="button" style={cancelButtonStyle} onClick={resetForm}>
+Cancel
+</button>
+) : null}
+</div>
+
+<form onSubmit={handleSubmit} style={formStyle}>
+<div style={fieldStyle}>
+<label style={labelStyle}>Name</label>
+<input
+type="text"
+value={form.name}
+onChange={(e) => handleChange('name', e.target.value)}
+style={inputStyle}
+/>
+</div>
+
+<div style={fieldStyle}>
+<label style={labelStyle}>Description</label>
+<textarea
+value={form.description}
+onChange={(e) => handleChange('description', e.target.value)}
+style={textareaStyle}
+/>
+</div>
+
+<div style={twoColStyle}>
+<div style={fieldStyle}>
+<label style={labelStyle}>Price</label>
+<input
+type="number"
+value={form.price}
+onChange={(e) => handleChange('price', Number(e.target.value))}
+style={inputStyle}
+/>
+</div>
+
+<div style={fieldStyle}>
+<label style={labelStyle}>Duration</label>
+<input
+type="number"
+value={form.duration_minutes}
+onChange={(e) =>
+handleChange('duration_minutes', Number(e.target.value))
+}
+style={inputStyle}
+/>
+</div>
+</div>
+
+<label style={checkboxLabelStyle}>
+<input
+type="checkbox"
+checked={form.is_active}
+onChange={(e) => handleChange('is_active', e.target.checked)}
+/>
+Active
+</label>
+
+<button type="submit" style={submitButtonStyle}>
+{editingId ? 'Update Activity' : 'Add Activity'}
+</button>
+</form>
+</div>
+
+<div style={cardsGridStyle}>
+{loading ? (
+<div style={emptyStateStyle}>Loading activities...</div>
+) : filteredActivities.length === 0 ? (
+<div style={emptyStateStyle}>No activities found.</div>
+) : (
+filteredActivities.map((item) => (
+<article key={item.id} style={activityCardStyle}>
+<div style={cardTopStyle}>
+<div style={iconStyle}>✦</div>
+
+<span
+style={{
+...statusBadgeStyle,
+...(item.is_active ? activeBadgeStyle : inactiveBadgeStyle),
+}}
+>
+{item.is_active ? 'Active' : 'Inactive'}
+</span>
+</div>
+
+<h3 style={activityTitleStyle}>{item.name}</h3>
+<p style={activityDescriptionStyle}>{item.description}</p>
+
+<div style={metaRowStyle}>
+<span style={priceStyle}>€{item.price}</span>
+<span style={durationStyle}>{item.duration_minutes} min</span>
+</div>
+
+<div style={actionsStyle}>
+<button
+type="button"
+style={editButtonStyle}
+onClick={() => handleEdit(item)}
+>
+Edit
+</button>
+
+<button
+type="button"
+style={deleteButtonStyle}
+onClick={() => handleDelete(item.id)}
+>
+Delete
+</button>
+</div>
+</article>
+))
+)}
+</div>
+</div>
+</section>
+);
 }
 
 const pageStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '18px',
+display: 'flex',
+flexDirection: 'column',
+gap: '24px',
 };
 
 const headerStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: '16px',
-  flexWrap: 'wrap',
+display: 'flex',
+justifyContent: 'space-between',
+gap: '16px',
+alignItems: 'center',
+flexWrap: 'wrap',
 };
 
 const titleStyle: React.CSSProperties = {
-  margin: 0,
-  fontSize: '22px',
-  fontWeight: 800,
-  color: '#0f172a',
+margin: 0,
+fontSize: '36px',
+fontWeight: 800,
+color: '#1f2937',
 };
 
 const subtitleStyle: React.CSSProperties = {
-  margin: '6px 0 0 0',
-  fontSize: '14px',
-  color: '#64748b',
-  lineHeight: 1.6,
+margin: '8px 0 0 0',
+color: '#6b7280',
+fontSize: '16px',
 };
 
-const addButtonStyle: React.CSSProperties = {
-  border: 'none',
-  borderRadius: '12px',
-  backgroundColor: '#d89b12',
-  color: '#091a4d',
-  padding: '12px 18px',
-  fontSize: '14px',
-  fontWeight: 800,
-  cursor: 'pointer',
+const searchInputStyle: React.CSSProperties = {
+width: '280px',
+height: '48px',
+borderRadius: '14px',
+border: '1px solid #ece7df',
+padding: '0 16px',
+backgroundColor: '#faf8f5',
+outline: 'none',
 };
 
-const statsGridStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-  gap: '14px',
+const errorBoxStyle: React.CSSProperties = {
+backgroundColor: '#fff1f1',
+color: '#a33b3b',
+border: '1px solid #f2caca',
+borderRadius: '16px',
+padding: '14px 16px',
+fontSize: '14px',
+fontWeight: 600,
 };
 
-const statCardStyle: React.CSSProperties = {
-  backgroundColor: '#ffffff',
-  border: '1px solid #e2e8f0',
-  borderRadius: '16px',
-  padding: '18px',
-  boxShadow: '0 6px 18px rgba(15, 23, 42, 0.04)',
+const layoutStyle: React.CSSProperties = {
+display: 'grid',
+gridTemplateColumns: '360px 1fr',
+gap: '24px',
+alignItems: 'start',
 };
 
-const statLabelStyle: React.CSSProperties = {
-  margin: 0,
-  fontSize: '13px',
-  color: '#64748b',
-  fontWeight: 600,
+const formCardStyle: React.CSSProperties = {
+backgroundColor: '#ffffff',
+border: '1px solid #ece7df',
+borderRadius: '24px',
+padding: '24px',
+boxShadow: '0 14px 28px rgba(15, 23, 42, 0.05)',
 };
 
-const statValueStyle: React.CSSProperties = {
-  margin: '10px 0 0 0',
-  fontSize: '24px',
-  fontWeight: 800,
-  color: '#0f172a',
+const formHeaderStyle: React.CSSProperties = {
+display: 'flex',
+justifyContent: 'space-between',
+alignItems: 'center',
+gap: '12px',
+marginBottom: '18px',
 };
 
-const tableCardStyle: React.CSSProperties = {
-  backgroundColor: '#ffffff',
-  border: '1px solid #e2e8f0',
-  borderRadius: '16px',
-  overflow: 'hidden',
-  boxShadow: '0 6px 18px rgba(15, 23, 42, 0.04)',
+const cardTitleStyle: React.CSSProperties = {
+margin: 0,
+fontSize: '24px',
+fontWeight: 800,
+color: '#1f2937',
 };
 
-const tableHeaderStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  padding: '14px 18px',
-  backgroundColor: '#f8fafc',
-  borderBottom: '1px solid #e2e8f0',
+const cancelButtonStyle: React.CSSProperties = {
+border: '1px solid #e2d6c2',
+backgroundColor: '#fffaf2',
+color: '#1f2937',
+borderRadius: '999px',
+padding: '10px 16px',
+fontSize: '13px',
+fontWeight: 700,
+cursor: 'pointer',
 };
 
-const tableRowStyle: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  padding: '14px 18px',
-  borderBottom: '1px solid #eef2f7',
+const formStyle: React.CSSProperties = {
+display: 'flex',
+flexDirection: 'column',
+gap: '14px',
 };
 
-const cellHeaderStyle: React.CSSProperties = {
-  fontSize: '13px',
-  fontWeight: 700,
-  color: '#475569',
+const fieldStyle: React.CSSProperties = {
+display: 'flex',
+flexDirection: 'column',
+gap: '8px',
 };
 
-const cellStyle: React.CSSProperties = {
-  fontSize: '14px',
-  color: '#0f172a',
-  fontWeight: 500,
+const labelStyle: React.CSSProperties = {
+fontSize: '14px',
+fontWeight: 700,
+color: '#1f2937',
+};
+
+const inputStyle: React.CSSProperties = {
+height: '44px',
+borderRadius: '12px',
+border: '1px solid #e5dccf',
+padding: '0 14px',
+fontSize: '14px',
+outline: 'none',
+};
+
+const textareaStyle: React.CSSProperties = {
+minHeight: '90px',
+borderRadius: '12px',
+border: '1px solid #e5dccf',
+padding: '12px 14px',
+fontSize: '14px',
+outline: 'none',
+resize: 'vertical',
+};
+
+const twoColStyle: React.CSSProperties = {
+display: 'grid',
+gridTemplateColumns: '1fr 1fr',
+gap: '12px',
+};
+
+const checkboxLabelStyle: React.CSSProperties = {
+display: 'flex',
+alignItems: 'center',
+gap: '8px',
+fontSize: '14px',
+fontWeight: 600,
+color: '#1f2937',
+};
+
+const submitButtonStyle: React.CSSProperties = {
+height: '48px',
+border: 'none',
+borderRadius: '14px',
+background: 'linear-gradient(135deg, #f59e0b, #ec4899)',
+color: '#ffffff',
+fontSize: '15px',
+fontWeight: 800,
+cursor: 'pointer',
+};
+
+const cardsGridStyle: React.CSSProperties = {
+display: 'grid',
+gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+gap: '20px',
+};
+
+const emptyStateStyle: React.CSSProperties = {
+backgroundColor: '#ffffff',
+borderRadius: '24px',
+padding: '30px',
+textAlign: 'center',
+color: '#6b7280',
+};
+
+const activityCardStyle: React.CSSProperties = {
+backgroundColor: '#ffffff',
+borderRadius: '24px',
+padding: '22px',
+border: '1px solid #ece7df',
+boxShadow: '0 12px 24px rgba(15, 23, 42, 0.04)',
+};
+
+const cardTopStyle: React.CSSProperties = {
+display: 'flex',
+justifyContent: 'space-between',
+alignItems: 'center',
+gap: '12px',
+marginBottom: '16px',
+};
+
+const iconStyle: React.CSSProperties = {
+width: '54px',
+height: '54px',
+borderRadius: '16px',
+backgroundColor: '#fbf1e4',
+color: '#c87f17',
+display: 'flex',
+alignItems: 'center',
+justifyContent: 'center',
+fontSize: '24px',
 };
 
 const statusBadgeStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minWidth: '78px',
-  padding: '6px 10px',
-  borderRadius: '999px',
-  fontSize: '12px',
-  fontWeight: 700,
+padding: '8px 12px',
+borderRadius: '999px',
+fontSize: '12px',
+fontWeight: 700,
+};
+
+const activeBadgeStyle: React.CSSProperties = {
+backgroundColor: '#fff1de',
+color: '#d97706',
+};
+
+const inactiveBadgeStyle: React.CSSProperties = {
+backgroundColor: '#ffe2ec',
+color: '#d6457a',
+};
+
+const activityTitleStyle: React.CSSProperties = {
+margin: 0,
+fontSize: '28px',
+fontWeight: 800,
+color: '#1f2937',
+};
+
+const activityDescriptionStyle: React.CSSProperties = {
+margin: '12px 0 16px',
+color: '#4b5563',
+fontSize: '15px',
+lineHeight: 1.8,
+minHeight: '72px',
+};
+
+const metaRowStyle: React.CSSProperties = {
+display: 'flex',
+justifyContent: 'space-between',
+alignItems: 'center',
+gap: '12px',
+marginBottom: '18px',
+};
+
+const priceStyle: React.CSSProperties = {
+color: '#ea7b12',
+fontWeight: 800,
+fontSize: '24px',
+};
+
+const durationStyle: React.CSSProperties = {
+color: '#6b7280',
+fontSize: '14px',
+};
+
+const actionsStyle: React.CSSProperties = {
+display: 'grid',
+gridTemplateColumns: '1fr auto',
+gap: '10px',
+};
+
+const editButtonStyle: React.CSSProperties = {
+height: '42px',
+border: '1px solid #e3d8c9',
+backgroundColor: '#f8f5f1',
+color: '#1f2937',
+borderRadius: '12px',
+fontSize: '14px',
+fontWeight: 700,
+cursor: 'pointer',
+};
+
+const deleteButtonStyle: React.CSSProperties = {
+height: '42px',
+padding: '0 14px',
+border: 'none',
+backgroundColor: '#fde8e8',
+color: '#b91c1c',
+borderRadius: '12px',
+fontSize: '14px',
+fontWeight: 700,
+cursor: 'pointer',
 };
