@@ -30,12 +30,6 @@ const revenueTrend = [
   { month: 'Jun', value: 6100 },
 ];
 
-function formatCategory(value: string) {
-  if (value === 'mascot') return 'Mascot';
-  if (value === 'bounce-house') return 'Bounce House';
-  if (value === 'bubble-bounce') return 'Bubble & Bounce';
-  return value;
-}
 
 function formatDuration(minutes: number) {
   if (minutes < 60) return `${minutes} min`;
@@ -65,7 +59,7 @@ export default function PackagesPage() {
   const [packages, setPackages] = useState<AdminPackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [search, setSearch] = useState('');
+  const [search] = useState('');
   const [form, setForm] = useState<AdminPackagePayload>(initialForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
