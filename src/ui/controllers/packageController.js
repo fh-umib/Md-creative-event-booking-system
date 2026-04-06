@@ -1,24 +1,28 @@
 const packageService = require('../../services/packageService');
 
 class PackageController {
-  async getAll(req, res, next) {
+  async getAllAdmin(req, res, next) {
     try {
-      const filters = {
-        category: req.query.category || undefined,
-        search: req.query.search || undefined,
-        isActive:
-          req.query.isActive !== undefined
-            ? req.query.isActive === 'true'
-            : undefined,
-      };
+      const data = await packageService.getAllAdmin(req.query.search || '');
+      res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
+  }
 
-      const packages = await packageService.getAll(filters);
+  async getPublicCategories(req, res, next) {
+    try {
+      const data = await packageService.getPublicCategories();
+      res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
+  }
 
-      return res.status(200).json({
-        success: true,
-        message: 'Packages fetched successfully.',
-        data: packages,
-      });
+  async getByCategory(req, res, next) {
+    try {
+      const data = await packageService.getByCategory(req.params.category);
+      res.status(200).json(data);
     } catch (error) {
       next(error);
     }
@@ -26,14 +30,13 @@ class PackageController {
 
   async getById(req, res, next) {
     try {
-      const packageId = Number(req.params.id);
-      const packageItem = await packageService.getById(packageId);
+      const item = await packageService.getById(req.params.id);
 
-      return res.status(200).json({
-        success: true,
-        message: 'Package fetched successfully.',
-        data: packageItem,
-      });
+      if (!item) {
+        return res.status(404).json({ message: 'Package not found.' });
+      }
+
+      res.status(200).json(item);
     } catch (error) {
       next(error);
     }
@@ -41,13 +44,8 @@ class PackageController {
 
   async create(req, res, next) {
     try {
-      const createdPackage = await packageService.create(req.body);
-
-      return res.status(201).json({
-        success: true,
-        message: 'Package created successfully.',
-        data: createdPackage,
-      });
+      const created = await packageService.create(req.body);
+      res.status(201).json(created);
     } catch (error) {
       next(error);
     }
@@ -55,14 +53,8 @@ class PackageController {
 
   async update(req, res, next) {
     try {
-      const packageId = Number(req.params.id);
-      const updatedPackage = await packageService.update(packageId, req.body);
-
-      return res.status(200).json({
-        success: true,
-        message: 'Package updated successfully.',
-        data: updatedPackage,
-      });
+      const updated = await packageService.update(req.params.id, req.body);
+      res.status(200).json(updated);
     } catch (error) {
       next(error);
     }
@@ -70,14 +62,8 @@ class PackageController {
 
   async delete(req, res, next) {
     try {
-      const packageId = Number(req.params.id);
-      const result = await packageService.delete(packageId);
-
-      return res.status(200).json({
-        success: true,
-        message: 'Package deleted successfully.',
-        data: result,
-      });
+      const deleted = await packageService.delete(req.params.id);
+      res.status(200).json(deleted);
     } catch (error) {
       next(error);
     }

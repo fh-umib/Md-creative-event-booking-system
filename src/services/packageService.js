@@ -1,116 +1,82 @@
-const packageRepository = require('../data/repositories/packageRepository');
-const { BOOKING_CATEGORY_VALUES } = require('../models/BookingCategory');
+const packageRepository = require('../data/repositories/PgPackageRepository');
 
 class PackageService {
-  validateCategory(category) {
-    if (!category) return;
-
-    if (!BOOKING_CATEGORY_VALUES.includes(category)) {
-      throw new Error(
-        `Invalid package category. Allowed values: ${BOOKING_CATEGORY_VALUES.join(', ')}`
-      );
-    }
+  async getAllAdmin(search = '') {
+    return packageRepository.getAllAdmin(search);
   }
 
-  validatePackagePayload(data, { isUpdate = false } = {}) {
-    if (!isUpdate || data.title !== undefined) {
-      if (!data.title || String(data.title).trim() === '') {
-        throw new Error('Package title is required.');
-      }
-    }
-
-    if (data.category !== undefined) {
-      this.validateCategory(data.category);
-    }
-
-    if (data.durationMinutes !== undefined && Number(data.durationMinutes) <= 0) {
-      throw new Error('Package duration must be greater than 0.');
-    }
-
-    if (data.basePrice !== undefined && Number(data.basePrice) < 0) {
-      throw new Error('Package base price cannot be negative.');
-    }
-
-    if (
-      data.minMascots !== undefined &&
-      data.maxMascots !== undefined &&
-      Number(data.minMascots) > Number(data.maxMascots)
-    ) {
-      throw new Error('Minimum mascots cannot be greater than maximum mascots.');
-    }
+  async getPublicCategories() {
+    return packageRepository.getPublicCategories();
   }
 
-  mapPackageInput(data) {
-    return {
-      title: String(data.title).trim(),
-      description: data.description?.trim() || null,
-      category: data.category || null,
-      durationMinutes:
-        data.durationMinutes !== undefined ? Number(data.durationMinutes) : 60,
-      minMascots: data.minMascots !== undefined ? Number(data.minMascots) : 0,
-      maxMascots: data.maxMascots !== undefined ? Number(data.maxMascots) : 5,
-      basePrice: data.basePrice !== undefined ? Number(data.basePrice) : 0,
-      isActive: data.isActive !== undefined ? Boolean(data.isActive) : true,
-    };
-  }
-
-  async getAll(filters = {}) {
-    if (filters.category) {
-      this.validateCategory(filters.category);
-    }
-
-    return packageRepository.getAll(filters);
+  async getByCategory(category) {
+    return packageRepository.getByCategory(category);
   }
 
   async getById(id) {
-    const packageItem = await packageRepository.getById(id);
+    return packageRepository.getById(Number(id));
+  }
 
-    if (!packageItem) {
-      throw new Error('Package not found.');
+  async create(payload) {
+    if (!payload.title?.trim()) {
+      throw new Error('Package title is required.');
     }
 
-    return packageItem;
+    return packageRepository.create({
+      title: payload.title.trim(),
+      description: payload.description?.trim() || '',
+      category: payload.category?.trim() || '',
+      duration_minutes: Number(payload.duration_minutes || 60),
+      min_mascots: Number(payload.min_mascots || 0),
+      max_mascots: Number(payload.max_mascots || 0),
+      base_price: Number(payload.base_price || 0),
+      is_active: payload.is_active !== false,
+    });
   }
 
-  async create(data) {
-    this.validatePackagePayload(data);
-
-    const payload = this.mapPackageInput(data);
-    return packageRepository.create(payload);
-  }
-
-  async update(id, data) {
-    const existing = await packageRepository.getById(id);
+  async update(id, payload) {
+    const existing = await packageRepository.getById(Number(id));
 
     if (!existing) {
       throw new Error('Package not found.');
     }
 
-    const merged = {
-      title: data.title ?? existing.title,
-      description: data.description ?? existing.description,
-      category: data.category ?? existing.category,
-      durationMinutes: data.durationMinutes ?? existing.duration_minutes,
-      minMascots: data.minMascots ?? existing.min_mascots,
-      maxMascots: data.maxMascots ?? existing.max_mascots,
-      basePrice: data.basePrice ?? existing.base_price,
-      isActive: data.isActive ?? existing.is_active,
-    };
-
-    this.validatePackagePayload(merged, { isUpdate: true });
-
-    const payload = this.mapPackageInput(merged);
-    return packageRepository.update(id, payload);
+    return packageRepository.update(Number(id), {
+      title: payload.title?.trim() || existing.title,
+      description:
+        payload.description !== undefined
+          ? payload.description.trim()
+          : existing.description,
+      category: payload.category?.trim() || existing.category,
+      duration_minutes:
+        payload.duration_minutes !== undefined
+          ? Number(payload.duration_minutes)
+          : Number(existing.duration_minutes),
+      min_mascots:
+        payload.min_mascots !== undefined
+          ? Number(payload.min_mascots)
+          : Number(existing.min_mascots),
+      max_mascots:
+        payload.max_mascots !== undefined
+          ? Number(payload.max_mascots)
+          : Number(existing.max_mascots),
+      base_price:
+        payload.base_price !== undefined
+          ? Number(payload.base_price)
+          : Number(existing.base_price),
+      is_active:
+        payload.is_active !== undefined
+          ? Boolean(payload.is_active)
+          : existing.is_active,
+    });
   }
 
   async delete(id) {
-    const deleted = await packageRepository.softDelete(id);
-
+    const deleted = await packageRepository.delete(Number(id));
     if (!deleted) {
-      throw new Error('Package not found or could not be deleted.');
+      throw new Error('Package not found.');
     }
-
-    return { success: true };
+    return deleted;
   }
 }
 

@@ -10,6 +10,8 @@ import MascotsPage from './pages/public/MascotsPage';
 import ActivitiesPage from './pages/public/ActivitiesPage';
 import PhotoBoothPage from './pages/public/PhotoBoothPage';
 import PackagesPage from './pages/public/PackagesPage';
+import PackageCategoryPage from './pages/public/PackageCategoryPage';
+import PackageDetailPage from './pages/public/PackageDetailPage';
 import GalleryPage from './pages/public/GalleryPage';
 import OurTeamPage from './pages/public/OurTeamPage';
 import ReviewsPage from './pages/public/ReviewsPage';
@@ -38,6 +40,8 @@ export default function App() {
         <Route path="activities" element={<ActivitiesPage />} />
         <Route path="photo-booth" element={<PhotoBoothPage />} />
         <Route path="packages" element={<PackagesPage />} />
+        <Route path="packages/:category" element={<PackageCategoryPage />} />
+        <Route path="packages/details/:id" element={<PackageDetailPage />} />
         <Route path="gallery" element={<GalleryPage />} />
         <Route path="our-team" element={<OurTeamPage />} />
         <Route path="reviews" element={<ReviewsPage />} />
