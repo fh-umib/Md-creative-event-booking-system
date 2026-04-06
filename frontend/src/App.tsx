@@ -28,6 +28,7 @@ import PackagesPageAdmin from './pages/admin/PackagesPage';
 import ReviewsPageAdmin from './pages/admin/ReviewsPage';
 import StaffPage from './pages/admin/StaffPage';
 import AnalyticsPage from './pages/admin/AnalyticsPage';
+import GalleryAdminPage from './pages/admin/GalleryPage';
 
 export default function App() {
   return (
@@ -61,6 +62,7 @@ export default function App() {
         <Route path="reviews" element={<ReviewsPageAdmin />} />
         <Route path="staff" element={<StaffPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
+        <Route path="gallery" element={<GalleryAdminPage />} />
       </Route>
     </Routes>
   );

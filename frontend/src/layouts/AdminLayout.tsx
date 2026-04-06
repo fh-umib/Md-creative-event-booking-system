@@ -26,6 +26,7 @@ export default function AdminLayout() {
     { label: 'Reviews', path: '/admin/reviews' },
     { label: 'Staff', path: '/admin/staff' },
     { label: 'Analytics', path: '/admin/analytics' },
+    { label: 'Gallery', path: '/admin/gallery' },
   ];
 
   return (
