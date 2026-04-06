@@ -8,11 +8,11 @@ const bookingFlowRoutes = require('./ui/routes/public/bookingFlowRoutes');
 const packageRoutes = require('./ui/routes/public/packageRoutes');
 const mascotRoutes = require('./ui/routes/public/mascotRoutes');
 const reviewRoutes = require('./ui/routes/public/reviewRoutes');
-
 const decorationRoutes = require('./ui/routes/public/decorationRoutes');
-const adminDecorationRoutes = require('./ui/routes/admin/adminDecorationRoutes');
 
 const bookingAdminRoutes = require('./ui/routes/admin/bookingAdminRoutes');
+const adminDecorationRoutes = require('./ui/routes/admin/adminDecorationRoutes');
+const mascotAdminRoutes = require('./ui/routes/admin/adminMascotRoutes');
 
 const errorMiddleware = require('./ui/middleware/errorMiddleware');
 
@@ -32,13 +32,11 @@ app.use('/api/booking-flow', bookingFlowRoutes);
 app.use('/api/packages', packageRoutes);
 app.use('/api/mascots', mascotRoutes);
 app.use('/api/reviews', reviewRoutes);
-
-/* PUBLIC DECORATIONS */
 app.use('/api/decorations', decorationRoutes);
 
-/* ADMIN ROUTES */
 app.use('/api/admin/bookings', bookingAdminRoutes);
 app.use('/api/admin/decorations', adminDecorationRoutes);
+app.use('/api/admin/mascots', mascotAdminRoutes);
 
 app.use(errorMiddleware);
 

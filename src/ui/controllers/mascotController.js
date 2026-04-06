@@ -1,55 +1,64 @@
 const mascotService = require('../../services/mascotService');
 
-const getAll = (req, res) => {
-  try {
-    const mascots = mascotService.listMascots(req.query);
-    res.status(200).json(mascots);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+class MascotController {
+  async getAllPublic(req, res, next) {
+    try {
+      const data = await mascotService.getAllPublic();
+      res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
   }
-};
 
-const getById = (req, res) => {
-  try {
-    const item = mascotService.getMascotById(req.params.id);
-    res.status(200).json(item);
-  } catch (error) {
-    res.status(404).json({ message: error.message });
+  async getAllAdmin(req, res, next) {
+    try {
+      const data = await mascotService.getAllAdmin();
+      res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
   }
-};
 
-const create = (req, res) => {
-  try {
-    const item = mascotService.createMascot(req.body);
-    res.status(201).json(item);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+  async getById(req, res, next) {
+    try {
+      const item = await mascotService.getById(req.params.id);
+
+      if (!item) {
+        return res.status(404).json({ message: 'Mascot not found.' });
+      }
+
+      res.status(200).json(item);
+    } catch (error) {
+      next(error);
+    }
   }
-};
 
-const update = (req, res) => {
-  try {
-    const item = mascotService.updateMascot(req.params.id, req.body);
-    res.status(200).json(item);
-  } catch (error) {
-    const status = error.message === 'Mascot not found' ? 404 : 400;
-    res.status(status).json({ message: error.message });
+  async create(req, res, next) {
+    try {
+      const created = await mascotService.create(req.body);
+      res.status(201).json(created);
+    } catch (error) {
+      next(error);
+    }
   }
-};
 
-const remove = (req, res) => {
-  try {
-    const result = mascotService.deleteMascot(req.params.id);
-    res.status(200).json(result);
-  } catch (error) {
-    res.status(404).json({ message: error.message });
+  async update(req, res, next) {
+    try {
+      const updated = await mascotService.update(req.params.id, req.body);
+      res.status(200).json(updated);
+    } catch (error) {
+      next(error);
+    }
   }
-};
 
-module.exports = {
-  getAll,
-  getById,
-  create,
-  update,
-  remove,
-};
+  async delete(req, res, next) {
+    try {
+      const deleted = await mascotService.delete(req.params.id);
+      res.status(200).json(deleted);
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+module.exports = new MascotController();

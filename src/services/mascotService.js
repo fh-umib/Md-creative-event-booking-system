@@ -1,90 +1,94 @@
-const fileMascotRepository = require('../data/repositories/mascotRepository');
+const mascotRepository = require('../data/repositories/PgMascotRepository');
 
 class MascotService {
-  constructor(mascotRepository) {
-    this.mascotRepository = mascotRepository;
+  async getAllPublic() {
+    return mascotRepository.getAllPublic();
   }
 
-  listMascots(filters = {}) {
-    let mascots = this.mascotRepository.getAll();
-
-    if (filters.name) {
-      mascots = mascots.filter((item) =>
-        item.name.toLowerCase().includes(filters.name.toLowerCase())
-      );
-    }
-
-    if (filters.maxPrice) {
-      mascots = mascots.filter(
-        (item) => Number(item.price) <= Number(filters.maxPrice)
-      );
-    }
-
-    return mascots;
+  async getAllAdmin() {
+    return mascotRepository.getAllAdmin();
   }
 
-  getMascotById(id) {
-    const item = this.mascotRepository.getById(id);
-
-    if (!item) {
-      throw new Error('Mascot not found');
-    }
-
-    return item;
+  async getById(id) {
+    return mascotRepository.getById(Number(id));
   }
 
-  createMascot(data) {
-    if (!data.name || !data.name.trim()) {
-      throw new Error('Mascot name is required');
+  async create(payload) {
+    const name = payload.name?.trim();
+    const character_name = payload.character_name?.trim();
+
+    if (!name) {
+      throw new Error('Name is required.');
     }
 
-    if (data.price === undefined || Number(data.price) <= 0) {
-      throw new Error('Mascot price must be greater than 0');
+    if (!character_name) {
+      throw new Error('Character name is required.');
     }
 
-    return this.mascotRepository.add({
-      name: data.name.trim(),
-      description: data.description || '',
-      price: Number(data.price),
-      imageUrl: data.imageUrl || '',
-      isActive: data.isActive !== undefined ? data.isActive : true,
+    return mascotRepository.create({
+      name,
+      character_name,
+      theme: payload.theme?.trim() || '',
+      description: payload.description?.trim() || '',
+      price: Number(payload.price || 0),
+      duration_minutes: Number(payload.duration_minutes || 60),
+      min_age:
+        payload.min_age !== undefined && payload.min_age !== ''
+          ? Number(payload.min_age)
+          : null,
+      max_age:
+        payload.max_age !== undefined && payload.max_age !== ''
+          ? Number(payload.max_age)
+          : null,
+      is_available: payload.is_available !== false,
     });
   }
 
-  updateMascot(id, data) {
-    if (!data.name || !data.name.trim()) {
-      throw new Error('Mascot name is required');
+  async update(id, payload) {
+    const existing = await mascotRepository.getById(Number(id));
+
+    if (!existing) {
+      throw new Error('Mascot not found.');
     }
 
-    if (data.price === undefined || Number(data.price) <= 0) {
-      throw new Error('Mascot price must be greater than 0');
-    }
-
-    const updated = this.mascotRepository.update(id, {
-      name: data.name.trim(),
-      description: data.description || '',
-      price: Number(data.price),
-      imageUrl: data.imageUrl || '',
-      isActive: data.isActive !== undefined ? String(data.isActive) : 'true',
+    return mascotRepository.update(Number(id), {
+      name: payload.name?.trim() || existing.name,
+      character_name: payload.character_name?.trim() || existing.character_name,
+      theme: payload.theme !== undefined ? payload.theme.trim() : existing.theme,
+      description:
+        payload.description !== undefined
+          ? payload.description.trim()
+          : existing.description,
+      price:
+        payload.price !== undefined ? Number(payload.price) : Number(existing.price),
+      duration_minutes:
+        payload.duration_minutes !== undefined
+          ? Number(payload.duration_minutes)
+          : Number(existing.duration_minutes),
+      min_age:
+        payload.min_age !== undefined && payload.min_age !== ''
+          ? Number(payload.min_age)
+          : existing.min_age,
+      max_age:
+        payload.max_age !== undefined && payload.max_age !== ''
+          ? Number(payload.max_age)
+          : existing.max_age,
+      is_available:
+        payload.is_available !== undefined
+          ? Boolean(payload.is_available)
+          : existing.is_available,
     });
-
-    if (!updated) {
-      throw new Error('Mascot not found');
-    }
-
-    return updated;
   }
 
-  deleteMascot(id) {
-    const deleted = this.mascotRepository.delete(id);
+  async delete(id) {
+    const deleted = await mascotRepository.delete(Number(id));
 
     if (!deleted) {
-      throw new Error('Mascot not found');
+      throw new Error('Mascot not found.');
     }
 
-    return { message: 'Mascot deleted successfully' };
+    return deleted;
   }
 }
 
-module.exports = new MascotService(fileMascotRepository);
-module.exports.MascotService = MascotService;
+module.exports = new MascotService();
