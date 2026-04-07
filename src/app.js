@@ -11,6 +11,7 @@ const reviewRoutes = require('./ui/routes/public/reviewRoutes');
 const decorationRoutes = require('./ui/routes/public/decorationRoutes');
 const activityRoutes = require('./ui/routes/public/activityRoutes');
 const galleryRoutes = require('./ui/routes/public/galleryRoutes');
+const staffRoutes = require('./ui/routes/public/staffRoutes');
 
 const adminGalleryRoutes = require('./ui/routes/admin/adminGalleryRoutes');
 const bookingAdminRoutes = require('./ui/routes/admin/bookingAdminRoutes');
@@ -18,6 +19,7 @@ const adminDecorationRoutes = require('./ui/routes/admin/adminDecorationRoutes')
 const adminPackageRoutes = require('./ui/routes/admin/adminPackageRoutes');
 const mascotAdminRoutes = require('./ui/routes/admin/adminMascotRoutes');
 const activityAdminRoutes = require('./ui/routes/admin/adminActivityRoutes');
+const adminStaffRoutes = require('./ui/routes/admin/adminStaffRoutes');
 
 const errorMiddleware = require('./ui/middleware/errorMiddleware');
 
@@ -40,6 +42,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/decorations', decorationRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/gallery', galleryRoutes);
+app.use('/api/public/staff', staffRoutes);
 
 app.use('/api/admin/bookings', bookingAdminRoutes);
 app.use('/api/admin/decorations', adminDecorationRoutes);
@@ -47,7 +50,7 @@ app.use('/api/admin/packages', adminPackageRoutes);
 app.use('/api/admin/mascots', mascotAdminRoutes);
 app.use('/api/admin/activities', activityAdminRoutes);
 app.use('/api/admin/gallery', adminGalleryRoutes);
-app.use('/api/admin/gallery', adminGalleryRoutes);
+app.use('/api/admin/staff', adminStaffRoutes);
 
 app.use(errorMiddleware);
 

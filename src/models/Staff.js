@@ -1,23 +1,29 @@
-class StaffAssignment {
+class Staff {
   constructor({
-    id = null,
-    bookingId,
-    staffUserId,
-    assignmentRole,
-    startTime = null,
-    endTime = null,
-    notes = '',
-    createdAt = null
+    id,
+    full_name,
+    role,
+    bio,
+    image_url,
+    email,
+    phone,
+    is_active = true,
+    display_order = 0,
+    created_at,
+    updated_at,
   }) {
     this.id = id;
-    this.bookingId = bookingId;
-    this.staffUserId = staffUserId;
-    this.assignmentRole = assignmentRole;
-    this.startTime = startTime;
-    this.endTime = endTime;
-    this.notes = notes;
-    this.createdAt = createdAt;
+    this.full_name = full_name;
+    this.role = role;
+    this.bio = bio;
+    this.image_url = image_url;
+    this.email = email;
+    this.phone = phone;
+    this.is_active = is_active;
+    this.display_order = display_order;
+    this.created_at = created_at;
+    this.updated_at = updated_at;
   }
 }
 
-module.exports = StaffAssignment;
+module.exports = Staff;
