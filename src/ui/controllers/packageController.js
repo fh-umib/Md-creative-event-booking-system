@@ -1,10 +1,32 @@
 const packageService = require('../../services/packageService');
 
+function createBadRequest(message) {
+  const error = new Error(message);
+  error.statusCode = 400;
+  return error;
+}
+
+function parsePackageId(idParam) {
+  const packageId = Number(idParam);
+
+  if (!Number.isInteger(packageId) || packageId <= 0) {
+    throw createBadRequest('A valid package id is required.');
+  }
+
+  return packageId;
+}
+
 class PackageController {
   async getAllAdmin(req, res, next) {
     try {
-      const data = await packageService.getAllAdmin(req.query.search || '');
-      res.status(200).json(data);
+      const search = req.query.search ? String(req.query.search).trim() : '';
+      const data = await packageService.getAllAdmin(search);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Packages fetched successfully.',
+        data,
+      });
     } catch (error) {
       next(error);
     }
@@ -13,7 +35,12 @@ class PackageController {
   async getPublicCategories(req, res, next) {
     try {
       const data = await packageService.getPublicCategories();
-      res.status(200).json(data);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Public package categories fetched successfully.',
+        data,
+      });
     } catch (error) {
       next(error);
     }
@@ -21,8 +48,14 @@ class PackageController {
 
   async getByCategory(req, res, next) {
     try {
-      const data = await packageService.getByCategory(req.params.category);
-      res.status(200).json(data);
+      const category = req.params.category ? String(req.params.category).trim() : '';
+      const data = await packageService.getByCategory(category);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Packages by category fetched successfully.',
+        data,
+      });
     } catch (error) {
       next(error);
     }
@@ -30,13 +63,21 @@ class PackageController {
 
   async getById(req, res, next) {
     try {
-      const item = await packageService.getById(req.params.id);
+      const packageId = parsePackageId(req.params.id);
+      const item = await packageService.getById(packageId);
 
       if (!item) {
-        return res.status(404).json({ message: 'Package not found.' });
+        return res.status(404).json({
+          success: false,
+          message: 'Package not found.',
+        });
       }
 
-      res.status(200).json(item);
+      return res.status(200).json({
+        success: true,
+        message: 'Package fetched successfully.',
+        data: item,
+      });
     } catch (error) {
       next(error);
     }
@@ -45,7 +86,12 @@ class PackageController {
   async create(req, res, next) {
     try {
       const created = await packageService.create(req.body);
-      res.status(201).json(created);
+
+      return res.status(201).json({
+        success: true,
+        message: 'Package created successfully.',
+        data: created,
+      });
     } catch (error) {
       next(error);
     }
@@ -53,8 +99,14 @@ class PackageController {
 
   async update(req, res, next) {
     try {
-      const updated = await packageService.update(req.params.id, req.body);
-      res.status(200).json(updated);
+      const packageId = parsePackageId(req.params.id);
+      const updated = await packageService.update(packageId, req.body);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Package updated successfully.',
+        data: updated,
+      });
     } catch (error) {
       next(error);
     }
@@ -62,8 +114,14 @@ class PackageController {
 
   async delete(req, res, next) {
     try {
-      const deleted = await packageService.delete(req.params.id);
-      res.status(200).json(deleted);
+      const packageId = parsePackageId(req.params.id);
+      const deleted = await packageService.delete(packageId);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Package deleted successfully.',
+        data: deleted,
+      });
     } catch (error) {
       next(error);
     }

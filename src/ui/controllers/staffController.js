@@ -1,10 +1,31 @@
 const staffService = require('../../services/staffService');
 
+function createBadRequest(message) {
+  const error = new Error(message);
+  error.statusCode = 400;
+  return error;
+}
+
+function parseStaffId(idParam) {
+  const staffId = Number(idParam);
+
+  if (!Number.isInteger(staffId) || staffId <= 0) {
+    throw createBadRequest('A valid staff id is required.');
+  }
+
+  return staffId;
+}
+
 class StaffController {
   async getPublicStaff(req, res, next) {
     try {
       const data = await staffService.getPublicStaffWithStats();
-      return res.status(200).json(data);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Public staff data fetched successfully.',
+        data,
+      });
     } catch (error) {
       next(error);
     }
@@ -13,7 +34,12 @@ class StaffController {
   async getAll(req, res, next) {
     try {
       const data = await staffService.getAll();
-      return res.status(200).json(data);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Staff members fetched successfully.',
+        data,
+      });
     } catch (error) {
       next(error);
     }
@@ -21,9 +47,14 @@ class StaffController {
 
   async getById(req, res, next) {
     try {
-      const id = Number(req.params.id);
-      const data = await staffService.getById(id);
-      return res.status(200).json(data);
+      const staffId = parseStaffId(req.params.id);
+      const data = await staffService.getById(staffId);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Staff member fetched successfully.',
+        data,
+      });
     } catch (error) {
       next(error);
     }
@@ -32,8 +63,10 @@ class StaffController {
   async create(req, res, next) {
     try {
       const created = await staffService.create(req.body);
+
       return res.status(201).json({
-        message: 'Staff member created successfully',
+        success: true,
+        message: 'Staff member created successfully.',
         data: created,
       });
     } catch (error) {
@@ -43,10 +76,12 @@ class StaffController {
 
   async update(req, res, next) {
     try {
-      const id = Number(req.params.id);
-      const updated = await staffService.update(id, req.body);
+      const staffId = parseStaffId(req.params.id);
+      const updated = await staffService.update(staffId, req.body);
+
       return res.status(200).json({
-        message: 'Staff member updated successfully',
+        success: true,
+        message: 'Staff member updated successfully.',
         data: updated,
       });
     } catch (error) {
@@ -56,10 +91,13 @@ class StaffController {
 
   async delete(req, res, next) {
     try {
-      const id = Number(req.params.id);
-      await staffService.delete(id);
+      const staffId = parseStaffId(req.params.id);
+      const deleted = await staffService.delete(staffId);
+
       return res.status(200).json({
-        message: 'Staff member deleted successfully',
+        success: true,
+        message: 'Staff member deleted successfully.',
+        data: deleted,
       });
     } catch (error) {
       next(error);

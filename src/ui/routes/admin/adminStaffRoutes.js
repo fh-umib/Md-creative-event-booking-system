@@ -1,11 +1,20 @@
-const express = require("express");
-const router = express.Router();
-const staffController = require("../../controllers/staffController");
+const express = require('express');
+const staffController = require('../../controllers/staffController');
+const authMiddleware = require('../../middleware/authMiddleware');
+const roleMiddleware = require('../../middleware/roleMiddleware');
 
-router.get("/", (req, res) => staffController.getAll(req, res));
-router.get("/:id", (req, res) => staffController.getById(req, res));
-router.post("/", (req, res) => staffController.create(req, res));
-router.put("/:id", (req, res) => staffController.update(req, res));
-router.delete("/:id", (req, res) => staffController.delete(req, res));
+const router = express.Router();
+
+/**
+ * Protected admin staff routes
+ */
+router.use(authMiddleware);
+router.use(roleMiddleware('Admin'));
+
+router.get('/', (req, res, next) => staffController.getAll(req, res, next));
+router.get('/:id', (req, res, next) => staffController.getById(req, res, next));
+router.post('/', (req, res, next) => staffController.create(req, res, next));
+router.put('/:id', (req, res, next) => staffController.update(req, res, next));
+router.delete('/:id', (req, res, next) => staffController.delete(req, res, next));
 
 module.exports = router;

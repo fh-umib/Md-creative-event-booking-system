@@ -8,6 +8,7 @@ class PgDecorationRepository {
       WHERE is_active = TRUE
       ORDER BY created_at DESC
     `;
+
     const { rows } = await pool.query(query);
     return rows;
   }
@@ -18,6 +19,7 @@ class PgDecorationRepository {
       FROM decorations
       ORDER BY created_at DESC
     `;
+
     const { rows } = await pool.query(query);
     return rows;
   }
@@ -29,6 +31,7 @@ class PgDecorationRepository {
       WHERE id = $1
       LIMIT 1
     `;
+
     const { rows } = await pool.query(query, [id]);
     return rows[0] || null;
   }
@@ -40,6 +43,7 @@ class PgDecorationRepository {
       WHERE slug = $1 AND is_active = TRUE
       LIMIT 1
     `;
+
     const { rows } = await pool.query(query, [slug]);
     return rows[0] || null;
   }
@@ -47,8 +51,19 @@ class PgDecorationRepository {
   async create(data) {
     const query = `
       INSERT INTO decorations
-      (title, slug, category, short_description, full_description, image_url, price_from, theme_colors, is_featured, is_active)
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      (
+        title,
+        slug,
+        category,
+        short_description,
+        full_description,
+        image_url,
+        price_from,
+        theme_colors,
+        is_featured,
+        is_active
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING *
     `;
 
@@ -112,6 +127,7 @@ class PgDecorationRepository {
       WHERE id = $1
       RETURNING *
     `;
+
     const { rows } = await pool.query(query, [id]);
     return rows[0] || null;
   }

@@ -7,6 +7,7 @@ class PgActivityRepository {
       FROM activities
       ORDER BY created_at DESC
     `;
+
     const { rows } = await pool.query(query);
     return rows;
   }
@@ -17,6 +18,7 @@ class PgActivityRepository {
       FROM activities
       ORDER BY created_at DESC
     `;
+
     const { rows } = await pool.query(query);
     return rows;
   }
@@ -28,6 +30,7 @@ class PgActivityRepository {
       WHERE id = $1
       LIMIT 1
     `;
+
     const { rows } = await pool.query(query, [id]);
     return rows[0] || null;
   }
@@ -65,7 +68,8 @@ class PgActivityRepository {
         description = $2,
         price = $3,
         duration_minutes = $4,
-        is_active = $5
+        is_active = $5,
+        updated_at = CURRENT_TIMESTAMP
       WHERE id = $6
       RETURNING *
     `;

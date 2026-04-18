@@ -1,4 +1,4 @@
-const pool = require("../config/db");
+const pool = require('../config/db');
 
 class StaffRepository {
   async getPublicStaff() {
@@ -8,6 +8,7 @@ class StaffRepository {
       WHERE is_active = TRUE
       ORDER BY display_order ASC, id ASC
     `;
+
     const result = await pool.query(query);
     return result.rows;
   }
@@ -18,6 +19,7 @@ class StaffRepository {
       FROM staff
       ORDER BY display_order ASC, id ASC
     `;
+
     const result = await pool.query(query);
     return result.rows;
   }
@@ -27,9 +29,11 @@ class StaffRepository {
       SELECT *
       FROM staff
       WHERE id = $1
+      LIMIT 1
     `;
+
     const result = await pool.query(query, [id]);
-    return result.rows[0];
+    return result.rows[0] || null;
   }
 
   async create(data) {
@@ -44,7 +48,7 @@ class StaffRepository {
         is_active,
         display_order
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `;
 
@@ -93,7 +97,7 @@ class StaffRepository {
     ];
 
     const result = await pool.query(query, values);
-    return result.rows[0];
+    return result.rows[0] || null;
   }
 
   async delete(id) {
@@ -102,8 +106,9 @@ class StaffRepository {
       WHERE id = $1
       RETURNING *
     `;
+
     const result = await pool.query(query, [id]);
-    return result.rows[0];
+    return result.rows[0] || null;
   }
 
   async getStats() {
@@ -149,6 +154,7 @@ class StaffRepository {
       WHERE sr.is_approved = TRUE
       ORDER BY sr.created_at DESC
     `;
+
     const result = await pool.query(query);
     return result.rows;
   }

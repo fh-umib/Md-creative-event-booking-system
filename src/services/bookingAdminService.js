@@ -1,5 +1,11 @@
 const pool = require('../data/config/db');
 
+function createHttpError(message, statusCode = 400) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+}
+
 class BookingAdminService {
   async getAllBookings(filters = {}) {
     const { search = '', status = '' } = filters;
@@ -32,7 +38,7 @@ class BookingAdminService {
     const values = [];
     let index = 1;
 
-    if (search.trim()) {
+    if (String(search).trim()) {
       query += `
         AND (
           LOWER(b.booking_code) LIKE LOWER($${index})
@@ -42,13 +48,13 @@ class BookingAdminService {
           OR LOWER(COALESCE(p.title, '')) LIKE LOWER($${index})
         )
       `;
-      values.push(`%${search.trim()}%`);
+      values.push(`%${String(search).trim()}%`);
       index++;
     }
 
-    if (status.trim()) {
+    if (String(status).trim()) {
       query += ` AND b.status = $${index}`;
-      values.push(status.trim());
+      values.push(String(status).trim());
       index++;
     }
 
@@ -81,7 +87,7 @@ class BookingAdminService {
     const allowedStatuses = ['Pending', 'Approved', 'Completed', 'Cancelled'];
 
     if (!allowedStatuses.includes(status)) {
-      throw new Error('Invalid booking status.');
+      throw createHttpError('Invalid booking status.', 400);
     }
 
     const query = `
@@ -96,7 +102,7 @@ class BookingAdminService {
     const { rows } = await pool.query(query, [status, id]);
 
     if (!rows[0]) {
-      throw new Error('Booking not found.');
+      throw createHttpError('Booking not found.', 404);
     }
 
     return rows[0];
@@ -112,7 +118,7 @@ class BookingAdminService {
     const { rows } = await pool.query(query, [id]);
 
     if (!rows[0]) {
-      throw new Error('Booking not found.');
+      throw createHttpError('Booking not found.', 404);
     }
 
     return rows[0];

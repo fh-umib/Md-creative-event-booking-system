@@ -7,6 +7,7 @@ class PgMascotRepository {
       FROM mascots
       ORDER BY created_at DESC
     `;
+
     const { rows } = await pool.query(query);
     return rows;
   }
@@ -17,6 +18,7 @@ class PgMascotRepository {
       FROM mascots
       ORDER BY created_at DESC
     `;
+
     const { rows } = await pool.query(query);
     return rows;
   }
@@ -28,6 +30,7 @@ class PgMascotRepository {
       WHERE id = $1
       LIMIT 1
     `;
+
     const { rows } = await pool.query(query, [id]);
     return rows[0] || null;
   }
@@ -45,7 +48,7 @@ class PgMascotRepository {
         max_age,
         is_available
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
 
@@ -106,6 +109,7 @@ class PgMascotRepository {
       WHERE id = $1
       RETURNING *
     `;
+
     const { rows } = await pool.query(query, [id]);
     return rows[0] || null;
   }

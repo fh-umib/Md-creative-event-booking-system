@@ -1,10 +1,18 @@
 function errorMiddleware(error, req, res, next) {
-  console.error(error);
+  const statusCode = error.statusCode || 500;
+  const message = error.message || 'Unexpected server error.';
 
-  const statusCode = error.statusCode || 400;
+  console.error('ERROR:', {
+    method: req.method,
+    url: req.originalUrl,
+    statusCode,
+    message,
+    stack: error.stack,
+  });
 
-  res.status(statusCode).json({
-    message: error.message || 'Unexpected error'
+  return res.status(statusCode).json({
+    success: false,
+    message,
   });
 }
 

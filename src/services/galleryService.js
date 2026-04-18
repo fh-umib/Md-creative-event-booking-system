@@ -9,28 +9,53 @@ function slugify(text) {
     .replace(/-+/g, '-');
 }
 
+function createHttpError(message, statusCode = 400) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+}
+
+function normalizeString(value) {
+  return value !== undefined && value !== null ? String(value).trim() : '';
+}
+
+function parseId(value, label = 'id') {
+  const numericId = Number(value);
+
+  if (!Number.isInteger(numericId) || numericId <= 0) {
+    throw createHttpError(`A valid ${label} is required.`, 400);
+  }
+
+  return numericId;
+}
+
 function validateAlbumPayload(data) {
-  if (!data.title || !data.title.trim()) {
-    throw new Error('Title is required');
+  const title = normalizeString(data.title);
+  const category = normalizeString(data.category);
+  const coverImageUrl = normalizeString(data.cover_image_url);
+
+  if (!title) {
+    throw createHttpError('Title is required.', 400);
   }
 
-  if (!data.category || !data.category.trim()) {
-    throw new Error('Category is required');
+  if (!category) {
+    throw createHttpError('Category is required.', 400);
   }
 
-  if (!data.cover_image_url || !data.cover_image_url.trim()) {
-    throw new Error('Cover image URL is required');
+  if (!coverImageUrl) {
+    throw createHttpError('Cover image URL is required.', 400);
   }
 }
 
 function validatePhotoPayload(data) {
-  if (!data.album_id) {
-    throw new Error('Album ID is required');
+  const albumId = parseId(data.album_id, 'album id');
+  const imageUrl = normalizeString(data.image_url);
+
+  if (!imageUrl) {
+    throw createHttpError('Image URL is required.', 400);
   }
 
-  if (!data.image_url || !data.image_url.trim()) {
-    throw new Error('Image URL is required');
-  }
+  return { albumId, imageUrl };
 }
 
 async function getAdminAlbums(filters) {
@@ -42,21 +67,28 @@ async function getPublicAlbums() {
 }
 
 async function getAlbumDetailsById(id) {
-  const album = await galleryRepository.getAlbumById(id);
+  const albumId = parseId(id, 'album id');
+  const album = await galleryRepository.getAlbumById(albumId);
 
   if (!album) {
-    throw new Error('Album not found');
+    throw createHttpError('Album not found.', 404);
   }
 
-  const photos = await galleryRepository.getPhotosByAlbumId(id);
+  const photos = await galleryRepository.getPhotosByAlbumId(albumId);
   return { ...album, photos };
 }
 
 async function getAlbumDetailsBySlug(slug) {
-  const album = await galleryRepository.getAlbumBySlug(slug);
+  const normalizedSlug = normalizeString(slug);
+
+  if (!normalizedSlug) {
+    throw createHttpError('Album slug is required.', 400);
+  }
+
+  const album = await galleryRepository.getAlbumBySlug(normalizedSlug);
 
   if (!album || !album.is_published) {
-    throw new Error('Album not found');
+    throw createHttpError('Album not found.', 404);
   }
 
   const photos = await galleryRepository.getPhotosByAlbumId(album.id);
@@ -66,89 +98,112 @@ async function getAlbumDetailsBySlug(slug) {
 async function createAlbum(data) {
   validateAlbumPayload(data);
 
-  const slug =
-    data.slug && data.slug.trim() ? slugify(data.slug) : slugify(data.title);
+  const title = normalizeString(data.title);
+  const slug = normalizeString(data.slug) || slugify(title);
 
   const existing = await galleryRepository.getAlbumBySlug(slug);
 
   if (existing) {
-    throw new Error('Album slug already exists');
+    throw createHttpError('Album slug already exists.', 409);
   }
 
   return galleryRepository.createAlbum({
     ...data,
+    title,
     slug,
+    category: normalizeString(data.category),
+    cover_image_url: normalizeString(data.cover_image_url),
+    description: normalizeString(data.description),
   });
 }
 
 async function updateAlbum(id, data) {
+  const albumId = parseId(id, 'album id');
   validateAlbumPayload(data);
 
-  const existingAlbum = await galleryRepository.getAlbumById(id);
+  const existingAlbum = await galleryRepository.getAlbumById(albumId);
 
   if (!existingAlbum) {
-    throw new Error('Album not found');
+    throw createHttpError('Album not found.', 404);
   }
 
-  const slug =
-    data.slug && data.slug.trim() ? slugify(data.slug) : slugify(data.title);
+  const title = normalizeString(data.title);
+  const slug = normalizeString(data.slug) || slugify(title);
 
   const existingSlug = await galleryRepository.getAlbumBySlug(slug);
 
-  if (existingSlug && existingSlug.id !== Number(id)) {
-    throw new Error('Album slug already exists');
+  if (existingSlug && existingSlug.id !== albumId) {
+    throw createHttpError('Album slug already exists.', 409);
   }
 
-  return galleryRepository.updateAlbum(id, {
+  return galleryRepository.updateAlbum(albumId, {
     ...data,
+    title,
     slug,
+    category: normalizeString(data.category),
+    cover_image_url: normalizeString(data.cover_image_url),
+    description: normalizeString(data.description),
   });
 }
 
 async function deleteAlbum(id) {
-  const existingAlbum = await galleryRepository.getAlbumById(id);
+  const albumId = parseId(id, 'album id');
+  const existingAlbum = await galleryRepository.getAlbumById(albumId);
 
   if (!existingAlbum) {
-    throw new Error('Album not found');
+    throw createHttpError('Album not found.', 404);
   }
 
-  return galleryRepository.deleteAlbum(id);
+  return galleryRepository.deleteAlbum(albumId);
 }
 
 async function createPhoto(data) {
-  validatePhotoPayload(data);
+  const { albumId, imageUrl } = validatePhotoPayload(data);
 
-  const album = await galleryRepository.getAlbumById(data.album_id);
+  const album = await galleryRepository.getAlbumById(albumId);
 
   if (!album) {
-    throw new Error('Album not found');
+    throw createHttpError('Album not found.', 404);
   }
 
-  return galleryRepository.createPhoto(data);
+  return galleryRepository.createPhoto({
+    ...data,
+    album_id: albumId,
+    image_url: imageUrl,
+    caption: normalizeString(data.caption),
+  });
 }
 
 async function updatePhoto(id, data) {
-  const existingPhoto = await galleryRepository.getPhotoById(id);
+  const photoId = parseId(id, 'photo id');
+  const existingPhoto = await galleryRepository.getPhotoById(photoId);
 
   if (!existingPhoto) {
-    throw new Error('Photo not found');
+    throw createHttpError('Photo not found.', 404);
   }
 
-  if (!data.image_url || !data.image_url.trim()) {
-    throw new Error('Image URL is required');
+  const imageUrl = normalizeString(data.image_url);
+
+  if (!imageUrl) {
+    throw createHttpError('Image URL is required.', 400);
   }
 
-  return galleryRepository.updatePhoto(id, data);
+  return galleryRepository.updatePhoto(photoId, {
+    ...data,
+    image_url: imageUrl,
+    caption: normalizeString(data.caption),
+  });
 }
 
 async function deletePhoto(id) {
-  const existingPhoto = await galleryRepository.getPhotoById(id);
+  const photoId = parseId(id, 'photo id');
+  const existingPhoto = await galleryRepository.getPhotoById(photoId);
 
   if (!existingPhoto) {
-    throw new Error('Photo not found');
+    throw createHttpError('Photo not found.', 404);
   }
 
-  return galleryRepository.deletePhoto(id);
+  return galleryRepository.deletePhoto(photoId);
 }
 
 module.exports = {

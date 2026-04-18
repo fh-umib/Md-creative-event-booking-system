@@ -1,5 +1,14 @@
 const packageRepository = require('../data/repositories/packageRepository');
-const { BOOKING_CATEGORIES, BOOKING_CATEGORY_VALUES } = require('../models/BookingCategory');
+const {
+  BOOKING_CATEGORIES,
+  BOOKING_CATEGORY_VALUES,
+} = require('../models/BookingCategory');
+
+function createHttpError(message, statusCode = 400) {
+  const error = new Error(message);
+  error.statusCode = statusCode;
+  return error;
+}
 
 class BookingFlowService {
   getCategories() {
@@ -12,20 +21,23 @@ class BookingFlowService {
       {
         key: BOOKING_CATEGORIES.DECORATIONS,
         title: 'Decorations',
-        description: 'Choose styling, backdrops, balloon setups, and themed decor packages.',
+        description:
+          'Choose styling, backdrops, balloon setups, and themed decor packages.',
       },
       {
         key: BOOKING_CATEGORIES.BOUNCE_BUBBLE,
         title: 'Bounce & Bubble',
-        description: 'Choose inflatable fun, bubble experiences, and energetic party options.',
+        description:
+          'Choose inflatable fun, bubble experiences, and energetic party options.',
       },
     ];
   }
 
   validateCategory(category) {
     if (!BOOKING_CATEGORY_VALUES.includes(category)) {
-      throw new Error(
-        `Invalid booking category. Allowed values: ${BOOKING_CATEGORY_VALUES.join(', ')}`
+      throw createHttpError(
+        `Invalid booking category. Allowed values: ${BOOKING_CATEGORY_VALUES.join(', ')}`,
+        400
       );
     }
   }
@@ -73,7 +85,8 @@ class BookingFlowService {
             key: 'backdrop',
             title: 'Backdrop & Visual Setup',
             type: 'single-select',
-            description: 'Choose backdrop, table styling, and visual display options.',
+            description:
+              'Choose backdrop, table styling, and visual display options.',
           },
           {
             key: 'extras',
