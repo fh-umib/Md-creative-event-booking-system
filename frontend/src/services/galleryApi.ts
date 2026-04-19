@@ -52,22 +52,46 @@ export type AdminGalleryPhotoPayload = {
   display_order?: number;
 };
 
-async function handleResponse<T>(response: Response): Promise<T> {
+type ApiResponse<T> = {
+  success?: boolean;
+  message?: string;
+  data?: T;
+};
+
+function getAuthToken() {
+  return localStorage.getItem('md_auth_token');
+}
+
+function getAuthHeaders(includeJson = false): HeadersInit {
+  const token = getAuthToken();
+
+  return {
+    ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+async function handleResponse<T>(
+  response: Response,
+  fallbackMessage = 'Request failed'
+): Promise<T> {
+  const json = await response.json().catch(() => ({}));
+
   if (!response.ok) {
-    let message = 'Request failed';
-
-    try {
-      const data = await response.json();
-      message = data.message || message;
-    } catch {
-      const text = await response.text();
-      if (text) message = text;
-    }
-
-    throw new Error(message);
+    throw new Error((json as { message?: string }).message || fallbackMessage);
   }
 
-  return response.json();
+  const parsed = json as ApiResponse<T> | T;
+
+  if (
+    typeof parsed === 'object' &&
+    parsed !== null &&
+    'data' in parsed
+  ) {
+    return (parsed as ApiResponse<T>).data as T;
+  }
+
+  return parsed as T;
 }
 
 /* =========================
@@ -76,14 +100,14 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 export async function getPublicGalleryAlbums(): Promise<GalleryAlbum[]> {
   const response = await fetch(`${API_BASE_URL}/gallery`);
-  return handleResponse<GalleryAlbum[]>(response);
+  return handleResponse<GalleryAlbum[]>(response, 'Failed to load gallery');
 }
 
 export async function getPublicGalleryAlbumBySlug(
   slug: string
 ): Promise<GalleryAlbumDetails> {
   const response = await fetch(`${API_BASE_URL}/gallery/${slug}`);
-  return handleResponse<GalleryAlbumDetails>(response);
+  return handleResponse<GalleryAlbumDetails>(response, 'Failed to load album');
 }
 
 /* =========================
@@ -104,15 +128,24 @@ export async function getAdminGalleryAlbums(
     ? `${API_BASE_URL}/admin/gallery?${query}`
     : `${API_BASE_URL}/admin/gallery`;
 
-  const response = await fetch(url);
-  return handleResponse<GalleryAlbum[]>(response);
+  const response = await fetch(url, {
+    headers: getAuthHeaders(),
+  });
+
+  return handleResponse<GalleryAlbum[]>(response, 'Failed to load gallery');
 }
 
 export async function getAdminGalleryAlbumById(
   id: number
 ): Promise<GalleryAlbumDetails> {
-  const response = await fetch(`${API_BASE_URL}/admin/gallery/${id}`);
-  return handleResponse<GalleryAlbumDetails>(response);
+  const response = await fetch(`${API_BASE_URL}/admin/gallery/${id}`, {
+    headers: getAuthHeaders(),
+  });
+
+  return handleResponse<GalleryAlbumDetails>(
+    response,
+    'Failed to load album details'
+  );
 }
 
 export async function createGalleryAlbum(
@@ -120,13 +153,11 @@ export async function createGalleryAlbum(
 ): Promise<GalleryAlbum> {
   const response = await fetch(`${API_BASE_URL}/admin/gallery`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  return handleResponse<GalleryAlbum>(response);
+  return handleResponse<GalleryAlbum>(response, 'Failed to create album');
 }
 
 export async function updateGalleryAlbum(
@@ -135,21 +166,20 @@ export async function updateGalleryAlbum(
 ): Promise<GalleryAlbum> {
   const response = await fetch(`${API_BASE_URL}/admin/gallery/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  return handleResponse<GalleryAlbum>(response);
+  return handleResponse<GalleryAlbum>(response, 'Failed to update album');
 }
 
 export async function deleteGalleryAlbum(id: number): Promise<GalleryAlbum> {
   const response = await fetch(`${API_BASE_URL}/admin/gallery/${id}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
   });
 
-  return handleResponse<GalleryAlbum>(response);
+  return handleResponse<GalleryAlbum>(response, 'Failed to delete album');
 }
 
 /* =========================
@@ -161,13 +191,11 @@ export async function createGalleryPhoto(
 ): Promise<GalleryPhoto> {
   const response = await fetch(`${API_BASE_URL}/admin/gallery/photos`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  return handleResponse<GalleryPhoto>(response);
+  return handleResponse<GalleryPhoto>(response, 'Failed to create photo');
 }
 
 export async function updateGalleryPhoto(
@@ -176,19 +204,18 @@ export async function updateGalleryPhoto(
 ): Promise<GalleryPhoto> {
   const response = await fetch(`${API_BASE_URL}/admin/gallery/photos/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  return handleResponse<GalleryPhoto>(response);
+  return handleResponse<GalleryPhoto>(response, 'Failed to update photo');
 }
 
 export async function deleteGalleryPhoto(id: number): Promise<GalleryPhoto> {
   const response = await fetch(`${API_BASE_URL}/admin/gallery/photos/${id}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
   });
 
-  return handleResponse<GalleryPhoto>(response);
+  return handleResponse<GalleryPhoto>(response, 'Failed to delete photo');
 }

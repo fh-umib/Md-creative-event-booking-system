@@ -27,35 +27,69 @@ export type MascotPayload = {
   is_available: boolean;
 };
 
-export async function getAdminMascots(): Promise<Mascot[]> {
-  const response = await fetch(`${API_BASE_URL}/admin/mascots`);
+type ApiResponse<T> = {
+  success?: boolean;
+  message?: string;
+  data?: T;
+};
+
+function getAuthToken() {
+  return localStorage.getItem('md_auth_token');
+}
+
+function getAuthHeaders(includeJson = false): HeadersInit {
+  const token = getAuthToken();
+
+  return {
+    ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+async function parseResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
+  const json = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error('Failed to load mascots');
+    throw new Error((json as { message?: string }).message || fallbackMessage);
   }
 
-  return response.json();
+  const parsed = json as ApiResponse<T> | T;
+
+  if (
+    typeof parsed === 'object' &&
+    parsed !== null &&
+    'data' in parsed
+  ) {
+    return (parsed as ApiResponse<T>).data as T;
+  }
+
+  return parsed as T;
+}
+
+function normalizePayload(payload: MascotPayload) {
+  return {
+    ...payload,
+    min_age: payload.min_age === '' ? null : payload.min_age,
+    max_age: payload.max_age === '' ? null : payload.max_age,
+  };
+}
+
+export async function getAdminMascots(): Promise<Mascot[]> {
+  const response = await fetch(`${API_BASE_URL}/admin/mascots`, {
+    headers: getAuthHeaders(),
+  });
+
+  return parseResponse<Mascot[]>(response, 'Failed to load mascots');
 }
 
 export async function createMascot(payload: MascotPayload): Promise<Mascot> {
   const response = await fetch(`${API_BASE_URL}/admin/mascots`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      ...payload,
-      min_age: payload.min_age === '' ? null : payload.min_age,
-      max_age: payload.max_age === '' ? null : payload.max_age,
-    }),
+    headers: getAuthHeaders(true),
+    body: JSON.stringify(normalizePayload(payload)),
   });
 
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error(data.message || 'Failed to create mascot');
-  }
-
-  return response.json();
+  return parseResponse<Mascot>(response, 'Failed to create mascot');
 }
 
 export async function updateMascot(
@@ -64,33 +98,18 @@ export async function updateMascot(
 ): Promise<Mascot> {
   const response = await fetch(`${API_BASE_URL}/admin/mascots/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      ...payload,
-      min_age: payload.min_age === '' ? null : payload.min_age,
-      max_age: payload.max_age === '' ? null : payload.max_age,
-    }),
+    headers: getAuthHeaders(true),
+    body: JSON.stringify(normalizePayload(payload)),
   });
 
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error(data.message || 'Failed to update mascot');
-  }
-
-  return response.json();
+  return parseResponse<Mascot>(response, 'Failed to update mascot');
 }
 
 export async function deleteMascot(id: number): Promise<Mascot> {
   const response = await fetch(`${API_BASE_URL}/admin/mascots/${id}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
   });
 
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error(data.message || 'Failed to delete mascot');
-  }
-
-  return response.json();
+  return parseResponse<Mascot>(response, 'Failed to delete mascot');
 }

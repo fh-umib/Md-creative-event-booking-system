@@ -1,44 +1,128 @@
-import { useMemo, useState } from 'react';
-import type { StaffMember } from '../../types/staff';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  createStaff,
+  deleteStaff,
+  getAdminStaff,
+  updateStaff,
+} from '../../services/staffAdminApi';
+import type { StaffMember, StaffPayload } from '../../services/staffAdminApi';
 
-const demoStaff: StaffMember[] = [
-  {
-    id: 1,
-    full_name: 'Arta Krasniqi',
-    role: 'Event Coordinator',
-    bio: 'Coordinates premium events and ensures smooth client communication.',
-    image_url:
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=1200&q=80',
-    email: 'arta@mdcreative.com',
-    phone: '+383 44 111 111',
-    is_active: true,
-    display_order: 1,
-    created_at: '',
-    updated_at: '',
-  },
-  {
-    id: 2,
-    full_name: 'Liridon Berisha',
-    role: 'Mascot Performer',
-    bio: 'Brings energy and unforgettable moments to every children’s celebration.',
-    image_url:
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=1200&q=80',
-    email: 'liridon@mdcreative.com',
-    phone: '+383 44 222 222',
-    is_active: true,
-    display_order: 2,
-    created_at: '',
-    updated_at: '',
-  },
-];
+const initialForm: StaffPayload = {
+  full_name: '',
+  role: '',
+  bio: '',
+  image_url: '',
+  email: '',
+  phone: '',
+  is_active: true,
+  display_order: 0,
+};
 
-export default function StaffAdminPage() {
-  const [members] = useState<StaffMember[]>(demoStaff);
+export default function StaffPage() {
+  const [members, setMembers] = useState<StaffMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [form, setForm] = useState<StaffPayload>(initialForm);
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  const isNarrowScreen = window.innerWidth < 1200;
+
+  const loadMembers = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const data = await getAdminStaff();
+      setMembers(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load staff');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadMembers();
+  }, []);
+
+  const filteredMembers = useMemo(() => {
+    return members.filter((item) => {
+      const text = `${item.full_name} ${item.role} ${item.email || ''}`.toLowerCase();
+      return text.includes(search.toLowerCase());
+    });
+  }, [members, search]);
 
   const totalActive = useMemo(
-    () => members.filter((item) => item.is_active).length,
-    [members]
+    () => filteredMembers.filter((item) => item.is_active).length,
+    [filteredMembers]
   );
+
+  const handleChange = (
+    key: keyof StaffPayload,
+    value: string | number | boolean
+  ) => {
+    setForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const resetForm = () => {
+    setForm(initialForm);
+    setEditingId(null);
+  };
+
+  const handleEdit = (member: StaffMember) => {
+    setEditingId(member.id);
+    setForm({
+      full_name: member.full_name,
+      role: member.role,
+      bio: member.bio || '',
+      image_url: member.image_url || '',
+      email: member.email || '',
+      phone: member.phone || '',
+      is_active: member.is_active,
+      display_order: member.display_order,
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    try {
+      setError('');
+
+      if (editingId) {
+        await updateStaff(editingId, form);
+      } else {
+        await createStaff(form);
+      }
+
+      await loadMembers();
+      resetForm();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Request failed');
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    const confirmed = window.confirm('Are you sure you want to delete this staff member?');
+    if (!confirmed) return;
+
+    try {
+      setError('');
+      await deleteStaff(id);
+      await loadMembers();
+
+      if (editingId === id) {
+        resetForm();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Delete failed');
+    }
+  };
 
   return (
     <main style={adminPageStyle}>
@@ -58,7 +142,7 @@ export default function StaffAdminPage() {
         <div style={adminStatsCardStyle}>
           <div style={adminStatItemStyle}>
             <div style={adminStatIconStyle}>◌</div>
-            <h3 style={adminStatNumberStyle}>{members.length}</h3>
+            <h3 style={adminStatNumberStyle}>{filteredMembers.length}</h3>
             <p style={adminStatLabelStyle}>Total Members</p>
           </div>
 
@@ -76,60 +160,141 @@ export default function StaffAdminPage() {
         </div>
       </section>
 
+      <section style={toolbarWrapStyle}>
+        <input
+          type="text"
+          placeholder="Search team members..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={searchInputStyle}
+        />
+      </section>
+
+      {error ? <div style={errorBoxStyle}>{error}</div> : null}
+
       <section style={adminSectionStyle}>
-        <div style={adminGridStyle}>
+        <div
+          style={{
+            ...adminGridStyle,
+            gridTemplateColumns: isNarrowScreen
+              ? '1fr'
+              : 'minmax(320px, 380px) minmax(0, 1fr)',
+          }}
+        >
           <div style={adminFormBoxStyle}>
-            <p style={adminBoxEyebrowStyle}>CREATE MEMBER</p>
-            <h2 style={adminBoxTitleStyle}>Add Team Member</h2>
+            <p style={adminBoxEyebrowStyle}>
+              {editingId ? 'EDIT MEMBER' : 'CREATE MEMBER'}
+            </p>
+            <h2 style={adminBoxTitleStyle}>
+              {editingId ? 'Update Team Member' : 'Add Team Member'}
+            </h2>
 
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Full Name</label>
-              <input style={inputStyle} placeholder="Enter full name" />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Role</label>
-              <input style={inputStyle} placeholder="Enter role" />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Bio</label>
-              <textarea style={textareaStyle} placeholder="Short description" />
-            </div>
-
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Image URL</label>
-              <input style={inputStyle} placeholder="Paste image link" />
-            </div>
-
-            <div style={formRowStyle}>
+            <form onSubmit={handleSubmit}>
               <div style={formGroupStyle}>
-                <label style={labelStyle}>Email</label>
-                <input style={inputStyle} placeholder="Email address" />
+                <label style={labelStyle}>Full Name</label>
+                <input
+                  style={inputStyle}
+                  placeholder="Enter full name"
+                  value={form.full_name}
+                  onChange={(e) => handleChange('full_name', e.target.value)}
+                  required
+                />
               </div>
 
               <div style={formGroupStyle}>
-                <label style={labelStyle}>Phone</label>
-                <input style={inputStyle} placeholder="Phone number" />
+                <label style={labelStyle}>Role</label>
+                <input
+                  style={inputStyle}
+                  placeholder="Enter role"
+                  value={form.role}
+                  onChange={(e) => handleChange('role', e.target.value)}
+                  required
+                />
               </div>
-            </div>
 
-            <div style={formRowStyle}>
               <div style={formGroupStyle}>
-                <label style={labelStyle}>Display Order</label>
-                <input style={inputStyle} placeholder="1" />
+                <label style={labelStyle}>Bio</label>
+                <textarea
+                  style={textareaStyle}
+                  placeholder="Short description"
+                  value={form.bio}
+                  onChange={(e) => handleChange('bio', e.target.value)}
+                />
               </div>
 
               <div style={formGroupStyle}>
-                <label style={labelStyle}>Status</label>
-                <select style={inputStyle as React.CSSProperties}>
-                  <option>Active</option>
-                  <option>Inactive</option>
-                </select>
+                <label style={labelStyle}>Image URL</label>
+                <input
+                  style={inputStyle}
+                  placeholder="Paste image link"
+                  value={form.image_url}
+                  onChange={(e) => handleChange('image_url', e.target.value)}
+                />
               </div>
-            </div>
 
-            <button style={saveButtonStyle}>Save Member</button>
+              <div style={formRowStyle}>
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>Email</label>
+                  <input
+                    style={inputStyle}
+                    placeholder="Email address"
+                    value={form.email}
+                    onChange={(e) => handleChange('email', e.target.value)}
+                  />
+                </div>
+
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>Phone</label>
+                  <input
+                    style={inputStyle}
+                    placeholder="Phone number"
+                    value={form.phone}
+                    onChange={(e) => handleChange('phone', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div style={formRowStyle}>
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>Display Order</label>
+                  <input
+                    type="number"
+                    style={inputStyle}
+                    placeholder="1"
+                    value={form.display_order}
+                    onChange={(e) =>
+                      handleChange('display_order', Number(e.target.value))
+                    }
+                  />
+                </div>
+
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>Status</label>
+                  <select
+                    style={inputStyle}
+                    value={form.is_active ? 'active' : 'inactive'}
+                    onChange={(e) =>
+                      handleChange('is_active', e.target.value === 'active')
+                    }
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={buttonRowStyle}>
+                {editingId ? (
+                  <button type="button" style={cancelButtonStyle} onClick={resetForm}>
+                    Cancel
+                  </button>
+                ) : null}
+
+                <button type="submit" style={saveButtonStyle}>
+                  {editingId ? 'Update Member' : 'Save Member'}
+                </button>
+              </div>
+            </form>
           </div>
 
           <div style={adminListBoxStyle}>
@@ -139,49 +304,71 @@ export default function StaffAdminPage() {
                 <h2 style={adminBoxTitleStyle}>Team Members</h2>
               </div>
 
-              <div style={adminBadgeStyle}>{members.length} members</div>
+              <div style={adminBadgeStyle}>{filteredMembers.length} members</div>
             </div>
 
-            <div style={adminCardsGridStyle}>
-              {members.map((member) => (
-                <article key={member.id} style={adminMemberCardStyle}>
-                  <div
-                    style={{
-                      ...adminMemberImageStyle,
-                      backgroundImage: `linear-gradient(180deg, rgba(17,24,39,0.06) 0%, rgba(17,24,39,0.18) 100%), url(${member.image_url})`,
-                    }}
-                  />
+            {loading ? (
+              <div style={emptyStateStyle}>Loading team members...</div>
+            ) : filteredMembers.length === 0 ? (
+              <div style={emptyStateStyle}>No team members found.</div>
+            ) : (
+              <div style={adminCardsGridStyle}>
+                {filteredMembers.map((member) => (
+                  <article key={member.id} style={adminMemberCardStyle}>
+                    <div
+                      style={{
+                        ...adminMemberImageStyle,
+                        backgroundImage: member.image_url
+                          ? `linear-gradient(180deg, rgba(17,24,39,0.06) 0%, rgba(17,24,39,0.18) 100%), url(${member.image_url})`
+                          : 'linear-gradient(135deg, #f59e0b, #ec4899)',
+                      }}
+                    />
 
-                  <div style={adminMemberContentStyle}>
-                    <div style={adminMemberTopStyle}>
-                      <div>
-                        <h3 style={adminMemberNameStyle}>{member.full_name}</h3>
-                        <p style={adminMemberRoleStyle}>{member.role}</p>
+                    <div style={adminMemberContentStyle}>
+                      <div style={adminMemberTopStyle}>
+                        <div>
+                          <h3 style={adminMemberNameStyle}>{member.full_name}</h3>
+                          <p style={adminMemberRoleStyle}>{member.role}</p>
+                        </div>
+
+                        <span style={member.is_active ? activeBadgeStyle : inactiveBadgeStyle}>
+                          {member.is_active ? 'Active' : 'Inactive'}
+                        </span>
                       </div>
 
-                      <span style={member.is_active ? activeBadgeStyle : inactiveBadgeStyle}>
-                        {member.is_active ? 'Active' : 'Inactive'}
-                      </span>
-                    </div>
-
-                    <p style={adminMemberBioStyle}>{member.bio}</p>
-
-                    <div style={adminMemberMetaStyle}>
-                      <p style={adminMemberMetaTextStyle}>{member.email}</p>
-                      <p style={adminMemberMetaTextStyle}>{member.phone}</p>
-                      <p style={adminMemberMetaTextStyle}>
-                        Display order: {member.display_order}
+                      <p style={adminMemberBioStyle}>
+                        {member.bio || 'No bio provided.'}
                       </p>
-                    </div>
 
-                    <div style={adminActionsStyle}>
-                      <button style={editButtonStyle}>Edit</button>
-                      <button style={deleteButtonStyle}>Delete</button>
+                      <div style={adminMemberMetaStyle}>
+                        <p style={adminMemberMetaTextStyle}>{member.email || 'No email'}</p>
+                        <p style={adminMemberMetaTextStyle}>{member.phone || 'No phone'}</p>
+                        <p style={adminMemberMetaTextStyle}>
+                          Display order: {member.display_order}
+                        </p>
+                      </div>
+
+                      <div style={adminActionsStyle}>
+                        <button
+                          type="button"
+                          style={editButtonStyle}
+                          onClick={() => handleEdit(member)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          style={deleteButtonStyle}
+                          onClick={() => handleDelete(member.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </article>
-              ))}
-            </div>
+                  </article>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -287,15 +474,43 @@ const adminStatLabelStyle: React.CSSProperties = {
   fontSize: '16px',
 };
 
+const toolbarWrapStyle: React.CSSProperties = {
+  maxWidth: '1280px',
+  margin: '18px auto 0',
+  padding: '0 24px',
+};
+
+const searchInputStyle: React.CSSProperties = {
+  width: '320px',
+  maxWidth: '100%',
+  padding: '14px 16px',
+  borderRadius: '14px',
+  border: '1px solid #d7dce5',
+  outline: 'none',
+  fontSize: '15px',
+  background: '#ffffff',
+  boxSizing: 'border-box',
+};
+
+const errorBoxStyle: React.CSSProperties = {
+  maxWidth: '1280px',
+  margin: '18px auto 0',
+  padding: '14px 16px',
+  borderRadius: '14px',
+  background: '#fff5f5',
+  color: '#dc2626',
+  border: '1px solid #fecaca',
+  fontWeight: 600,
+};
+
 const adminSectionStyle: React.CSSProperties = {
   maxWidth: '1280px',
   margin: '0 auto',
-  padding: '72px 24px',
+  padding: '32px 24px 72px',
 };
 
 const adminGridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: '380px 1fr',
   gap: '24px',
   alignItems: 'start',
 };
@@ -312,6 +527,7 @@ const adminListBoxStyle: React.CSSProperties = {
   borderRadius: '20px',
   padding: '24px',
   boxShadow: '0 18px 40px rgba(15,23,42,0.08)',
+  minWidth: 0,
 };
 
 const adminBoxEyebrowStyle: React.CSSProperties = {
@@ -365,9 +581,14 @@ const textareaStyle: React.CSSProperties = {
   resize: 'vertical',
 };
 
-const saveButtonStyle: React.CSSProperties = {
+const buttonRowStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: '10px',
   marginTop: '22px',
-  width: '100%',
+};
+
+const saveButtonStyle: React.CSSProperties = {
+  flex: 1,
   border: 'none',
   borderRadius: '14px',
   background: '#d99a1d',
@@ -375,6 +596,17 @@ const saveButtonStyle: React.CSSProperties = {
   padding: '15px 20px',
   fontWeight: 800,
   fontSize: '16px',
+  cursor: 'pointer',
+};
+
+const cancelButtonStyle: React.CSSProperties = {
+  border: '1px solid #d7dce5',
+  borderRadius: '14px',
+  background: '#ffffff',
+  color: '#111827',
+  padding: '15px 18px',
+  fontWeight: 700,
+  fontSize: '15px',
   cursor: 'pointer',
 };
 
@@ -397,8 +629,16 @@ const adminBadgeStyle: React.CSSProperties = {
 
 const adminCardsGridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
   gap: '20px',
+};
+
+const emptyStateStyle: React.CSSProperties = {
+  padding: '24px',
+  textAlign: 'center',
+  color: '#667085',
+  background: '#fafafa',
+  borderRadius: '16px',
 };
 
 const adminMemberCardStyle: React.CSSProperties = {
@@ -412,6 +652,7 @@ const adminMemberImageStyle: React.CSSProperties = {
   minHeight: '220px',
   backgroundSize: 'cover',
   backgroundPosition: 'center',
+  backgroundColor: '#f5e7cc',
 };
 
 const adminMemberContentStyle: React.CSSProperties = {
@@ -445,6 +686,7 @@ const adminMemberBioStyle: React.CSSProperties = {
   color: '#667085',
   fontSize: '14px',
   lineHeight: 1.8,
+  minHeight: '56px',
 };
 
 const adminMemberMetaStyle: React.CSSProperties = {

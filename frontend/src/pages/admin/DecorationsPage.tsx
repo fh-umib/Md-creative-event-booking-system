@@ -23,14 +23,30 @@ export default function DecorationsPage() {
   const [decorations, setDecorations] = useState<Decoration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
   const [form, setForm] = useState<DecorationPayload>(initialForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const sortedDecorations = useMemo(
-    () => [...decorations].sort((a, b) => a.id - b.id),
-    [decorations]
-  );
+  const isNarrowScreen = window.innerWidth < 1200;
+
+  const filteredDecorations = useMemo(() => {
+    const sorted = [...decorations].sort((a, b) => a.id - b.id);
+
+    if (!search.trim()) {
+      return sorted;
+    }
+
+    const value = search.toLowerCase();
+
+    return sorted.filter((item) => {
+      const text = `${item.title} ${item.category} ${item.short_description || ''} ${
+        item.theme_colors || ''
+      }`.toLowerCase();
+
+      return text.includes(value);
+    });
+  }, [decorations, search]);
 
   const loadDecorations = async () => {
     try {
@@ -108,6 +124,7 @@ export default function DecorationsPage() {
     if (!confirmed) return;
 
     try {
+      setError('');
       await deleteDecoration(id);
       await loadDecorations();
 
@@ -129,11 +146,26 @@ export default function DecorationsPage() {
             Manage decoration categories, content, pricing and visibility.
           </p>
         </div>
+
+        <input
+          type="text"
+          placeholder="Search decorations..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={searchInputStyle}
+        />
       </div>
 
       {error ? <div style={errorBoxStyle}>{error}</div> : null}
 
-      <div style={layoutStyle}>
+      <div
+        style={{
+          ...layoutStyle,
+          gridTemplateColumns: isNarrowScreen
+            ? '1fr'
+            : 'minmax(320px, 390px) minmax(0, 1fr)',
+        }}
+      >
         <div style={formCardStyle}>
           <div style={formHeaderStyle}>
             <h2 style={cardTitleStyle}>
@@ -156,6 +188,7 @@ export default function DecorationsPage() {
                 onChange={(e) => handleChange('title', e.target.value)}
                 style={inputStyle}
                 placeholder="Bride to Be"
+                required
               />
             </div>
 
@@ -167,6 +200,7 @@ export default function DecorationsPage() {
                 onChange={(e) => handleChange('category', e.target.value)}
                 style={inputStyle}
                 placeholder="Bridal"
+                required
               />
             </div>
 
@@ -246,46 +280,54 @@ export default function DecorationsPage() {
 
             <button type="submit" style={submitButtonStyle} disabled={submitting}>
               {submitting
-                ? 'Saving...'
+                ? editingId
+                  ? 'Updating...'
+                  : 'Creating...'
                 : editingId
                 ? 'Update Decoration'
-                : 'Create Decoration'}
+                : 'Add Decoration'}
             </button>
           </form>
         </div>
 
-        <div style={listCardStyle}>
-          <div style={formHeaderStyle}>
-            <h2 style={cardTitleStyle}>Decoration List</h2>
-            <span style={countBadgeStyle}>{sortedDecorations.length} items</span>
-          </div>
-
+        <div style={cardsGridStyle}>
           {loading ? (
             <div style={emptyStateStyle}>Loading decorations...</div>
-          ) : sortedDecorations.length === 0 ? (
+          ) : filteredDecorations.length === 0 ? (
             <div style={emptyStateStyle}>No decorations found.</div>
           ) : (
-            <div style={listStyle}>
-              {sortedDecorations.map((item) => (
-                <div key={item.id} style={itemCardStyle}>
-                  <div style={itemTopStyle}>
+            filteredDecorations.map((item) => (
+              <article key={item.id} style={cardStyle}>
+                <div style={cardImageWrapStyle}>
+                  {item.image_url ? (
+                    <img
+                      src={item.image_url}
+                      alt={item.title}
+                      style={cardImageStyle}
+                    />
+                  ) : (
+                    <div style={imagePlaceholderStyle}>No Image</div>
+                  )}
+                </div>
+
+                <div style={cardContentStyle}>
+                  <div style={cardTopRowStyle}>
                     <div>
-                      <h3 style={itemTitleStyle}>{item.title}</h3>
-                      <p style={itemMetaStyle}>
-                        #{item.id} · {item.category}
-                      </p>
+                      <h3 style={cardNameStyle}>{item.title}</h3>
+                      <p style={cardCategoryStyle}>{item.category}</p>
                     </div>
 
-                    <div style={badgeRowStyle}>
+                    <div style={badgesWrapStyle}>
                       {item.is_featured ? (
-                        <span style={featuredBadgeStyle}>Featured</span>
+                        <span style={{ ...badgeStyle, ...featuredBadgeStyle }}>
+                          Featured
+                        </span>
                       ) : null}
 
                       <span
                         style={{
-                          ...statusBadgeStyle,
-                          backgroundColor: item.is_active ? '#e8f7ee' : '#fbe8e8',
-                          color: item.is_active ? '#1f7a45' : '#a33b3b',
+                          ...badgeStyle,
+                          ...(item.is_active ? activeBadgeStyle : inactiveBadgeStyle),
                         }}
                       >
                         {item.is_active ? 'Active' : 'Inactive'}
@@ -293,32 +335,37 @@ export default function DecorationsPage() {
                     </div>
                   </div>
 
-                  <p style={itemDescriptionStyle}>{item.short_description}</p>
+                  <p style={cardDescriptionStyle}>
+                    {item.short_description || 'No short description provided.'}
+                  </p>
 
-                  <div style={itemBottomStyle}>
-                    <span style={priceTextStyle}>From €{item.price_from}</span>
+                  <div style={metaRowStyle}>
+                    <span style={priceStyle}>From €{item.price_from}</span>
+                    <span style={themeStyle}>
+                      {item.theme_colors || 'No colors specified'}
+                    </span>
+                  </div>
 
-                    <div style={actionRowStyle}>
-                      <button
-                        type="button"
-                        style={editButtonStyle}
-                        onClick={() => handleEdit(item)}
-                      >
-                        Edit
-                      </button>
+                  <div style={actionsStyle}>
+                    <button
+                      type="button"
+                      style={editButtonStyle}
+                      onClick={() => handleEdit(item)}
+                    >
+                      Edit
+                    </button>
 
-                      <button
-                        type="button"
-                        style={deleteButtonStyle}
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      style={deleteButtonStyle}
+                      onClick={() => handleDelete(item.id)}
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              </article>
+            ))
           )}
         </div>
       </div>
@@ -329,38 +376,50 @@ export default function DecorationsPage() {
 const pageStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '22px',
+  gap: '24px',
+  minWidth: 0,
 };
 
 const headerStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
-  alignItems: 'center',
   gap: '16px',
+  alignItems: 'center',
   flexWrap: 'wrap',
 };
 
 const eyebrowStyle: React.CSSProperties = {
   margin: 0,
-  color: '#c88d12',
+  color: '#d97706',
   fontSize: '13px',
-  fontWeight: 700,
-  letterSpacing: '2px',
+  fontWeight: 800,
   textTransform: 'uppercase',
+  letterSpacing: '0.08em',
 };
 
 const titleStyle: React.CSSProperties = {
-  margin: '10px 0',
-  fontSize: '34px',
+  margin: '8px 0 0 0',
+  fontSize: '36px',
   fontWeight: 800,
-  color: '#0f1b3d',
+  color: '#1f2937',
 };
 
 const subtitleStyle: React.CSSProperties = {
-  margin: 0,
-  color: '#6d665b',
-  fontSize: '15px',
-  lineHeight: 1.7,
+  margin: '8px 0 0 0',
+  color: '#6b7280',
+  fontSize: '16px',
+};
+
+const searchInputStyle: React.CSSProperties = {
+  width: '280px',
+  maxWidth: '100%',
+  height: '48px',
+  borderRadius: '14px',
+  border: '1px solid #ece7df',
+  padding: '0 16px',
+  backgroundColor: '#faf8f5',
+  outline: 'none',
+  boxSizing: 'border-box',
 };
 
 const errorBoxStyle: React.CSSProperties = {
@@ -375,25 +434,17 @@ const errorBoxStyle: React.CSSProperties = {
 
 const layoutStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: '1fr 1.1fr',
-  gap: '22px',
+  gap: '24px',
   alignItems: 'start',
 };
 
 const formCardStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
+  border: '1px solid #ece7df',
   borderRadius: '24px',
-  border: '1px solid #ece3d5',
-  boxShadow: '0 14px 28px rgba(15, 23, 42, 0.05)',
   padding: '24px',
-};
-
-const listCardStyle: React.CSSProperties = {
-  backgroundColor: '#ffffff',
-  borderRadius: '24px',
-  border: '1px solid #ece3d5',
   boxShadow: '0 14px 28px rgba(15, 23, 42, 0.05)',
-  padding: '24px',
+  minWidth: 0,
 };
 
 const formHeaderStyle: React.CSSProperties = {
@@ -402,20 +453,19 @@ const formHeaderStyle: React.CSSProperties = {
   alignItems: 'center',
   gap: '12px',
   marginBottom: '18px',
-  flexWrap: 'wrap',
 };
 
 const cardTitleStyle: React.CSSProperties = {
   margin: 0,
   fontSize: '24px',
   fontWeight: 800,
-  color: '#0f1b3d',
+  color: '#1f2937',
 };
 
 const cancelButtonStyle: React.CSSProperties = {
   border: '1px solid #e2d6c2',
   backgroundColor: '#fffaf2',
-  color: '#0f1b3d',
+  color: '#1f2937',
   borderRadius: '999px',
   padding: '10px 16px',
   fontSize: '13px',
@@ -426,7 +476,7 @@ const cancelButtonStyle: React.CSSProperties = {
 const formStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '16px',
+  gap: '14px',
 };
 
 const fieldGroupStyle: React.CSSProperties = {
@@ -438,32 +488,36 @@ const fieldGroupStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: '14px',
   fontWeight: 700,
-  color: '#0f1b3d',
+  color: '#1f2937',
 };
 
 const inputStyle: React.CSSProperties = {
-  height: '46px',
-  borderRadius: '14px',
+  height: '44px',
+  borderRadius: '12px',
   border: '1px solid #e5dccf',
   padding: '0 14px',
   fontSize: '14px',
   outline: 'none',
+  width: '100%',
+  boxSizing: 'border-box',
 };
 
 const textareaStyle: React.CSSProperties = {
-  minHeight: '92px',
-  borderRadius: '14px',
+  minHeight: '90px',
+  borderRadius: '12px',
   border: '1px solid #e5dccf',
   padding: '12px 14px',
   fontSize: '14px',
   outline: 'none',
   resize: 'vertical',
+  width: '100%',
+  boxSizing: 'border-box',
 };
 
 const twoColumnStyle: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: '1fr 1fr',
-  gap: '14px',
+  gap: '12px',
 };
 
 const checkboxRowStyle: React.CSSProperties = {
@@ -477,140 +531,178 @@ const checkboxLabelStyle: React.CSSProperties = {
   alignItems: 'center',
   gap: '8px',
   fontSize: '14px',
-  color: '#0f1b3d',
   fontWeight: 600,
+  color: '#1f2937',
 };
 
 const submitButtonStyle: React.CSSProperties = {
   height: '48px',
   border: 'none',
   borderRadius: '14px',
-  backgroundColor: '#d89b12',
-  color: '#0f1b3d',
+  background: 'linear-gradient(135deg, #f59e0b, #ec4899)',
+  color: '#ffffff',
   fontSize: '15px',
   fontWeight: 800,
   cursor: 'pointer',
 };
 
-const countBadgeStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  padding: '8px 12px',
-  borderRadius: '999px',
-  backgroundColor: '#f8edd6',
-  color: '#b68417',
-  fontSize: '12px',
-  fontWeight: 700,
+const cardsGridStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+  gap: '20px',
+  minWidth: 0,
 };
 
 const emptyStateStyle: React.CSSProperties = {
-  padding: '24px',
+  backgroundColor: '#ffffff',
+  borderRadius: '24px',
+  padding: '30px',
   textAlign: 'center',
-  color: '#6d665b',
-  fontSize: '15px',
+  color: '#6b7280',
+  border: '1px solid #ece7df',
 };
 
-const listStyle: React.CSSProperties = {
+const cardStyle: React.CSSProperties = {
+  backgroundColor: '#ffffff',
+  borderRadius: '24px',
+  border: '1px solid #ece7df',
+  boxShadow: '0 12px 24px rgba(15, 23, 42, 0.04)',
+  overflow: 'hidden',
   display: 'flex',
   flexDirection: 'column',
-  gap: '16px',
 };
 
-const itemCardStyle: React.CSSProperties = {
-  border: '1px solid #ece3d5',
-  borderRadius: '18px',
-  padding: '18px',
-  backgroundColor: '#fffdf9',
+const cardImageWrapStyle: React.CSSProperties = {
+  height: '180px',
+  backgroundColor: '#f8f5f1',
 };
 
-const itemTopStyle: React.CSSProperties = {
+const cardImageStyle: React.CSSProperties = {
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  display: 'block',
+};
+
+const imagePlaceholderStyle: React.CSSProperties = {
+  width: '100%',
+  height: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: '#6b7280',
+  fontWeight: 700,
+};
+
+const cardContentStyle: React.CSSProperties = {
+  padding: '20px',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '14px',
+};
+
+const cardTopRowStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
-  gap: '14px',
+  gap: '12px',
   alignItems: 'flex-start',
-  flexWrap: 'wrap',
 };
 
-const itemTitleStyle: React.CSSProperties = {
+const cardNameStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: '20px',
+  fontSize: '22px',
   fontWeight: 800,
-  color: '#0f1b3d',
+  color: '#1f2937',
 };
 
-const itemMetaStyle: React.CSSProperties = {
+const cardCategoryStyle: React.CSSProperties = {
   margin: '6px 0 0 0',
-  color: '#7a7367',
-  fontSize: '13px',
+  color: '#6b7280',
+  fontSize: '14px',
 };
 
-const badgeRowStyle: React.CSSProperties = {
+const badgesWrapStyle: React.CSSProperties = {
   display: 'flex',
+  flexDirection: 'column',
   gap: '8px',
-  flexWrap: 'wrap',
+  alignItems: 'flex-end',
+};
+
+const badgeStyle: React.CSSProperties = {
+  padding: '7px 12px',
+  borderRadius: '999px',
+  fontSize: '12px',
+  fontWeight: 700,
+  whiteSpace: 'nowrap',
 };
 
 const featuredBadgeStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  padding: '7px 10px',
-  borderRadius: '999px',
-  backgroundColor: '#f8edd6',
-  color: '#b68417',
-  fontSize: '12px',
-  fontWeight: 700,
+  backgroundColor: '#fff1de',
+  color: '#d97706',
 };
 
-const statusBadgeStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  padding: '7px 10px',
-  borderRadius: '999px',
-  fontSize: '12px',
-  fontWeight: 700,
+const activeBadgeStyle: React.CSSProperties = {
+  backgroundColor: '#e8faef',
+  color: '#15803d',
 };
 
-const itemDescriptionStyle: React.CSSProperties = {
-  margin: '14px 0',
-  color: '#6d665b',
+const inactiveBadgeStyle: React.CSSProperties = {
+  backgroundColor: '#fde8e8',
+  color: '#b91c1c',
+};
+
+const cardDescriptionStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#4b5563',
   fontSize: '14px',
   lineHeight: 1.7,
+  minHeight: '48px',
 };
 
-const itemBottomStyle: React.CSSProperties = {
+const metaRowStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
+  gap: '12px',
   alignItems: 'center',
-  gap: '14px',
-  flexWrap: 'wrap',
 };
 
-const priceTextStyle: React.CSSProperties = {
-  color: '#0f1b3d',
+const priceStyle: React.CSSProperties = {
+  color: '#ea7b12',
   fontWeight: 800,
-  fontSize: '15px',
+  fontSize: '22px',
 };
 
-const actionRowStyle: React.CSSProperties = {
-  display: 'flex',
+const themeStyle: React.CSSProperties = {
+  color: '#6b7280',
+  fontSize: '13px',
+  textAlign: 'right',
+};
+
+const actionsStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: '1fr auto',
   gap: '10px',
 };
 
 const editButtonStyle: React.CSSProperties = {
-  border: '1px solid #dfd4c3',
-  backgroundColor: '#ffffff',
-  color: '#0f1b3d',
-  borderRadius: '10px',
-  padding: '10px 14px',
-  fontSize: '13px',
+  height: '42px',
+  border: '1px solid #e3d8c9',
+  backgroundColor: '#f8f5f1',
+  color: '#1f2937',
+  borderRadius: '12px',
+  fontSize: '14px',
   fontWeight: 700,
   cursor: 'pointer',
 };
 
 const deleteButtonStyle: React.CSSProperties = {
+  height: '42px',
+  padding: '0 14px',
   border: 'none',
-  backgroundColor: '#fbe8e8',
-  color: '#a33b3b',
-  borderRadius: '10px',
-  padding: '10px 14px',
-  fontSize: '13px',
+  backgroundColor: '#fde8e8',
+  color: '#b91c1c',
+  borderRadius: '12px',
+  fontSize: '14px',
   fontWeight: 700,
   cursor: 'pointer',
 };

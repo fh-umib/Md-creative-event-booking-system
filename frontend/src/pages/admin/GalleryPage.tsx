@@ -34,9 +34,7 @@ const categoryOptions = [
 ];
 
 function formatCategory(value: string) {
-  return (
-    categoryOptions.find((item) => item.value === value)?.label || value
-  );
+  return categoryOptions.find((item) => item.value === value)?.label || value;
 }
 
 function getCardGradient(index: number) {
@@ -142,6 +140,8 @@ export default function GalleryPage() {
     e.preventDefault();
 
     try {
+      setError('');
+
       if (editingId) {
         await updateGalleryAlbum(editingId, form);
       } else {
@@ -162,6 +162,7 @@ export default function GalleryPage() {
     if (!confirmed) return;
 
     try {
+      setError('');
       await deleteGalleryAlbum(id);
       await loadAlbums(search);
 
@@ -372,7 +373,9 @@ export default function GalleryPage() {
               <div
                 style={{
                   ...coverStyle,
-                  backgroundImage: `linear-gradient(rgba(15,23,42,0.16), rgba(15,23,42,0.16)), url("${album.cover_image_url}")`,
+                  backgroundImage: album.cover_image_url
+                    ? `linear-gradient(rgba(15,23,42,0.16), rgba(15,23,42,0.16)), url("${album.cover_image_url}")`
+                    : getCardGradient(index),
                   backgroundColor: '#ddd',
                 }}
               >
@@ -438,13 +441,6 @@ export default function GalleryPage() {
                   </button>
                 </div>
               </div>
-
-              <div
-                style={{
-                  ...bottomAccentStyle,
-                  background: getCardGradient(index),
-                }}
-              />
             </article>
           ))}
         </div>
@@ -456,46 +452,47 @@ export default function GalleryPage() {
 const pageStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '22px',
+  gap: '24px',
 };
 
 const headerStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
-  alignItems: 'center',
+  alignItems: 'flex-start',
   gap: '16px',
   flexWrap: 'wrap',
 };
 
 const titleStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: '40px',
+  fontSize: '36px',
   fontWeight: 800,
-  color: '#2b2b2b',
-  fontFamily: 'Georgia, serif',
+  color: '#1f2937',
 };
 
 const subtitleStyle: React.CSSProperties = {
-  margin: '8px 0 0',
-  color: '#6b7280',
+  margin: '8px 0 0 0',
   fontSize: '16px',
+  color: '#6b7280',
 };
 
 const headerActionsStyle: React.CSSProperties = {
   display: 'flex',
   gap: '12px',
+  alignItems: 'center',
   flexWrap: 'wrap',
 };
 
 const searchInputStyle: React.CSSProperties = {
-  width: '280px',
+  width: '240px',
+  maxWidth: '100%',
   height: '46px',
   borderRadius: '14px',
-  border: '1px solid #e5dccf',
+  border: '1px solid #e5e7eb',
   padding: '0 14px',
-  backgroundColor: '#fff',
-  outline: 'none',
   fontSize: '14px',
+  outline: 'none',
+  backgroundColor: '#ffffff',
 };
 
 const primaryButtonStyle: React.CSSProperties = {
@@ -503,29 +500,25 @@ const primaryButtonStyle: React.CSSProperties = {
   border: 'none',
   borderRadius: '14px',
   padding: '0 18px',
-  background: 'linear-gradient(135deg, #f59e0b, #ec4899)',
+  backgroundColor: '#0f172a',
   color: '#ffffff',
-  fontSize: '14px',
-  fontWeight: 700,
+  fontWeight: 800,
   cursor: 'pointer',
 };
 
 const errorBoxStyle: React.CSSProperties = {
-  backgroundColor: '#fff1f1',
-  color: '#a33b3b',
-  border: '1px solid #f2caca',
-  borderRadius: '16px',
+  backgroundColor: '#fee2e2',
+  color: '#b91c1c',
   padding: '14px 16px',
-  fontSize: '14px',
+  borderRadius: '14px',
   fontWeight: 600,
 };
 
 const formCardStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  borderRadius: '24px',
-  border: '1px solid #ece7df',
-  padding: '24px',
-  boxShadow: '0 10px 24px rgba(15, 23, 42, 0.04)',
+  borderRadius: '22px',
+  padding: '22px',
+  boxShadow: '0 14px 30px rgba(15, 23, 42, 0.06)',
 };
 
 const formHeaderStyle: React.CSSProperties = {
@@ -538,25 +531,25 @@ const formHeaderStyle: React.CSSProperties = {
 
 const formTitleStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: '24px',
+  fontSize: '22px',
   fontWeight: 800,
-  color: '#1f2937',
+  color: '#0f172a',
 };
 
 const cancelButtonStyle: React.CSSProperties = {
-  border: '1px solid #e2d6c2',
-  backgroundColor: '#fffaf2',
-  color: '#1f2937',
-  borderRadius: '999px',
-  padding: '10px 16px',
-  fontSize: '13px',
+  height: '40px',
+  border: 'none',
+  borderRadius: '12px',
+  padding: '0 14px',
+  backgroundColor: '#e2e8f0',
+  color: '#0f172a',
   fontWeight: 700,
   cursor: 'pointer',
 };
 
 const formGridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
   gap: '16px',
 };
 
@@ -569,31 +562,31 @@ const fieldStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: '14px',
   fontWeight: 700,
-  color: '#1f2937',
+  color: '#334155',
 };
 
 const inputStyle: React.CSSProperties = {
   height: '46px',
   borderRadius: '14px',
-  border: '1px solid #e5dccf',
+  border: '1px solid #dbe2ea',
   padding: '0 14px',
   fontSize: '14px',
   outline: 'none',
 };
 
 const textareaStyle: React.CSSProperties = {
-  minHeight: '100px',
+  minHeight: '110px',
   borderRadius: '14px',
-  border: '1px solid #e5dccf',
+  border: '1px solid #dbe2ea',
   padding: '12px 14px',
   fontSize: '14px',
-  outline: 'none',
   resize: 'vertical',
+  outline: 'none',
 };
 
 const checkboxWrapStyle: React.CSSProperties = {
   display: 'flex',
-  gap: '18px',
+  gap: '16px',
   alignItems: 'center',
   flexWrap: 'wrap',
 };
@@ -602,242 +595,225 @@ const checkboxLabelStyle: React.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   gap: '8px',
+  fontWeight: 700,
+  color: '#334155',
   fontSize: '14px',
-  fontWeight: 600,
-  color: '#1f2937',
 };
 
 const submitWrapStyle: React.CSSProperties = {
   gridColumn: '1 / -1',
+  display: 'flex',
+  justifyContent: 'flex-end',
 };
 
 const submitButtonStyle: React.CSSProperties = {
-  height: '48px',
+  height: '46px',
   border: 'none',
   borderRadius: '14px',
-  background: 'linear-gradient(135deg, #f59e0b, #ec4899)',
-  color: '#ffffff',
-  fontSize: '15px',
+  padding: '0 18px',
+  backgroundColor: '#f59e0b',
+  color: '#0f172a',
   fontWeight: 800,
   cursor: 'pointer',
-  padding: '0 24px',
 };
 
 const statsGridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-  gap: '18px',
+  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+  gap: '16px',
 };
 
 const statCardStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  border: '1px solid #ece7df',
-  borderRadius: '22px',
-  padding: '22px 18px',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: '140px',
-  boxShadow: '0 10px 24px rgba(15, 23, 42, 0.04)',
+  borderRadius: '20px',
+  padding: '20px',
+  boxShadow: '0 14px 30px rgba(15, 23, 42, 0.06)',
 };
 
 const statIconStyle: React.CSSProperties = {
-  width: '52px',
-  height: '52px',
-  borderRadius: '18px',
+  width: '44px',
+  height: '44px',
+  borderRadius: '14px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  fontSize: '24px',
+  fontSize: '20px',
   marginBottom: '14px',
-  fontWeight: 800,
 };
 
 const statValueStyle: React.CSSProperties = {
-  fontSize: '22px',
+  fontSize: '28px',
   fontWeight: 800,
-  color: '#1f2937',
-  marginBottom: '4px',
+  color: '#0f172a',
 };
 
 const statLabelStyle: React.CSSProperties = {
+  marginTop: '6px',
   fontSize: '14px',
-  color: '#6b7280',
-};
-
-const gridStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-  gap: '20px',
+  color: '#64748b',
 };
 
 const emptyStateStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  borderRadius: '24px',
-  padding: '32px',
+  borderRadius: '18px',
+  padding: '26px',
   textAlign: 'center',
-  color: '#6b7280',
-  border: '1px solid #ece7df',
+  color: '#64748b',
+  boxShadow: '0 14px 30px rgba(15, 23, 42, 0.06)',
+};
+
+const gridStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+  gap: '18px',
 };
 
 const cardStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  borderRadius: '24px',
-  border: '1px solid #ece7df',
+  borderRadius: '22px',
   overflow: 'hidden',
-  boxShadow: '0 10px 24px rgba(15, 23, 42, 0.04)',
-  position: 'relative',
+  boxShadow: '0 14px 30px rgba(15, 23, 42, 0.06)',
 };
 
 const coverStyle: React.CSSProperties = {
-  height: '220px',
+  minHeight: '180px',
   backgroundSize: 'cover',
   backgroundPosition: 'center',
-  position: 'relative',
+  padding: '16px',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
 };
 
 const coverTopStyle: React.CSSProperties = {
-  position: 'absolute',
-  inset: 0,
-  padding: '16px',
   display: 'flex',
   justifyContent: 'space-between',
+  gap: '12px',
   alignItems: 'flex-start',
 };
 
 const featuredBadgeStyle: React.CSSProperties = {
-  backgroundColor: '#f59e0b',
-  color: '#ffffff',
+  backgroundColor: '#fff7d6',
+  color: '#b45309',
+  padding: '7px 10px',
   borderRadius: '999px',
-  padding: '8px 12px',
   fontSize: '12px',
   fontWeight: 800,
 };
 
 const standardBadgeStyle: React.CSSProperties = {
   backgroundColor: 'rgba(255,255,255,0.92)',
-  color: '#1f2937',
+  color: '#0f172a',
+  padding: '7px 10px',
   borderRadius: '999px',
-  padding: '8px 12px',
   fontSize: '12px',
   fontWeight: 800,
 };
 
 const photoCountBadgeStyle: React.CSSProperties = {
-  backgroundColor: 'rgba(15,23,42,0.72)',
+  backgroundColor: 'rgba(15,23,42,0.75)',
   color: '#ffffff',
+  padding: '7px 10px',
   borderRadius: '999px',
-  padding: '8px 12px',
   fontSize: '12px',
   fontWeight: 700,
 };
 
 const cardBodyStyle: React.CSSProperties = {
-  padding: '18px 18px 22px',
+  padding: '20px',
 };
 
 const cardTitleStyle: React.CSSProperties = {
   margin: 0,
   fontSize: '22px',
   fontWeight: 800,
-  color: '#2d2a26',
-  fontFamily: 'Georgia, serif',
+  color: '#0f172a',
 };
 
 const metaRowStyle: React.CSSProperties = {
-  marginTop: '10px',
-  display: 'flex',
-  justifyContent: 'space-between',
-  gap: '12px',
-  flexWrap: 'wrap',
-};
-
-const categoryChipStyle: React.CSSProperties = {
-  padding: '7px 11px',
-  borderRadius: '999px',
-  backgroundColor: '#f8f5f1',
-  color: '#2f2f2f',
-  fontSize: '12px',
-  fontWeight: 700,
-  border: '1px solid #ece7df',
-};
-
-const dateTextStyle: React.CSSProperties = {
-  color: '#6b7280',
-  fontSize: '13px',
-};
-
-const cardTextStyle: React.CSSProperties = {
-  margin: '12px 0 0',
-  color: '#6b7280',
-  fontSize: '14px',
-  lineHeight: 1.7,
-  minHeight: '68px',
-};
-
-const statusRowStyle: React.CSSProperties = {
-  marginTop: '16px',
   display: 'flex',
   justifyContent: 'space-between',
   gap: '12px',
   alignItems: 'center',
-  flexWrap: 'wrap',
+  marginTop: '10px',
 };
 
-const statusBadgeStyle: React.CSSProperties = {
-  padding: '8px 12px',
+const categoryChipStyle: React.CSSProperties = {
+  padding: '6px 10px',
   borderRadius: '999px',
+  backgroundColor: '#f1f5f9',
+  color: '#334155',
   fontSize: '12px',
   fontWeight: 700,
 };
 
+const dateTextStyle: React.CSSProperties = {
+  color: '#64748b',
+  fontSize: '13px',
+};
+
+const cardTextStyle: React.CSSProperties = {
+  margin: '14px 0',
+  color: '#475569',
+  fontSize: '14px',
+  lineHeight: 1.7,
+  minHeight: '48px',
+};
+
+const statusRowStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  gap: '12px',
+  alignItems: 'center',
+  marginBottom: '16px',
+};
+
+const statusBadgeStyle: React.CSSProperties = {
+  padding: '7px 10px',
+  borderRadius: '999px',
+  fontSize: '12px',
+  fontWeight: 800,
+};
+
 const publishedBadgeStyle: React.CSSProperties = {
-  backgroundColor: '#e8faef',
-  color: '#22c55e',
+  backgroundColor: '#dcfce7',
+  color: '#166534',
 };
 
 const draftBadgeStyle: React.CSSProperties = {
-  backgroundColor: '#fff1de',
-  color: '#d97706',
+  backgroundColor: '#fee2e2',
+  color: '#b91c1c',
 };
 
 const orderTextStyle: React.CSSProperties = {
+  color: '#64748b',
   fontSize: '13px',
-  color: '#6b7280',
-  fontWeight: 600,
+  fontWeight: 700,
 };
 
 const actionsStyle: React.CSSProperties = {
-  marginTop: '18px',
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
+  display: 'flex',
   gap: '10px',
 };
 
 const editButtonStyle: React.CSSProperties = {
+  flex: 1,
   height: '42px',
-  border: '1px solid #e3d8c9',
-  backgroundColor: '#f8f5f1',
-  color: '#1f2937',
+  border: 'none',
   borderRadius: '12px',
-  fontSize: '14px',
+  backgroundColor: '#e2e8f0',
+  color: '#0f172a',
   fontWeight: 700,
   cursor: 'pointer',
 };
 
 const deleteButtonStyle: React.CSSProperties = {
+  flex: 1,
   height: '42px',
   border: 'none',
-  backgroundColor: '#fde8e8',
-  color: '#b91c1c',
   borderRadius: '12px',
-  fontSize: '14px',
+  backgroundColor: '#fee2e2',
+  color: '#b91c1c',
   fontWeight: 700,
   cursor: 'pointer',
-};
-
-const bottomAccentStyle: React.CSSProperties = {
-  height: '6px',
-  width: '100%',
 };

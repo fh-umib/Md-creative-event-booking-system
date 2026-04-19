@@ -28,28 +28,64 @@ export type DecorationPayload = {
   is_active: boolean;
 };
 
-async function handleResponse<T>(response: Response): Promise<T> {
+type ApiResponse<T> = {
+  success?: boolean;
+  message?: string;
+  data?: T;
+};
+
+function getAuthToken() {
+  return localStorage.getItem('md_auth_token');
+}
+
+function getAuthHeaders(includeJson = false): HeadersInit {
+  const token = getAuthToken();
+
+  return {
+    ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+async function parseResponse<T>(
+  response: Response,
+  fallbackMessage: string
+): Promise<T> {
+  const json = await response.json().catch(() => ({}));
+
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Request failed');
+    throw new Error((json as { message?: string }).message || fallbackMessage);
   }
 
-  return response.json();
+  const parsed = json as ApiResponse<T> | T;
+
+  if (
+    typeof parsed === 'object' &&
+    parsed !== null &&
+    'data' in parsed
+  ) {
+    return (parsed as ApiResponse<T>).data as T;
+  }
+
+  return parsed as T;
 }
 
 export async function getPublicDecorations(): Promise<Decoration[]> {
   const response = await fetch(`${API_BASE_URL}/decorations`);
-  return handleResponse<Decoration[]>(response);
+  return parseResponse<Decoration[]>(response, 'Failed to load decorations');
 }
 
 export async function getDecorationBySlug(slug: string): Promise<Decoration> {
   const response = await fetch(`${API_BASE_URL}/decorations/slug/${slug}`);
-  return handleResponse<Decoration>(response);
+  return parseResponse<Decoration>(response, 'Failed to load decoration');
 }
 
 export async function getAdminDecorations(): Promise<Decoration[]> {
-  const response = await fetch(`${API_BASE_URL}/admin/decorations`);
-  return handleResponse<Decoration[]>(response);
+  const response = await fetch(`${API_BASE_URL}/admin/decorations`, {
+    headers: getAuthHeaders(),
+  });
+
+  return parseResponse<Decoration[]>(response, 'Failed to load admin decorations');
 }
 
 export async function createDecoration(
@@ -57,13 +93,11 @@ export async function createDecoration(
 ): Promise<Decoration> {
   const response = await fetch(`${API_BASE_URL}/admin/decorations`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  return handleResponse<Decoration>(response);
+  return parseResponse<Decoration>(response, 'Failed to create decoration');
 }
 
 export async function updateDecoration(
@@ -72,19 +106,18 @@ export async function updateDecoration(
 ): Promise<Decoration> {
   const response = await fetch(`${API_BASE_URL}/admin/decorations/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  return handleResponse<Decoration>(response);
+  return parseResponse<Decoration>(response, 'Failed to update decoration');
 }
 
 export async function deleteDecoration(id: number): Promise<Decoration> {
   const response = await fetch(`${API_BASE_URL}/admin/decorations/${id}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
   });
 
-  return handleResponse<Decoration>(response);
+  return parseResponse<Decoration>(response, 'Failed to delete decoration');
 }

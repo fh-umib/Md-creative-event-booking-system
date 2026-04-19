@@ -24,23 +24,62 @@ export type AdminPackagePayload = {
   is_active: boolean;
 };
 
-export async function getAdminPackages(search = ''): Promise<AdminPackage[]> {
-  const response = await fetch(
-    `${API_BASE_URL}/admin/packages?search=${encodeURIComponent(search)}`
-  );
-  if (!response.ok) throw new Error('Failed to load admin packages');
-  return response.json();
+type ApiResponse<T> = {
+  success?: boolean;
+  message?: string;
+  data?: T;
+};
+
+function getAuthToken() {
+  return localStorage.getItem('md_auth_token');
 }
 
-export async function createPackage(payload: AdminPackagePayload): Promise<AdminPackage> {
+function getAuthHeaders(includeJson = false): HeadersInit {
+  const token = getAuthToken();
+
+  return {
+    ...(includeJson ? { 'Content-Type': 'application/json' } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+async function parseResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
+  const json = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error((json as { message?: string }).message || fallbackMessage);
+  }
+
+  const parsed = json as ApiResponse<T> | T;
+
+  if (typeof parsed === 'object' && parsed !== null && 'data' in parsed) {
+    return (parsed as ApiResponse<T>).data as T;
+  }
+
+  return parsed as T;
+}
+
+export async function getAdminPackages(search = ''): Promise<AdminPackage[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/admin/packages?search=${encodeURIComponent(search)}`,
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+
+  return parseResponse<AdminPackage[]>(response, 'Failed to load admin packages');
+}
+
+export async function createPackage(
+  payload: AdminPackagePayload
+): Promise<AdminPackage> {
   const response = await fetch(`${API_BASE_URL}/admin/packages`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  if (!response.ok) throw new Error('Failed to create package');
-  return response.json();
+  return parseResponse<AdminPackage>(response, 'Failed to create package');
 }
 
 export async function updatePackage(
@@ -49,19 +88,18 @@ export async function updatePackage(
 ): Promise<AdminPackage> {
   const response = await fetch(`${API_BASE_URL}/admin/packages/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  if (!response.ok) throw new Error('Failed to update package');
-  return response.json();
+  return parseResponse<AdminPackage>(response, 'Failed to update package');
 }
 
 export async function deletePackage(id: number): Promise<AdminPackage> {
   const response = await fetch(`${API_BASE_URL}/admin/packages/${id}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
   });
 
-  if (!response.ok) throw new Error('Failed to delete package');
-  return response.json();
+  return parseResponse<AdminPackage>(response, 'Failed to delete package');
 }

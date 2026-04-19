@@ -30,7 +30,6 @@ const revenueTrend = [
   { month: 'Jun', value: 6100 },
 ];
 
-
 function formatDuration(minutes: number) {
   if (minutes < 60) return `${minutes} min`;
   const hours = minutes / 60;
@@ -150,6 +149,8 @@ export default function PackagesPage() {
     e.preventDefault();
 
     try {
+      setError('');
+
       if (editingId) {
         await updatePackage(editingId, form);
       } else {
@@ -170,6 +171,7 @@ export default function PackagesPage() {
     if (!confirmed) return;
 
     try {
+      setError('');
       await deletePackage(id);
       await loadPackages(search);
 
@@ -374,78 +376,78 @@ export default function PackagesPage() {
         ) : featuredPackages.length === 0 ? (
           <div style={emptyStateStyle}>No packages found.</div>
         ) : (
-          featuredPackages.map((item, index) => {
-            const includes = getPackageIncludes(item);
-            const popular = index < 2;
-
-            return (
-              <article key={item.id} style={packageCardStyle}>
-                {popular ? <div style={popularBadgeStyle}>↗ MOST POPULAR</div> : null}
-
-                <div style={packageTopStyle}>
-                  <div>
-                    <h3 style={packageTitleStyle}>{item.title}</h3>
-                    <p style={packageDescStyle}>
-                      {item.description || 'No description added yet for this package.'}
-                    </p>
-                  </div>
-
-                  <div style={priceSideStyle}>
-                    <div style={packagePriceStyle}>€{item.base_price}</div>
-                    <div style={packageDurationStyle}>
-                      {formatDuration(item.duration_minutes)}
-                    </div>
-                  </div>
+          featuredPackages.map((item) => (
+            <div key={item.id} style={packageCardStyle}>
+              <div style={packageTopRowStyle}>
+                <div>
+                  <h3 style={packageTitleStyle}>{item.title}</h3>
+                  <p style={packageCategoryStyle}>{item.category}</p>
                 </div>
 
-                <div style={metaRowStyle}>
-                  <span style={metaTextStyle}>⭐ 4.{(item.id % 5) + 2}</span>
-                  <span style={metaTextStyle}>
-                    👥 {(item.max_mascots + 1) * 7} bookings
+                <div
+                  style={{
+                    ...statusBadgeStyle,
+                    backgroundColor: item.is_active ? '#dcfce7' : '#fee2e2',
+                    color: item.is_active ? '#166534' : '#991b1b',
+                  }}
+                >
+                  {item.is_active ? 'Active' : 'Inactive'}
+                </div>
+              </div>
+
+              <p style={packageDescriptionStyle}>
+                {item.description || 'No description provided.'}
+              </p>
+
+              <div style={packageInfoGridStyle}>
+                <div style={infoBoxStyle}>
+                  <span style={infoLabelStyle}>Duration</span>
+                  <strong style={infoValueStyle}>
+                    {formatDuration(item.duration_minutes)}
+                  </strong>
+                </div>
+
+                <div style={infoBoxStyle}>
+                  <span style={infoLabelStyle}>Mascots</span>
+                  <strong style={infoValueStyle}>
+                    {item.min_mascots} - {item.max_mascots}
+                  </strong>
+                </div>
+
+                <div style={infoBoxStyle}>
+                  <span style={infoLabelStyle}>Base Price</span>
+                  <strong style={infoValueStyle}>€{item.base_price}</strong>
+                </div>
+              </div>
+
+              <div style={includesWrapStyle}>
+                {getPackageIncludes(item).map((extra) => (
+                  <span key={extra} style={includeBadgeStyle}>
+                    {extra}
                   </span>
-                  <span style={trendStyle}>↗ +{(item.id % 4) * 4 + 8}%</span>
-                </div>
+                ))}
+              </div>
 
-                <div style={includesTitleStyle}>INCLUDES</div>
+              <div style={cardActionsStyle}>
+                <button
+                  type="button"
+                  style={editButtonStyle}
+                  onClick={() => handleEdit(item)}
+                >
+                  Edit
+                </button>
 
-                <div style={includesWrapStyle}>
-                  {includes.map((extra) => (
-                    <span key={extra} style={includeTagStyle}>
-                      {extra}
-                    </span>
-                  ))}
-                </div>
-
-                <div style={footerRowStyle}>
-                  <span style={revenueStyle}>
-                    €{(Number(item.base_price) * ((item.id % 3) + 9)).toLocaleString()} revenue
-                  </span>
-
-                  <div style={actionsWrapStyle}>
-                    <button
-                      type="button"
-                      style={iconButtonStyle}
-                      onClick={() => handleEdit(item)}
-                    >
-                      ✎
-                    </button>
-                    <button
-                      type="button"
-                      style={iconButtonStyle}
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      🗑
-                    </button>
-                  </div>
-                </div>
-              </article>
-            );
-          })
+                <button
+                  type="button"
+                  style={deleteButtonStyle}
+                  onClick={() => handleDelete(item.id)}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))
         )}
-      </div>
-
-      <div style={bottomInfoStyle}>
-        Average package value: <strong>€{stats.avgPrice.toFixed(2)}</strong>
       </div>
     </section>
   );
@@ -454,7 +456,7 @@ export default function PackagesPage() {
 const pageStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '22px',
+  gap: '24px',
 };
 
 const headerStyle: React.CSSProperties = {
@@ -467,76 +469,72 @@ const headerStyle: React.CSSProperties = {
 
 const titleStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: '42px',
+  fontSize: '30px',
   fontWeight: 800,
-  color: '#2b2b2b',
-  fontFamily: 'Georgia, serif',
+  color: '#0f172a',
 };
 
 const subtitleStyle: React.CSSProperties = {
-  margin: '6px 0 0',
-  color: '#6b7280',
-  fontSize: '16px',
+  margin: '8px 0 0 0',
+  fontSize: '15px',
+  color: '#64748b',
 };
 
 const addButtonStyle: React.CSSProperties = {
+  height: '46px',
   border: 'none',
-  borderRadius: '16px',
-  padding: '14px 22px',
-  background: 'linear-gradient(135deg, #f59e0b, #ec4899)',
-  color: '#ffffff',
-  fontSize: '16px',
-  fontWeight: 700,
+  borderRadius: '14px',
+  padding: '0 18px',
+  backgroundColor: '#f59e0b',
+  color: '#0f172a',
+  fontWeight: 800,
   cursor: 'pointer',
 };
 
 const errorBoxStyle: React.CSSProperties = {
-  backgroundColor: '#fff1f1',
-  color: '#a33b3b',
-  border: '1px solid #f2caca',
-  borderRadius: '16px',
+  backgroundColor: '#fee2e2',
+  color: '#b91c1c',
   padding: '14px 16px',
-  fontSize: '14px',
+  borderRadius: '14px',
   fontWeight: 600,
 };
 
 const formCardStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  borderRadius: '24px',
-  border: '1px solid #ece7df',
-  padding: '24px',
-  boxShadow: '0 10px 24px rgba(15, 23, 42, 0.04)',
+  borderRadius: '22px',
+  padding: '22px',
+  boxShadow: '0 14px 30px rgba(15, 23, 42, 0.06)',
 };
 
 const formHeaderStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  gap: '12px',
   marginBottom: '18px',
+  gap: '12px',
 };
 
 const formTitleStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: '24px',
+  fontSize: '22px',
   fontWeight: 800,
-  color: '#1f2937',
+  color: '#0f172a',
 };
 
 const cancelButtonStyle: React.CSSProperties = {
-  border: '1px solid #e2d6c2',
-  backgroundColor: '#fffaf2',
-  color: '#1f2937',
-  borderRadius: '999px',
-  padding: '10px 16px',
-  fontSize: '13px',
+  height: '40px',
+  border: 'none',
+  borderRadius: '12px',
+  padding: '0 14px',
+  backgroundColor: '#e2e8f0',
+  color: '#0f172a',
   fontWeight: 700,
   cursor: 'pointer',
 };
 
 const formGridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
   gap: '16px',
 };
 
@@ -549,131 +547,123 @@ const fieldStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = {
   fontSize: '14px',
   fontWeight: 700,
-  color: '#1f2937',
+  color: '#334155',
 };
 
 const inputStyle: React.CSSProperties = {
-  height: '46px',
+  height: '48px',
   borderRadius: '14px',
-  border: '1px solid #e5dccf',
+  border: '1px solid #dbe2ea',
   padding: '0 14px',
   fontSize: '14px',
   outline: 'none',
 };
 
 const textareaStyle: React.CSSProperties = {
-  minHeight: '100px',
+  minHeight: '110px',
   borderRadius: '14px',
-  border: '1px solid #e5dccf',
+  border: '1px solid #dbe2ea',
   padding: '12px 14px',
   fontSize: '14px',
-  outline: 'none',
   resize: 'vertical',
+  outline: 'none',
 };
 
 const checkboxLabelStyle: React.CSSProperties = {
-  gridColumn: '1 / -1',
   display: 'flex',
   alignItems: 'center',
-  gap: '8px',
+  gap: '10px',
   fontSize: '14px',
-  fontWeight: 600,
-  color: '#1f2937',
+  fontWeight: 700,
+  color: '#334155',
 };
 
 const submitWrapStyle: React.CSSProperties = {
   gridColumn: '1 / -1',
+  display: 'flex',
+  justifyContent: 'flex-end',
 };
 
 const submitButtonStyle: React.CSSProperties = {
-  height: '48px',
+  height: '46px',
   border: 'none',
   borderRadius: '14px',
-  background: 'linear-gradient(135deg, #f59e0b, #ec4899)',
+  padding: '0 18px',
+  backgroundColor: '#0f172a',
   color: '#ffffff',
-  fontSize: '15px',
   fontWeight: 800,
   cursor: 'pointer',
-  padding: '0 24px',
 };
 
 const topSectionStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: '420px 1fr',
+  gridTemplateColumns: '1.2fr 1fr',
   gap: '20px',
 };
 
 const statsGridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  gap: '18px',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: '16px',
 };
 
 const statCardStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  border: '1px solid #ece7df',
-  borderRadius: '22px',
-  padding: '22px 18px',
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: '150px',
-  boxShadow: '0 10px 24px rgba(15, 23, 42, 0.04)',
+  borderRadius: '20px',
+  padding: '20px',
+  boxShadow: '0 14px 30px rgba(15, 23, 42, 0.06)',
 };
 
 const statIconStyle: React.CSSProperties = {
-  width: '52px',
-  height: '52px',
-  borderRadius: '18px',
+  width: '44px',
+  height: '44px',
+  borderRadius: '14px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  fontSize: '24px',
+  fontSize: '20px',
   marginBottom: '14px',
-  fontWeight: 800,
 };
 
 const statValueStyle: React.CSSProperties = {
-  fontSize: '22px',
+  fontSize: '28px',
   fontWeight: 800,
-  color: '#1f2937',
-  marginBottom: '4px',
+  color: '#0f172a',
 };
 
 const statLabelStyle: React.CSSProperties = {
+  marginTop: '6px',
   fontSize: '14px',
-  color: '#6b7280',
+  color: '#64748b',
 };
 
 const chartCardStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  border: '1px solid #ece7df',
-  borderRadius: '22px',
-  padding: '22px',
-  boxShadow: '0 10px 24px rgba(15, 23, 42, 0.04)',
+  borderRadius: '20px',
+  padding: '20px',
+  boxShadow: '0 14px 30px rgba(15, 23, 42, 0.06)',
 };
 
 const chartTitleStyle: React.CSSProperties = {
   margin: 0,
   fontSize: '18px',
   fontWeight: 800,
-  color: '#2d2a26',
-  fontFamily: 'Georgia, serif',
+  color: '#0f172a',
 };
 
 const chartSubtitleStyle: React.CSSProperties = {
-  margin: '8px 0 18px',
-  color: '#6b7280',
+  margin: '8px 0 0 0',
   fontSize: '14px',
+  color: '#64748b',
 };
 
 const chartStyle: React.CSSProperties = {
+  marginTop: '24px',
+  height: '190px',
   display: 'flex',
   alignItems: 'flex-end',
   justifyContent: 'space-between',
-  gap: '20px',
-  minHeight: '210px',
+  gap: '14px',
 };
 
 const chartBarWrapStyle: React.CSSProperties = {
@@ -686,8 +676,7 @@ const chartBarWrapStyle: React.CSSProperties = {
 
 const chartColumnStyle: React.CSSProperties = {
   width: '100%',
-  maxWidth: '58px',
-  height: '160px',
+  height: '150px',
   display: 'flex',
   alignItems: 'flex-end',
   justifyContent: 'center',
@@ -695,163 +684,142 @@ const chartColumnStyle: React.CSSProperties = {
 
 const chartBarStyle: React.CSSProperties = {
   width: '100%',
-  borderRadius: '10px 10px 0 0',
-  backgroundColor: '#f48b10',
+  maxWidth: '40px',
+  borderRadius: '14px 14px 8px 8px',
+  background: 'linear-gradient(180deg, #f59e0b, #f97316)',
 };
 
 const chartLabelStyle: React.CSSProperties = {
-  fontSize: '14px',
-  color: '#6b7280',
-  fontWeight: 600,
+  fontSize: '13px',
+  color: '#64748b',
+  fontWeight: 700,
 };
 
 const cardsGridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-  gap: '20px',
-};
-
-const emptyStateStyle: React.CSSProperties = {
-  backgroundColor: '#ffffff',
-  borderRadius: '24px',
-  padding: '32px',
-  textAlign: 'center',
-  color: '#6b7280',
-  border: '1px solid #ece7df',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+  gap: '18px',
 };
 
 const packageCardStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  borderRadius: '24px',
-  border: '1px solid #ece7df',
-  boxShadow: '0 10px 24px rgba(15, 23, 42, 0.04)',
-  overflow: 'hidden',
-  padding: '0 22px 22px',
+  borderRadius: '22px',
+  padding: '20px',
+  boxShadow: '0 14px 30px rgba(15, 23, 42, 0.06)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '16px',
 };
 
-const popularBadgeStyle: React.CSSProperties = {
-  margin: '0 -22px 18px',
-  padding: '10px 16px',
-  background: 'linear-gradient(135deg, #f59e0b, #ec4899)',
-  color: '#ffffff',
-  fontSize: '13px',
-  fontWeight: 800,
-  letterSpacing: '0.5px',
-};
-
-const packageTopStyle: React.CSSProperties = {
+const packageTopRowStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
-  gap: '16px',
-  alignItems: 'flex-start',
+  gap: '12px',
 };
 
 const packageTitleStyle: React.CSSProperties = {
   margin: 0,
   fontSize: '20px',
   fontWeight: 800,
-  color: '#2d2a26',
-  fontFamily: 'Georgia, serif',
+  color: '#0f172a',
 };
 
-const packageDescStyle: React.CSSProperties = {
-  margin: '10px 0 0',
-  color: '#6b7280',
-  fontSize: '15px',
-  lineHeight: 1.6,
-  minHeight: '74px',
-};
-
-const priceSideStyle: React.CSSProperties = {
-  minWidth: '95px',
-  textAlign: 'right',
-};
-
-const packagePriceStyle: React.CSSProperties = {
-  color: '#ea7b12',
-  fontWeight: 800,
-  fontSize: '20px',
-};
-
-const packageDurationStyle: React.CSSProperties = {
-  marginTop: '4px',
-  color: '#6b7280',
-  fontSize: '13px',
-};
-
-const metaRowStyle: React.CSSProperties = {
-  marginTop: '14px',
-  display: 'flex',
-  gap: '14px',
-  flexWrap: 'wrap',
-};
-
-const metaTextStyle: React.CSSProperties = {
-  color: '#4b5563',
+const packageCategoryStyle: React.CSSProperties = {
+  margin: '6px 0 0 0',
+  color: '#64748b',
   fontSize: '14px',
+  textTransform: 'capitalize',
 };
 
-const trendStyle: React.CSSProperties = {
-  color: '#22c55e',
-  fontSize: '14px',
-  fontWeight: 700,
-};
-
-const includesTitleStyle: React.CSSProperties = {
-  marginTop: '18px',
-  marginBottom: '10px',
+const statusBadgeStyle: React.CSSProperties = {
+  height: '32px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '0 12px',
+  borderRadius: '999px',
   fontSize: '12px',
-  color: '#6b7280',
   fontWeight: 800,
-  letterSpacing: '1.1px',
+  whiteSpace: 'nowrap',
+};
+
+const packageDescriptionStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#475569',
+  fontSize: '14px',
+  lineHeight: 1.6,
+};
+
+const packageInfoGridStyle: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+  gap: '10px',
+};
+
+const infoBoxStyle: React.CSSProperties = {
+  backgroundColor: '#f8fafc',
+  borderRadius: '14px',
+  padding: '12px',
+};
+
+const infoLabelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '12px',
+  color: '#64748b',
+  marginBottom: '6px',
+};
+
+const infoValueStyle: React.CSSProperties = {
+  fontSize: '14px',
+  color: '#0f172a',
 };
 
 const includesWrapStyle: React.CSSProperties = {
   display: 'flex',
-  gap: '10px',
-  flexWrap: 'wrap',
-  minHeight: '56px',
-};
-
-const includeTagStyle: React.CSSProperties = {
-  padding: '8px 12px',
-  borderRadius: '999px',
-  backgroundColor: '#f7f4ef',
-  color: '#2f2f2f',
-  fontSize: '13px',
-  fontWeight: 700,
-  border: '1px solid #efe8dd',
-};
-
-const footerRowStyle: React.CSSProperties = {
-  marginTop: '18px',
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: '12px',
-};
-
-const revenueStyle: React.CSSProperties = {
-  color: '#ea7b12',
-  fontSize: '14px',
-  fontWeight: 700,
-};
-
-const actionsWrapStyle: React.CSSProperties = {
-  display: 'flex',
   gap: '8px',
+  flexWrap: 'wrap',
 };
 
-const iconButtonStyle: React.CSSProperties = {
-  width: '36px',
-  height: '36px',
-  borderRadius: '10px',
-  border: '1px solid #ece7df',
-  backgroundColor: '#ffffff',
+const includeBadgeStyle: React.CSSProperties = {
+  padding: '7px 10px',
+  borderRadius: '999px',
+  backgroundColor: '#fff7d6',
+  color: '#b45309',
+  fontSize: '12px',
+  fontWeight: 700,
+};
+
+const cardActionsStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: '10px',
+};
+
+const editButtonStyle: React.CSSProperties = {
+  flex: 1,
+  height: '42px',
+  border: 'none',
+  borderRadius: '12px',
+  backgroundColor: '#e2e8f0',
+  color: '#0f172a',
+  fontWeight: 700,
   cursor: 'pointer',
 };
 
-const bottomInfoStyle: React.CSSProperties = {
-  color: '#6b7280',
-  fontSize: '14px',
+const deleteButtonStyle: React.CSSProperties = {
+  flex: 1,
+  height: '42px',
+  border: 'none',
+  borderRadius: '12px',
+  backgroundColor: '#fee2e2',
+  color: '#b91c1c',
+  fontWeight: 700,
+  cursor: 'pointer',
+};
+
+const emptyStateStyle: React.CSSProperties = {
+  backgroundColor: '#ffffff',
+  borderRadius: '18px',
+  padding: '26px',
+  textAlign: 'center',
+  color: '#64748b',
+  boxShadow: '0 14px 30px rgba(15, 23, 42, 0.06)',
 };
