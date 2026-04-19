@@ -1,76 +1,101 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { authService, type AuthUser } from '../services/auth/authService';
 
 interface AuthContextValue {
-isAuthenticated: boolean;
-adminEmail: string | null;
-login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
-logout: () => void;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: AuthUser | null;
+  token: string | null;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; message?: string }>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const ADMIN_EMAIL = 'admin@mdcreative.com';
-const ADMIN_PASSWORD = 'admin123';
+const AUTH_TOKEN_KEY = 'md_auth_token';
+const AUTH_USER_KEY = 'md_auth_user';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-const [isAuthenticated, setIsAuthenticated] = useState(false);
-const [adminEmail, setAdminEmail] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
-useEffect(() => {
-const savedAuth = localStorage.getItem('md_admin_auth');
-const savedEmail = localStorage.getItem('md_admin_email');
+  useEffect(() => {
+    const savedToken = localStorage.getItem(AUTH_TOKEN_KEY);
+    const savedUser = localStorage.getItem(AUTH_USER_KEY);
 
-if (savedAuth === 'true') {
-setIsAuthenticated(true);
-setAdminEmail(savedEmail || ADMIN_EMAIL);
+    if (savedToken && savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser) as AuthUser;
+        setToken(savedToken);
+        setUser(parsedUser);
+        setIsAuthenticated(true);
+      } catch {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_USER_KEY);
+      }
+    }
+
+    setIsLoading(false);
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    try {
+      const result = await authService.login({
+        email: email.trim(),
+        password,
+      });
+
+      setToken(result.token);
+      setUser(result.user);
+      setIsAuthenticated(true);
+
+      localStorage.setItem(AUTH_TOKEN_KEY, result.token);
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(result.user));
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Login failed.',
+      };
+    }
+  };
+
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    setIsAuthenticated(false);
+
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_USER_KEY);
+  };
+
+  const value = useMemo(
+    () => ({
+      isAuthenticated,
+      isLoading,
+      user,
+      token,
+      login,
+      logout,
+    }),
+    [isAuthenticated, isLoading, user, token]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-}, []);
 
-const login = async (email: string, password: string) => {
-const normalizedEmail = email.trim().toLowerCase();
+export function useAuthContext() {
+  const context = useContext(AuthContext);
 
-if (normalizedEmail !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
-return {
-success: false,
-message: 'Incorrect email or password.',
-};
-}
+  if (!context) {
+    throw new Error('useAuthContext must be used within AuthProvider');
+  }
 
-setIsAuthenticated(true);
-setAdminEmail(normalizedEmail);
-
-localStorage.setItem('md_admin_auth', 'true');
-localStorage.setItem('md_admin_email', normalizedEmail);
-
-return { success: true };
-};
-
-const logout = () => {
-setIsAuthenticated(false);
-setAdminEmail(null);
-localStorage.removeItem('md_admin_auth');
-localStorage.removeItem('md_admin_email');
-};
-
-const value = useMemo(
-() => ({
-isAuthenticated,
-adminEmail,
-login,
-logout,
-}),
-[isAuthenticated, adminEmail]
-);
-
-return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-const context = useContext(AuthContext);
-
-if (!context) {
-throw new Error('useAuth must be used within AuthProvider');
-}
-
-return context;
+  return context;
 }

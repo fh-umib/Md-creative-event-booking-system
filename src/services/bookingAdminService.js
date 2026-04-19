@@ -26,8 +26,12 @@ class BookingAdminService {
         b.deposit_amount,
         b.remaining_balance,
         b.created_at,
+        b.venue_name,
+        b.venue_address,
+        b.special_requests,
         u.full_name AS customer_name,
         u.email AS customer_email,
+        u.phone AS customer_phone,
         p.title AS package_title
       FROM bookings b
       JOIN users u ON b.customer_id = u.id
@@ -100,6 +104,36 @@ class BookingAdminService {
     `;
 
     const { rows } = await pool.query(query, [status, id]);
+
+    if (!rows[0]) {
+      throw createHttpError('Booking not found.', 404);
+    }
+
+    return rows[0];
+  }
+
+  async updateBookingPaymentStatus(id, paymentStatus) {
+    const allowedPaymentStatuses = [
+      'Unpaid',
+      'Partially Paid',
+      'Paid',
+      'Refunded',
+    ];
+
+    if (!allowedPaymentStatuses.includes(paymentStatus)) {
+      throw createHttpError('Invalid payment status.', 400);
+    }
+
+    const query = `
+      UPDATE bookings
+      SET
+        payment_status = $1,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+      RETURNING *
+    `;
+
+    const { rows } = await pool.query(query, [paymentStatus, id]);
 
     if (!rows[0]) {
       throw createHttpError('Booking not found.', 404);

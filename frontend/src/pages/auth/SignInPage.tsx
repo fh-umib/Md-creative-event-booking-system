@@ -20,10 +20,8 @@ export default function SignInPage() {
         </form>
 
         <div style={footerStyle}>
-          <span>Admin?</span>
-          <Link to="/admin/login" style={linkStyle}>
-            Go to admin login
-          </Link>
+          <span style={footerTextStyle}>Don’t have an account?</span>
+          <span style={createAccountStyle}>Create account</span>
         </div>
 
         <div style={backWrapperStyle}>
@@ -106,10 +104,13 @@ const footerStyle: React.CSSProperties = {
   fontSize: '15px',
 };
 
-const linkStyle: React.CSSProperties = {
+const footerTextStyle: React.CSSProperties = {
+  color: '#475569',
+};
+
+const createAccountStyle: React.CSSProperties = {
   color: '#0b1736',
   fontWeight: 700,
-  textDecoration: 'none',
 };
 
 const backWrapperStyle: React.CSSProperties = {

@@ -85,6 +85,33 @@ class BookingAdminController {
     }
   }
 
+  async updatePaymentStatus(req, res, next) {
+    try {
+      const bookingId = parseBookingId(req.params.id);
+      const { payment_status } = req.body;
+
+      if (!payment_status || !String(payment_status).trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Payment status is required.',
+        });
+      }
+
+      const updated = await bookingAdminService.updateBookingPaymentStatus(
+        bookingId,
+        String(payment_status).trim()
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: 'Booking payment status updated successfully.',
+        data: updated,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async delete(req, res, next) {
     try {
       const bookingId = parseBookingId(req.params.id);

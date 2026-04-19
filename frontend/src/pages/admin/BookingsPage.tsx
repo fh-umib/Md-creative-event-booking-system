@@ -4,6 +4,7 @@ import {
   getAdminBookingById,
   getAdminBookings,
   updateAdminBookingStatus,
+  updateAdminPaymentStatus,
 } from '../../services/bookingAdminApi';
 import type { AdminBooking } from '../../services/bookingAdminApi';
 
@@ -42,21 +43,20 @@ function getStatusStyle(status: AdminBooking['status']): React.CSSProperties {
   return { backgroundColor: '#eef2f7', color: '#374151' };
 }
 
-async function updatePaymentStatus(id: number, payment_status: string) {
-  const response = await fetch(`http://localhost:5000/api/bookings/${id}/payment-status`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ payment_status }),
-  });
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error(data.message || 'Failed to update payment status');
+function getPaymentStyle(paymentStatus: string): React.CSSProperties {
+  if (paymentStatus === 'Paid') {
+    return { backgroundColor: '#dcfce7', color: '#166534' };
   }
 
-  return response.json();
+  if (paymentStatus === 'Partially Paid') {
+    return { backgroundColor: '#fff7d6', color: '#b45309' };
+  }
+
+  if (paymentStatus === 'Refunded') {
+    return { backgroundColor: '#e0e7ff', color: '#4338ca' };
+  }
+
+  return { backgroundColor: '#fee2e2', color: '#b91c1c' };
 }
 
 export default function BookingsPage() {
@@ -119,6 +119,7 @@ export default function BookingsPage() {
     status: AdminBooking['status']
   ) => {
     try {
+      setError('');
       await updateAdminBookingStatus(id, status);
       await loadBookings();
 
@@ -131,9 +132,13 @@ export default function BookingsPage() {
     }
   };
 
-  const handlePaymentStatusChange = async (id: number, paymentStatus: string) => {
+  const handlePaymentStatusChange = async (
+    id: number,
+    paymentStatus: 'Unpaid' | 'Partially Paid' | 'Paid' | 'Refunded'
+  ) => {
     try {
-      await updatePaymentStatus(id, paymentStatus);
+      setError('');
+      await updateAdminPaymentStatus(id, paymentStatus);
       await loadBookings();
 
       if (selectedBooking?.id === id) {
@@ -147,6 +152,7 @@ export default function BookingsPage() {
 
   const handleView = async (id: number) => {
     try {
+      setError('');
       setDetailsLoading(true);
       setDetailsOpen(true);
       const data = await getAdminBookingById(id);
@@ -221,6 +227,7 @@ export default function BookingsPage() {
                   <th style={thStyle}>Date & Time</th>
                   <th style={thStyle}>Guests</th>
                   <th style={thStyle}>Status</th>
+                  <th style={thStyle}>Payment</th>
                   <th style={thStyle}>Amount</th>
                   <th style={thStyle}>Actions</th>
                 </tr>
@@ -266,6 +273,28 @@ export default function BookingsPage() {
                           <option value="Approved">Approved</option>
                           <option value="Completed">Completed</option>
                           <option value="Cancelled">Cancelled</option>
+                        </select>
+                      </td>
+
+                      <td style={tdStyle}>
+                        <select
+                          value={item.payment_status}
+                          onChange={(e) =>
+                            handlePaymentStatusChange(
+                              item.id,
+                              e.target.value as (typeof paymentOptions)[number]
+                            )
+                          }
+                          style={{
+                            ...statusSelectStyle,
+                            ...getPaymentStyle(item.payment_status),
+                          }}
+                        >
+                          {paymentOptions.map((paymentStatus) => (
+                            <option key={paymentStatus} value={paymentStatus}>
+                              {paymentStatus}
+                            </option>
+                          ))}
                         </select>
                       </td>
 
@@ -336,39 +365,22 @@ export default function BookingsPage() {
                   <h3 style={detailHeadingStyle}>Customer</h3>
                   <p style={detailTextStyle}><strong>Name:</strong> {selectedBooking.customer_name}</p>
                   <p style={detailTextStyle}><strong>Email:</strong> {selectedBooking.customer_email}</p>
-                  <p style={detailTextStyle}><strong>Phone:</strong> {'customer_phone' in selectedBooking ? (selectedBooking as any).customer_phone || '—' : '—'}</p>
+                  <p style={detailTextStyle}><strong>Phone:</strong> {selectedBooking.customer_phone || '—'}</p>
                 </div>
 
                 <div style={detailCardStyle}>
                   <h3 style={detailHeadingStyle}>Venue & Notes</h3>
-                  <p style={detailTextStyle}><strong>Venue:</strong> {'venue_name' in selectedBooking ? (selectedBooking as any).venue_name || '—' : '—'}</p>
-                  <p style={detailTextStyle}><strong>Address:</strong> {'venue_address' in selectedBooking ? (selectedBooking as any).venue_address || '—' : '—'}</p>
-                  <p style={detailTextStyle}><strong>Requests:</strong> {'special_requests' in selectedBooking ? (selectedBooking as any).special_requests || '—' : '—'}</p>
+                  <p style={detailTextStyle}><strong>Venue:</strong> {selectedBooking.venue_name || '—'}</p>
+                  <p style={detailTextStyle}><strong>Address:</strong> {selectedBooking.venue_address || '—'}</p>
+                  <p style={detailTextStyle}><strong>Notes:</strong> {selectedBooking.special_requests || '—'}</p>
                 </div>
 
                 <div style={detailCardStyle}>
-                  <h3 style={detailHeadingStyle}>Package & Payment</h3>
-                  <p style={detailTextStyle}><strong>Package:</strong> {selectedBooking.package_title || 'No Package'}</p>
+                  <h3 style={detailHeadingStyle}>Payment</h3>
+                  <p style={detailTextStyle}><strong>Status:</strong> {selectedBooking.payment_status}</p>
                   <p style={detailTextStyle}><strong>Total:</strong> €{selectedBooking.total_price}</p>
                   <p style={detailTextStyle}><strong>Deposit:</strong> €{selectedBooking.deposit_amount}</p>
                   <p style={detailTextStyle}><strong>Remaining:</strong> €{selectedBooking.remaining_balance}</p>
-
-                  <div style={{ marginTop: '14px' }}>
-                    <label style={smallLabelStyle}>Payment Status</label>
-                    <select
-                      value={selectedBooking.payment_status}
-                      onChange={(e) =>
-                        handlePaymentStatusChange(selectedBooking.id, e.target.value)
-                      }
-                      style={paymentSelectStyle}
-                    >
-                      {paymentOptions.map((item) => (
-                        <option key={item} value={item}>
-                          {item}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
                 </div>
               </div>
             )}
@@ -387,60 +399,55 @@ const pageStyle: React.CSSProperties = {
 
 const topHeaderStyle: React.CSSProperties = {
   display: 'flex',
-  justifyContent: 'space-between',
   alignItems: 'center',
+  justifyContent: 'space-between',
   gap: '16px',
-  flexWrap: 'wrap',
 };
 
 const titleStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: '36px',
+  fontSize: '30px',
   fontWeight: 800,
-  color: '#1f2937',
+  color: '#0f172a',
 };
 
 const subtitleStyle: React.CSSProperties = {
   margin: '8px 0 0 0',
-  fontSize: '16px',
-  color: '#6b7280',
+  color: '#64748b',
+  fontSize: '15px',
 };
 
 const newBookingButtonStyle: React.CSSProperties = {
+  height: '46px',
   border: 'none',
   borderRadius: '14px',
-  background: 'linear-gradient(135deg, #f59e0b, #ec4899)',
-  color: '#ffffff',
-  padding: '14px 22px',
-  fontSize: '15px',
-  fontWeight: 700,
+  padding: '0 18px',
+  backgroundColor: '#f59e0b',
+  color: '#0f172a',
+  fontWeight: 800,
   cursor: 'pointer',
 };
 
 const errorBoxStyle: React.CSSProperties = {
-  backgroundColor: '#fff1f1',
-  color: '#a33b3b',
-  border: '1px solid #f2caca',
-  borderRadius: '16px',
+  backgroundColor: '#fee2e2',
+  color: '#b91c1c',
   padding: '14px 16px',
-  fontSize: '14px',
+  borderRadius: '14px',
   fontWeight: 600,
 };
 
 const tableCardStyle: React.CSSProperties = {
   backgroundColor: '#ffffff',
-  borderRadius: '24px',
-  border: '1px solid #ece7df',
-  boxShadow: '0 14px 28px rgba(15, 23, 42, 0.05)',
-  overflow: 'hidden',
+  borderRadius: '22px',
+  padding: '20px',
+  boxShadow: '0 14px 30px rgba(15, 23, 42, 0.06)',
 };
 
 const toolbarStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
   gap: '16px',
-  padding: '20px',
-  borderBottom: '1px solid #f1ece5',
+  marginBottom: '18px',
   flexWrap: 'wrap',
 };
 
@@ -451,44 +458,33 @@ const toolbarRightStyle: React.CSSProperties = {
 };
 
 const searchInputStyle: React.CSSProperties = {
-  flex: 1,
-  minWidth: '280px',
-  height: '48px',
+  minWidth: '250px',
+  height: '46px',
   borderRadius: '14px',
-  border: '1px solid #ece7df',
-  padding: '0 16px',
+  border: '1px solid #dbe2ea',
+  padding: '0 14px',
   fontSize: '14px',
   outline: 'none',
-  backgroundColor: '#faf8f5',
 };
 
 const searchButtonStyle: React.CSSProperties = {
-  height: '48px',
-  border: '1px solid #e4d7c4',
+  height: '46px',
+  padding: '0 16px',
   borderRadius: '14px',
-  backgroundColor: '#fffaf2',
-  color: '#1f2937',
-  padding: '0 18px',
-  fontSize: '14px',
+  border: 'none',
+  backgroundColor: '#0f172a',
+  color: '#ffffff',
   fontWeight: 700,
   cursor: 'pointer',
 };
 
 const selectStyle: React.CSSProperties = {
-  height: '48px',
+  height: '46px',
   borderRadius: '14px',
-  border: '1px solid #ece7df',
+  border: '1px solid #dbe2ea',
   padding: '0 14px',
   fontSize: '14px',
-  backgroundColor: '#faf8f5',
-  outline: 'none',
-};
-
-const emptyStateStyle: React.CSSProperties = {
-  padding: '28px',
-  textAlign: 'center',
-  color: '#6b7280',
-  fontSize: '15px',
+  backgroundColor: '#ffffff',
 };
 
 const tableWrapperStyle: React.CSSProperties = {
@@ -502,128 +498,126 @@ const tableStyle: React.CSSProperties = {
 
 const thStyle: React.CSSProperties = {
   textAlign: 'left',
-  padding: '18px 20px',
+  padding: '14px 12px',
   fontSize: '13px',
-  color: '#6b7280',
-  fontWeight: 700,
-  textTransform: 'uppercase',
-  letterSpacing: '0.6px',
-  borderBottom: '1px solid #f1ece5',
-  backgroundColor: '#fcfbf9',
+  color: '#64748b',
+  borderBottom: '1px solid #e5e7eb',
 };
 
 const tdStyle: React.CSSProperties = {
-  padding: '20px',
-  fontSize: '15px',
-  color: '#1f2937',
-  borderBottom: '1px solid #f5f1eb',
+  padding: '14px 12px',
+  fontSize: '14px',
+  color: '#0f172a',
+  borderBottom: '1px solid #f1f5f9',
   verticalAlign: 'middle',
 };
 
 const customerNameStyle: React.CSSProperties = {
   fontWeight: 700,
-  color: '#1f2937',
 };
 
 const customerEmailStyle: React.CSSProperties = {
-  marginTop: '4px',
-  color: '#6b7280',
+  color: '#64748b',
   fontSize: '13px',
+  marginTop: '4px',
 };
 
 const mutedTextStyle: React.CSSProperties = {
-  marginTop: '4px',
-  color: '#6b7280',
+  color: '#64748b',
   fontSize: '13px',
+  marginTop: '4px',
 };
 
 const statusSelectStyle: React.CSSProperties = {
+  height: '36px',
   border: 'none',
   borderRadius: '999px',
-  padding: '8px 12px',
+  padding: '0 12px',
   fontSize: '13px',
   fontWeight: 700,
-  outline: 'none',
-  cursor: 'pointer',
 };
 
 const actionRowStyle: React.CSSProperties = {
   display: 'flex',
   gap: '8px',
-  flexWrap: 'wrap',
 };
 
 const viewButtonStyle: React.CSSProperties = {
-  border: '1px solid #e3d8c9',
-  backgroundColor: '#ffffff',
-  color: '#1f2937',
+  height: '34px',
+  padding: '0 12px',
   borderRadius: '10px',
-  padding: '8px 12px',
-  fontSize: '13px',
+  border: 'none',
+  backgroundColor: '#e2e8f0',
+  color: '#0f172a',
   fontWeight: 700,
   cursor: 'pointer',
 };
 
 const deleteButtonStyle: React.CSSProperties = {
-  border: 'none',
-  backgroundColor: '#fde8e8',
-  color: '#b91c1c',
+  height: '34px',
+  padding: '0 12px',
   borderRadius: '10px',
-  padding: '8px 12px',
-  fontSize: '13px',
+  border: 'none',
+  backgroundColor: '#fee2e2',
+  color: '#b91c1c',
   fontWeight: 700,
   cursor: 'pointer',
+};
+
+const emptyStateStyle: React.CSSProperties = {
+  padding: '26px',
+  textAlign: 'center',
+  color: '#64748b',
 };
 
 const overlayStyle: React.CSSProperties = {
   position: 'fixed',
   inset: 0,
-  backgroundColor: 'rgba(15, 23, 42, 0.28)',
+  backgroundColor: 'rgba(15, 23, 42, 0.35)',
   display: 'flex',
   justifyContent: 'flex-end',
-  zIndex: 2000,
+  zIndex: 50,
 };
 
 const drawerStyle: React.CSSProperties = {
-  width: '520px',
-  maxWidth: '100%',
-  height: '100vh',
+  width: '100%',
+  maxWidth: '520px',
   backgroundColor: '#ffffff',
+  height: '100vh',
   padding: '24px',
   overflowY: 'auto',
-  boxShadow: '-18px 0 40px rgba(15, 23, 42, 0.12)',
+  boxShadow: '-10px 0 30px rgba(15, 23, 42, 0.10)',
 };
 
 const drawerHeaderStyle: React.CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
-  alignItems: 'flex-start',
-  gap: '12px',
-  marginBottom: '22px',
+  gap: '16px',
+  marginBottom: '24px',
 };
 
 const drawerTitleStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: '28px',
+  fontSize: '24px',
   fontWeight: 800,
-  color: '#1f2937',
+  color: '#0f172a',
 };
 
 const drawerSubtitleStyle: React.CSSProperties = {
   margin: '8px 0 0 0',
-  color: '#6b7280',
+  color: '#64748b',
   fontSize: '14px',
 };
 
 const closeButtonStyle: React.CSSProperties = {
-  border: 'none',
-  backgroundColor: '#f7f4ef',
-  color: '#374151',
   width: '40px',
   height: '40px',
   borderRadius: '12px',
-  fontSize: '18px',
+  border: 'none',
+  backgroundColor: '#f1f5f9',
   cursor: 'pointer',
+  fontSize: '16px',
+  fontWeight: 700,
 };
 
 const detailsGridStyle: React.CSSProperties = {
@@ -632,41 +626,20 @@ const detailsGridStyle: React.CSSProperties = {
 };
 
 const detailCardStyle: React.CSSProperties = {
-  backgroundColor: '#fcfbf9',
-  border: '1px solid #ece7df',
+  backgroundColor: '#f8fafc',
   borderRadius: '18px',
   padding: '18px',
 };
 
 const detailHeadingStyle: React.CSSProperties = {
   margin: '0 0 12px 0',
-  fontSize: '18px',
+  fontSize: '16px',
   fontWeight: 800,
-  color: '#1f2937',
+  color: '#0f172a',
 };
 
 const detailTextStyle: React.CSSProperties = {
-  margin: '0 0 10px 0',
+  margin: '8px 0',
+  color: '#334155',
   fontSize: '14px',
-  color: '#4b5563',
-  lineHeight: 1.7,
-};
-
-const smallLabelStyle: React.CSSProperties = {
-  display: 'block',
-  marginBottom: '8px',
-  fontSize: '13px',
-  fontWeight: 700,
-  color: '#374151',
-};
-
-const paymentSelectStyle: React.CSSProperties = {
-  width: '100%',
-  height: '44px',
-  borderRadius: '12px',
-  border: '1px solid #e5dccf',
-  padding: '0 12px',
-  fontSize: '14px',
-  outline: 'none',
-  backgroundColor: '#ffffff',
 };

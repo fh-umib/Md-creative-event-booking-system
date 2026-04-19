@@ -1,26 +1,40 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+
+  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError('');
 
-    const adminEmail = 'flutura.hyseni@umib.net';
-    const adminPassword = '12345678';
-
-    if (email === adminEmail && password === adminPassword) {
-      localStorage.setItem('md_admin_logged_in', 'true');
-      navigate('/admin/dashboard');
+    if (!email.trim() || !password.trim()) {
+      setError('Email and password are required.');
       return;
     }
 
-    setError('Invalid admin email or password.');
+    setIsSubmitting(true);
+
+    const result = await login(email, password);
+
+    setIsSubmitting(false);
+
+    if (!result.success) {
+      setError(result.message || 'Invalid admin email or password.');
+      return;
+    }
+
+    navigate(from || '/admin/dashboard', { replace: true });
   };
 
   return (
@@ -52,8 +66,8 @@ export default function AdminLoginPage() {
 
           {error ? <p style={errorStyle}>{error}</p> : null}
 
-          <button type="submit" style={buttonStyle}>
-            Log In
+          <button type="submit" style={buttonStyle} disabled={isSubmitting}>
+            {isSubmitting ? 'Logging in...' : 'Log In'}
           </button>
         </form>
 

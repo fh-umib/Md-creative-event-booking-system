@@ -1,18 +1,14 @@
 import React from 'react';
-import { Link, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const isLoggedIn = localStorage.getItem('md_admin_logged_in') === 'true';
-
-  if (!isLoggedIn) {
-    return <Navigate to="/admin/login" state={{ from: location }} replace />;
-  }
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('md_admin_logged_in');
+    logout();
     navigate('/admin/login');
   };
 
@@ -40,7 +36,6 @@ export default function AdminLayout() {
               <div style={brandSubtitleStyle}>Admin Panel</div>
             </div>
           </div>
-
           <nav style={navStyle}>
             {navItems.map((item) => {
               const active = location.pathname === item.path;
@@ -127,6 +122,7 @@ const brandSubtitleStyle: React.CSSProperties = {
   fontSize: '12px',
   color: '#cbd5e1',
 };
+
 
 const navStyle: React.CSSProperties = {
   display: 'flex',

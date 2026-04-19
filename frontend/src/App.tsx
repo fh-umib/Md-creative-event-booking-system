@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
+import ProtectedRoute from './routes/ProtectedRoute';
 
 import HomePage from './pages/public/HomePage';
 import DecorationsPage from './pages/public/DecorationsPage';
@@ -52,17 +53,19 @@ export default function App() {
       <Route path="/signin" element={<SignInPage />} />
       <Route path="/admin/login" element={<AdminLoginPage />} />
 
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="bookings" element={<BookingsPage />} />
-        <Route path="decorations" element={<DecorationsPageAdmin />} />
-        <Route path="mascots" element={<MascotsPageAdmin />} />
-        <Route path="packages" element={<PackagesPageAdmin />} />
-        <Route path="extras" element={<ExtrasPage />} />
-        <Route path="reviews" element={<ReviewsPageAdmin />} />
-        <Route path="staff" element={<StaffPage />} />
-        <Route path="analytics" element={<AnalyticsPage />} />
-        <Route path="gallery" element={<GalleryAdminPage />} />
+      <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="bookings" element={<BookingsPage />} />
+          <Route path="decorations" element={<DecorationsPageAdmin />} />
+          <Route path="mascots" element={<MascotsPageAdmin />} />
+          <Route path="packages" element={<PackagesPageAdmin />} />
+          <Route path="extras" element={<ExtrasPage />} />
+          <Route path="reviews" element={<ReviewsPageAdmin />} />
+          <Route path="staff" element={<StaffPage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
+          <Route path="gallery" element={<GalleryAdminPage />} />
+        </Route>
       </Route>
     </Routes>
   );
