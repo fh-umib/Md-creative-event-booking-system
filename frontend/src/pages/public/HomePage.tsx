@@ -125,7 +125,7 @@ const serviceCards = [
       '360° Photo Booth and photo box stations to capture every special moment.',
     image:
       'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1200&q=80',
-    to: '/photobooth',
+    to: '/photo-booth',
   },
 ];
 

@@ -10,12 +10,32 @@ export type Activity = {
   created_at: string;
 };
 
-export async function getPublicActivities(): Promise<Activity[]> {
-  const response = await fetch(`${API_BASE_URL}/activities`);
+type ApiResponse<T> = {
+  success?: boolean;
+  message?: string;
+  data?: T;
+};
+
+async function handleResponse<T>(
+  response: Response,
+  fallbackMessage: string
+): Promise<T> {
+  const json = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error('Failed to load activities');
+    throw new Error((json as { message?: string }).message || fallbackMessage);
   }
 
-  return response.json();
+  const parsed = json as ApiResponse<T> | T;
+
+  if (typeof parsed === 'object' && parsed !== null && 'data' in parsed) {
+    return (parsed as ApiResponse<T>).data as T;
+  }
+
+  return parsed as T;
+}
+
+export async function getPublicActivities(): Promise<Activity[]> {
+  const response = await fetch(`${API_BASE_URL}/activities`);
+  return handleResponse<Activity[]>(response, 'Failed to load activities');
 }
