@@ -112,16 +112,15 @@ I improved the documentation side of the project by preparing and refining:
 - `docs/project-audit.md`
 - `README.md`
 - `docs/improvement-report.md`
+- `docs/improvement-evidence.md`
 
-The project audit was improved to reflect the real current state of the system, including strengths, improvement priorities, and a more thoughtful reflection section.
+The project audit was improved to reflect the real current state of the system, including strengths, improvement priorities, and a more thoughtful reflection section. The README was rewritten with a more professional presentation, clearer structure, and better explanation of the frontend and backend state.
 
-The README was also rewritten and improved with a more professional presentation, clearer structure, better descriptions of the project, updated explanation of the frontend and backend state, and a more attractive format for GitHub presentation.
-
-This improvement report documents the actual technical work completed during the sprint and explains what was changed, why it was changed, and why the new version is better.
+The improvement evidence document was also created to provide visual proof of the implemented improvements, including screenshots of the public-facing system and the fully connected admin panel.
 
 ### Why the new version is better
 
-The project is now easier to understand both technically and academically. The documentation makes the system easier to evaluate, easier to present, and easier to continue improving in the future. It also shows that the work was not only about writing code, but about understanding the system critically and explaining it properly as a software engineering project.
+The project is now easier to understand both technically and academically. The documentation makes the system easier to evaluate, easier to present, and easier to continue improving in the future. It also shows that the work was not only about writing code, but about understanding the system critically and explaining it properly as a software engineering student.
 
 ---
 
@@ -137,7 +136,37 @@ The three main improvements completed in this sprint are:
 
 ---
 
-## 6. Areas Planned for Further Improvement
+## 6. Additional Improvements Completed During the Sprint
+
+Beyond the three main improvements, a significant amount of additional work was completed during this sprint. These improvements go beyond the minimum requirements and demonstrate real system-wide progress.
+
+### Frontend and backend integration
+
+Several admin pages that previously existed only as visual interfaces were fully connected to real backend endpoints. This work was completed across the following modules:
+
+- **Admin Bookings** – fully connected end-to-end, including loading bookings from the database, viewing booking details, updating booking status, updating payment status, and deleting bookings.
+- **Admin Packages** – full CRUD integration including create, update, and delete operations connected to real backend routes.
+- **Admin Mascots** – full CRUD integration with proper form handling and backend connectivity.
+- **Admin Decorations** – full CRUD integration connected to the real backend.
+- **Admin Activities** – full CRUD integration replacing the previously incomplete admin flow.
+- **Admin Gallery** – album and photo management connected to real backend routes.
+- **Admin Staff** – a dedicated admin staff API flow was created and connected, separate from the public team page, enabling full create, update, and delete operations for staff members.
+
+### Public page fixes
+
+Several public-facing pages were fixed after identifying response format mismatches between the backend and frontend. The backend returned responses wrapped in a structured object with `success`, `message`, and `data` fields, while the frontend expected raw arrays. This caused pages to appear empty even when the API was returning valid data. The affected pages included mascots, activities, and several other public routes.
+
+### Route mismatch fixes
+
+Inconsistent route paths were corrected across the application. For example, the photo booth page was previously linked using `/photobooth` in some places while the actual route was `/photo-booth`, causing broken navigation. These mismatches were identified and corrected.
+
+### Authentication flow improvements
+
+The admin login flow was separated clearly from the customer sign-in flow. Admin access was moved to the correct protected path, logout was fixed, and admin users are now redirected correctly after login. Protected admin routing was also improved so that admin pages cannot be accessed directly without a valid authentication token.
+
+---
+
+## 7. Areas Planned for Further Improvement
 
 After these improvements, the project is in a much stronger state, but there are still some areas I plan to improve further as the system continues to evolve.
 
@@ -151,7 +180,7 @@ The fourth area is overall refinement of consistency and user experience. The pr
 
 ---
 
-## 7. Final Reflection
+## 8. Final Reflection
 
 This improvement sprint helped transform the project from a system that had several limited or inconsistent areas into a system that is much stronger in terms of reliability, structure, and clarity. The work completed here was not superficial. It addressed real issues that affected the quality of the application.
 

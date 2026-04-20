@@ -55,6 +55,15 @@ The project shows manual development effort and structure, but there is no evide
 ### 6. Some route and function naming is inconsistent across modules
 Different modules in the backend use slightly different naming conventions for similar operations. Some controller functions use verbose names while others use shorter or different patterns for the same type of action. This kind of inconsistency makes the codebase harder to read and navigate, especially when multiple modules need to be maintained or extended at the same time.
 
+### 7. Some admin pages existed visually but were not connected to the real backend
+Several admin pages were present in the interface and looked functional, but were not actually connected to real backend endpoints. When interacting with these pages, no real data was loaded or saved. The UI gave the impression of a working admin panel, but the underlying integration was missing. This is a structural weakness because it creates a gap between what the system appears to do and what it actually does.
+
+### 8. Response format mismatch between backend and frontend
+The backend API returned responses wrapped in a structured object containing success, message, and data fields. However, several frontend pages expected raw arrays or raw objects directly. This caused data to not display correctly in the UI even when the API was returning valid results. The frontend was reading the wrong part of the response, which made debugging harder because the network request appeared successful but the page remained empty or broken.
+
+### 9. Inconsistent naming conventions across backend modules
+Different modules use different naming patterns for the same type of operation. For example, the bookings module uses getAllBookings to retrieve a list of records, while the packages module uses fetchPackages for the equivalent operation. These are the same kind of action but named differently across modules. This inconsistency makes the codebase harder to navigate, especially when working across multiple modules at the same time. A developer reading the code cannot predict what a function will be called in a new module without checking it manually. A consistent convention such as always using getAll, getById, create, update, delete across all modules would make the backend much easier to read and maintain.
+
 ---
 
 ## 4. Three Improvements I Would Implement
@@ -78,5 +87,24 @@ Different modules in the backend use slightly different naming conventions for s
 
 ## 5. One Part I Still Do Not Fully Understand
 
-One part I still want to understand better is how to manage architectural transition in a project that continues evolving during development. In my case, the system has gradually moved from earlier implementation decisions toward a more database-driven and better-structured architecture. I understand the current direction of the project, but I still want to improve my understanding of how to make these transitions in a cleaner and more controlled way without creating inconsistency between modules. This is important to me because I do not want to only make the project work technically; I also want to understand how to improve its structure step by step while keeping the system maintainable, consistent, and easier to extend in the future.
+One area I still do not fully understand is how authentication middleware 
+works at a deeper level. When I first added the auth middleware to protect 
+admin routes, I did not clearly understand why it was needed or how it fit 
+into the request flow. I knew the routes needed protection, but the concept 
+of intercepting a request before it reaches the controller, extracting the 
+token from the Authorization header, verifying it, and then passing control 
+forward with `next()` was confusing at first. I made several mistakes before 
+I understood why the middleware had to call `next()` on success and return an 
+error response on failure — and not both.
 
+A related area was token verification itself. I did not immediately understand 
+the difference between a missing token, a malformed token, and an expired token, 
+and why each of these needed to be handled separately instead of with one generic 
+error.
+
+The third area is API testing. Throughout the project, I relied entirely on 
+Postman for testing endpoints manually. I did not know how to verify whether 
+a route was working correctly without sending requests by hand. I still want 
+to learn how to write automated integration tests so that I can test protected 
+routes, validate responses, and catch regressions without depending on manual 
+testing every time.
