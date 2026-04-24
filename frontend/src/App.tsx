@@ -18,6 +18,10 @@ import OurTeamPage from './pages/public/OurTeamPage';
 import ReviewsPage from './pages/public/ReviewsPage';
 
 import SignInPage from './pages/auth/SignInPage';
+import RegisterPage from './pages/auth/RegisterPage';
+import VerifyEmailPage from './pages/auth/VerifyEmailPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import AdminLoginPage from './pages/auth/AdminLoginPage';
 
 import DashboardPage from './pages/admin/DashboardPage';
@@ -51,6 +55,10 @@ export default function App() {
       </Route>
 
       <Route path="/signin" element={<SignInPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/admin/login" element={<AdminLoginPage />} />
 
       <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>

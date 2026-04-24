@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-export default function SignInPage() {
-  const navigate = useNavigate();
-
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,37 +22,38 @@ export default function SignInPage() {
     setMessage('');
     setErrorMessage('');
 
+    if (!email.trim()) {
+      setErrorMessage('Email address is required.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        body: JSON.stringify({ email }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed.');
+        throw new Error(data.message || 'Failed to process password reset request.');
       }
 
-      setMessage('Welcome back. Your account is ready.');
-
-      localStorage.setItem('token', data.data.token);
-      localStorage.setItem('user', JSON.stringify(data.data.user));
-
-      setTimeout(() => {
-        navigate('/');
-      }, 1000);
+      setMessage(
+        data.message ||
+          'If an account with that email exists, a reset link has been sent.'
+      );
+      setEmail('');
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : 'Something went wrong.'
+        error instanceof Error
+          ? error.message
+          : 'Something went wrong. Please try again.'
       );
     } finally {
       setIsSubmitting(false);
@@ -105,54 +103,107 @@ export default function SignInPage() {
           }
         }
 
-        .signin-page-root { animation: pageFadeIn 0.5s ease; }
-        .signin-card { animation: cardEnter 0.65s ease; transition: transform 0.25s ease, box-shadow 0.25s ease; }
-        .signin-card:hover { transform: translateY(-2px); box-shadow: 0 28px 70px rgba(26,18,11,0.14); }
-        .signin-left-panel { animation: panelEnterLeft 0.8s ease; }
-        .signin-right-panel { animation: panelEnterRight 0.8s ease; }
-        .signin-input { transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; }
-        .signin-input:focus { border-color: #c8841a; box-shadow: 0 0 0 4px rgba(200, 132, 26, 0.12); background-color: #fffefd; }
-        .signin-button { transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease; }
-        .signin-button:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(200, 132, 26, 0.28); filter: brightness(1.02); }
-        .signin-link:hover { opacity: 0.75; }
+        .forgot-page-root {
+          animation: pageFadeIn 0.5s ease;
+        }
+
+        .forgot-card {
+          animation: cardEnter 0.65s ease;
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .forgot-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 28px 70px rgba(26,18,11,0.14);
+        }
+
+        .forgot-left-panel {
+          animation: panelEnterLeft 0.8s ease;
+        }
+
+        .forgot-right-panel {
+          animation: panelEnterRight 0.8s ease;
+        }
+
+        .forgot-input {
+          transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .forgot-input:focus {
+          border-color: #c8841a;
+          box-shadow: 0 0 0 4px rgba(200, 132, 26, 0.12);
+          background-color: #fffefd;
+        }
+
+        .forgot-button {
+          transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        .forgot-button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 14px 28px rgba(200, 132, 26, 0.28);
+          filter: brightness(1.02);
+        }
+
+        .forgot-link:hover {
+          opacity: 0.75;
+        }
 
         @media (max-width: 900px) {
-          .signin-card { flex-direction: column; min-height: auto; max-width: 620px; }
+          .forgot-card {
+            flex-direction: column;
+            min-height: auto;
+            max-width: 620px;
+          }
         }
 
         @media (max-width: 640px) {
-          .signin-page-root { padding: 16px; }
-          .signin-card { border-radius: 22px; }
-          .signin-left-panel { padding: 28px 22px; }
-          .signin-right-panel { padding: 24px 20px; }
-          .signin-title { font-size: 38px !important; }
+          .forgot-page-root {
+            padding: 16px;
+          }
+
+          .forgot-card {
+            border-radius: 22px;
+          }
+
+          .forgot-left-panel {
+            padding: 28px 22px;
+          }
+
+          .forgot-right-panel {
+            padding: 24px 20px;
+          }
+
+          .forgot-title {
+            font-size: 38px !important;
+          }
         }
       `}</style>
 
-      <div className="signin-page-root" style={pageStyle}>
-        <div className="signin-card" style={{ ...cardStyle, opacity: isVisible ? 1 : 0 }}>
-          <div className="signin-left-panel" style={leftPanelStyle}>
+      <div className="forgot-page-root" style={pageStyle}>
+        <div className="forgot-card" style={{ ...cardStyle, opacity: isVisible ? 1 : 0 }}>
+          <div className="forgot-left-panel" style={leftPanelStyle}>
             <div style={badgeStyle}>MD Creative</div>
 
-            <h1 className="signin-title" style={titleStyle}>
-              Welcome Back
+            <h1 className="forgot-title" style={titleStyle}>
+              Reset Password
             </h1>
 
             <p style={subtitleStyle}>
-              Sign in to continue creating unforgettable moments, manage your bookings
-              and keep every celebration beautifully organized.
+              Enter your email address and we will send you a secure link to reset
+              your password and restore access to your account.
             </p>
 
             <div style={infoBoxStyle}>
-              <div style={infoItemStyle}>Secure access to your account</div>
-              <div style={infoItemStyle}>Review your bookings anytime</div>
-              <div style={infoItemStyle}>Keep every event detail in one place</div>
+              <div style={infoItemStyle}>Secure reset process</div>
+              <div style={infoItemStyle}>Email link for account recovery</div>
+              <div style={infoItemStyle}>Quick access back to your account</div>
             </div>
           </div>
 
-          <div className="signin-right-panel" style={rightPanelStyle}>
+          <div className="forgot-right-panel" style={rightPanelStyle}>
             <form style={formStyle} onSubmit={handleSubmit}>
-              <h2 style={formTitleStyle}>Sign In</h2>
+              <h2 style={formTitleStyle}>Forgot Password</h2>
 
               {message ? <div style={successBoxStyle}>{message}</div> : null}
               {errorMessage ? <div style={errorBoxStyle}>{errorMessage}</div> : null}
@@ -160,7 +211,7 @@ export default function SignInPage() {
               <div style={fieldStyle}>
                 <label style={labelStyle}>Email Address</label>
                 <input
-                  className="signin-input"
+                  className="forgot-input"
                   type="email"
                   placeholder="Enter your email"
                   style={inputStyle}
@@ -169,42 +220,24 @@ export default function SignInPage() {
                 />
               </div>
 
-              <div style={fieldStyle}>
-                <label style={labelStyle}>Password</label>
-                <input
-                  className="signin-input"
-                  type="password"
-                  placeholder="Enter your password"
-                  style={inputStyle}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-
-              <div style={forgotWrapperStyle}>
-                <Link to="/forgot-password" className="signin-link" style={forgotLinkStyle}>
-                  Forgot your password?
-                </Link>
-              </div>
-
               <button
-                className="signin-button"
+                className="forgot-button"
                 type="submit"
                 style={buttonStyle}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Signing In...' : 'Sign In'}
+                {isSubmitting ? 'Sending...' : 'Send Reset Link'}
               </button>
 
               <div style={footerStyle}>
-                <span style={footerTextStyle}>Don’t have an account?</span>
-                <Link to="/register" className="signin-link" style={footerLinkStyle}>
-                  Create account
+                <span style={footerTextStyle}>Remembered your password?</span>
+                <Link to="/signin" className="forgot-link" style={footerLinkStyle}>
+                  Sign In
                 </Link>
               </div>
 
               <div style={backWrapperStyle}>
-                <Link to="/" className="signin-link" style={backLinkStyle}>
+                <Link to="/" className="forgot-link" style={backLinkStyle}>
                   Back to Home
                 </Link>
               </div>
@@ -344,20 +377,8 @@ const inputStyle: React.CSSProperties = {
   color: '#1f1a17',
 };
 
-const forgotWrapperStyle: React.CSSProperties = {
-  textAlign: 'right',
-  marginTop: '-2px',
-};
-
-const forgotLinkStyle: React.CSSProperties = {
-  color: '#9a6a11',
-  textDecoration: 'none',
-  fontSize: '13px',
-  fontWeight: 700,
-};
-
 const buttonStyle: React.CSSProperties = {
-  marginTop: '4px',
+  marginTop: '8px',
   height: '52px',
   borderRadius: '14px',
   border: 'none',

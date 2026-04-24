@@ -32,6 +32,20 @@ class PackageController {
     }
   }
 
+  async getAllPublicPackages(req, res, next) {
+    try {
+      const data = await packageService.getAllPublicPackages();
+
+      return res.status(200).json({
+        success: true,
+        message: 'Public packages fetched successfully.',
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getPublicCategories(req, res, next) {
     try {
       const data = await packageService.getPublicCategories();

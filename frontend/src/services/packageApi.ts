@@ -20,6 +20,12 @@ export type PackageItem = {
   extras?: string[];
 };
 
+type ApiResponse<T> = {
+  success: boolean;
+  message?: string;
+  data: T;
+};
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const text = await response.text();
@@ -31,35 +37,29 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 export async function getPublicPackages(): Promise<PackageItem[]> {
   const response = await fetch(API_BASE_URL);
-  const data = await handleResponse<PackageItem[]>(response);
-  return data.filter((item) => item.is_active);
+  const result = await handleResponse<ApiResponse<PackageItem[]>>(response);
+
+  return Array.isArray(result.data)
+    ? result.data.filter((item) => item.is_active)
+    : [];
 }
 
 export async function getPackageCategories(): Promise<PackageCategorySummary[]> {
-  const packages = await getPublicPackages();
+  const response = await fetch(`${API_BASE_URL}/categories`);
+  const result = await handleResponse<ApiResponse<PackageCategorySummary[]>>(response);
 
-  const grouped = packages.reduce<Record<string, PackageItem[]>>((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = [];
-    }
-    acc[item.category].push(item);
-    return acc;
-  }, {});
-
-  return Object.entries(grouped).map(([category, items]) => ({
-    category,
-    min_price: Math.min(...items.map((item) => Number(item.base_price))),
-    max_price: Math.max(...items.map((item) => Number(item.base_price))),
-    total_packages: items.length,
-  }));
+  return Array.isArray(result.data) ? result.data : [];
 }
 
 export async function getPackagesByCategory(category: string): Promise<PackageItem[]> {
-  const packages = await getPublicPackages();
-  return packages.filter((item) => item.category === category);
+  const response = await fetch(`${API_BASE_URL}/category/${category}`);
+  const result = await handleResponse<ApiResponse<PackageItem[]>>(response);
+
+  return Array.isArray(result.data) ? result.data : [];
 }
 
 export async function getPackageById(id: string): Promise<PackageItem> {
   const response = await fetch(`${API_BASE_URL}/${id}`);
-  return handleResponse<PackageItem>(response);
+  const result = await handleResponse<ApiResponse<PackageItem>>(response);
+  return result.data;
 }
