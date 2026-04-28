@@ -1,11 +1,11 @@
-import { Routes, Route } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
+
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 import HomePage from './pages/public/HomePage';
 import DecorationsPage from './pages/public/DecorationsPage';
-import DecorationDetailPage from './pages/public/DecorationDetailPage';
 import BookingPage from './pages/public/BookingPage';
 import MascotsPage from './pages/public/MascotsPage';
 import ActivitiesPage from './pages/public/ActivitiesPage';
@@ -41,7 +41,6 @@ export default function App() {
       <Route path="/" element={<PublicLayout />}>
         <Route index element={<HomePage />} />
         <Route path="decorations" element={<DecorationsPage />} />
-        <Route path="decorations/:slug" element={<DecorationDetailPage />} />
         <Route path="mascots" element={<MascotsPage />} />
         <Route path="activities" element={<ActivitiesPage />} />
         <Route path="photo-booth" element={<PhotoBoothPage />} />
@@ -59,10 +58,12 @@ export default function App() {
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+
       <Route path="/admin/login" element={<AdminLoginPage />} />
 
       <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
         <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="bookings" element={<BookingsPage />} />
           <Route path="decorations" element={<DecorationsPageAdmin />} />
@@ -75,6 +76,8 @@ export default function App() {
           <Route path="gallery" element={<GalleryAdminPage />} />
         </Route>
       </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

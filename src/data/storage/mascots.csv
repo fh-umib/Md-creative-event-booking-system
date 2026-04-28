@@ -1,6 +1,0 @@
-id,name,description,price,imageUrl,isActive
-2,Elsa,Frozen princess mascot for girls parties,85,https://example.com/elsa.jpg,true
-3,Mickey Mouse,Classic mascot for kids celebrations,80,https://example.com/mickey.jpg,true
-4,Minion,Funny mascot loved by children,75,https://example.com/minion.jpg,true
-5,Batman,Hero mascot for themed birthday parties,95,https://example.com/batman.jpg,true
-6,Birthday Basic,Simple birthday package for small events,99,https://example.com/package.jpg,true

@@ -1,432 +1,1237 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getPublicMascots } from '../../services/mascotApi';
-import type { Mascot } from '../../services/mascotApi';
 
-// ── Hooks ─────────────────────────────────────────────────────────────────
-function useWindowWidth() {
-  const [w, setW] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
-  useEffect(() => {
-    const fn = () => setW(window.innerWidth);
-    window.addEventListener('resize', fn);
-    return () => window.removeEventListener('resize', fn);
-  }, []);
-  return w;
-}
+type MascotCard = {
+  name: string;
+  theme: string;
+  description: string;
+  image: string;
+};
 
-// ── Scroll-to-top ─────────────────────────────────────────────────────────
+const mascotCards: MascotCard[] = [
+  {
+    name: 'Arlo, Ziko & Flix',
+    theme: 'Fantazi',
+    description: 'Personazhe argëtuese për festa plot energji, lojë dhe buzëqeshje.',
+    image: '/images/mascots/arlo-ziko-flix.png',
+  },
+  {
+    name: 'Bluey & Bingo',
+    theme: 'Vizatimor',
+    description:
+      'Dy personazhe të dashura për fëmijë, perfekte për ditëlindje dhe evente familjare.',
+    image: '/images/mascots/bluey-bingo.png',
+  },
+  {
+    name: 'Boy & Girl',
+    theme: 'Baby Shower',
+    description:
+      'Maskotë shumë e ëmbël për baby shower dhe gender reveal, ideale për fotografi, hyrje tematike dhe një atmosferë të veçantë në event.',
+    image: '/images/mascots/boy-girl.png',
+  },
+  {
+    name: 'Elsa, Anna & Olaf',
+    theme: 'Princeshë',
+    description:
+      'Personazhe magjike për fëmijët që i duan përrallat, akullin dhe botën e princeshave.',
+    image: '/images/mascots/elsa-anna-olaf.png',
+  },
+  {
+    name: 'Fox & Panda',
+    theme: 'Kafshë',
+    description: 'Maskota të ëmbla dhe shumë të përshtatshme për festa me fëmijë të vegjël.',
+    image: '/images/mascots/fox-panda.png',
+  },
+  {
+    name: 'Goofy',
+    theme: 'Disney',
+    description: 'Personazh klasik që sjell humor, lojë dhe atmosferë të gëzueshme në event.',
+    image: '/images/mascots/goofy.png',
+  },
+  {
+    name: 'Hello Kitty & LOL Doll',
+    theme: 'Vizatimor',
+    description: 'Kombinim i bukur për festa vajzash, me ngjyra, stil dhe shumë ëmbëlsi.',
+    image: '/images/mascots/hello-kitty-lol-doll.png',
+  },
+  {
+    name: 'Iron Man & Black Panther',
+    theme: 'Superhero',
+    description: 'Superheronj për fëmijët që duan aksion, energji dhe atmosferë të fuqishme.',
+    image: '/images/mascots/iron-man-black-panther.png',
+  },
+  {
+    name: 'Ladybug & Cat Noir',
+    theme: 'Superhero',
+    description:
+      'Dy personazhe shumë të dashura për fëmijë, ideale për festa dinamike dhe plot ngjyra.',
+    image: '/images/mascots/lady-bud-cat-noir.png',
+  },
+  {
+    name: 'Lion Teddy',
+    theme: 'Kafshë',
+    description:
+      'Maskotë e butë dhe miqësore që i jep festës atmosferë të ngrohtë dhe të këndshme.',
+    image: '/images/mascots/lion-teddy.png',
+  },
+  {
+    name: 'LOL Doll & Garfield',
+    theme: 'Vizatimor',
+    description:
+      'Personazhe të njohura për fëmijë, të përshtatshme për fotografi dhe lojëra në festë.',
+    image: '/images/mascots/lol-doll-garfiled.png',
+  },
+  {
+    name: 'Mario, Luigi & Sonic',
+    theme: 'Aventurë',
+    description:
+      'Personazhe plot ritëm dhe energji për fëmijë që duan lojë, aventurë dhe argëtim.',
+    image: '/images/mascots/mario-luigi-sonic.png',
+  },
+  {
+    name: 'Marshall & Chase',
+    theme: 'Aventurë',
+    description:
+      'Maskota të dashura për fëmijë, perfekte për festa me temë shpëtimi dhe lojëra.',
+    image: '/images/mascots/marshall-chase.png',
+  },
+  {
+    name: 'Masha & Ariu',
+    theme: 'Vizatimor',
+    description: 'Dy personazhe të ngrohta dhe shumë të njohura për festa të ëmbla fëmijësh.',
+    image: '/images/mascots/masha-the-bear.png',
+  },
+  {
+    name: 'Micky & Minnie Mouse',
+    theme: 'Disney',
+    description:
+      'Personazhe klasike që sjellin atmosferë festive, vallëzim dhe shumë foto të bukura.',
+    image: '/images/mascots/micky-minnie-mouse.png',
+  },
+  {
+    name: 'Minions',
+    theme: 'Vizatimor',
+    description: 'Maskota plot humor dhe energji që i bëjnë fëmijët të qeshin gjatë gjithë festës.',
+    image: '/images/mascots/minions.png',
+  },
+  {
+    name: 'Palço',
+    theme: 'Klasike',
+    description: 'Personazh klasik për festa, me lojëra, humor dhe atmosferë argëtuese për fëmijë.',
+    image: '/images/mascots/palco.png',
+  },
+  {
+    name: 'Pikachu',
+    theme: 'Aventurë',
+    description: 'Personazh shumë i dashur për fëmijët që e duan botën e lojërave dhe aventurave.',
+    image: '/images/mascots/pikachu.png',
+  },
+  {
+    name: 'Queen Bee & Bon Bon',
+    theme: 'Fantazi',
+    description: 'Personazhe me pamje të veçantë për festa plot ngjyra, stil dhe energji.',
+    image: '/images/mascots/queen-bea-bon-bon.png',
+  },
+  {
+    name: 'Santa Claus & Rudolf',
+    theme: 'Festive',
+    description: 'Zgjedhje ideale për festa dimërore, fundvit dhe evente me atmosferë festive.',
+    image: '/images/mascots/santa-claus-rudolf.png',
+  },
+  {
+    name: 'Spiderman',
+    theme: 'Superhero',
+    description:
+      'Superhero i preferuar për fëmijë që duan aksion, lojë dhe momente të paharrueshme.',
+    image: '/images/mascots/spidermans.png',
+  },
+  {
+    name: 'SpongeBob',
+    theme: 'Vizatimor',
+    description: 'Personazh gazmor dhe shumë i dashur që sjell humor dhe ngjyra në festë.',
+    image: '/images/mascots/spoongebob.png',
+  },
+  {
+    name: 'Stitch & Angel',
+    theme: 'Disney',
+    description: 'Dy personazhe të ëmbla dhe të veçanta për festa të ngrohta dhe plot dashuri.',
+    image: '/images/mascots/stichy-angel.png',
+  },
+  {
+    name: 'Superman & Batman',
+    theme: 'Superhero',
+    description: 'Dy superheronj klasikë për festa me temë aksioni dhe atmosferë të fuqishme.',
+    image: '/images/mascots/superman-batman.png',
+  },
+  {
+    name: 'Tigger',
+    theme: 'Disney',
+    description: 'Personazh i gjallë dhe energjik që sjell shumë lëvizje dhe gëzim në festë.',
+    image: '/images/mascots/tigger.png',
+  },
+  {
+    name: 'Tom & Jerry',
+    theme: 'Vizatimor',
+    description:
+      'Dy personazhe klasike që sjellin humor, lojë dhe kujtime të bukura për fëmijët.',
+    image: '/images/mascots/tommy-jerry.png',
+  },
+  {
+    name: 'Unicorn & Lepurushja',
+    theme: 'Fantazi',
+    description: 'Personazhe të ëmbla për festa me ngjyra pastel, fantazi dhe atmosferë të butë.',
+    image: '/images/mascots/unicorn-lepurushja.png',
+  },
+  {
+    name: 'Winnie the Pooh & Donald Duck',
+    theme: 'Disney',
+    description:
+      'Personazhe të dashura për fëmijë, ideale për festa familjare dhe fotografi të bukura.',
+    image: '/images/mascots/winniethepooh-donalduck.png',
+  },
+];
+
+const themeOrder = [
+  'Të gjitha',
+  'Disney',
+  'Superhero',
+  'Vizatimor',
+  'Prineshë',
+  'Kafshë',
+  'Fantazi',
+  'Aventurë',
+  'Klasike',
+  'Festive',
+  'Baby Shower',
+];
+
+const tickerItems = [
+  'Micky & Minnie',
+  'Spiderman',
+  'Elsa & Anna',
+  'Boy & Girl',
+  'Baby Shower',
+  'Paw Patrol',
+  'Superheronj',
+  'Princesha',
+  'Disney',
+  '50+ karaktere',
+];
+
 function ScrollToTop() {
   const [visible, setVisible] = useState(false);
+
   useEffect(() => {
-    const fn = () => setVisible(window.scrollY > 400);
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
+    const handleScroll = () => setVisible(window.scrollY > 400);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
   return (
     <button
+      type="button"
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      aria-label="Scroll to top"
-      style={{
-        position: 'fixed', bottom: 28, right: 24, zIndex: 999,
-        width: 48, height: 48, borderRadius: '50%',
-        background: '#c8841a', border: 'none', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 4px 20px rgba(200,132,26,.45)',
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0) scale(1)' : 'translateY(14px) scale(0.85)',
-        transition: 'opacity 0.3s ease, transform 0.3s ease',
-        pointerEvents: visible ? 'auto' : 'none',
-      }}
+      aria-label="Kthehu lart"
+      className={visible ? 'mp-scroll-top visible' : 'mp-scroll-top'}
     >
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path d="M10 15V5M10 5L5 10M10 5L15 10" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M10 15V5M10 5L5 10M10 5L15 10"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     </button>
   );
 }
 
-// ── Avatar initials with theme color ─────────────────────────────────────
-const themeColors: Record<string, { bg: string; text: string }> = {
-  Princess:  { bg: '#fce7f3', text: '#be185d' },
-  Superhero: { bg: '#e0f2fe', text: '#0369a1' },
-  Cartoon:   { bg: '#fef9c3', text: '#a16207' },
-  Animal:    { bg: '#dcfce7', text: '#15803d' },
-  Fantasy:   { bg: '#f3e8ff', text: '#7c3aed' },
-  Disney:    { bg: '#fff1f2', text: '#e11d48' },
-  Other:     { bg: '#fef3d0', text: '#92640e' },
-};
-function getThemeColor(theme: string) {
-  return themeColors[theme] || themeColors['Other'];
-}
-
-// ── MascotsPage ───────────────────────────────────────────────────────────
 export default function MascotsPage() {
-  const [mascots, setMascots] = useState<Mascot[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [selectedTheme, setSelectedTheme] = useState('All');
-  const width = useWindowWidth();
-  const isMobile = width < 640;
-  const isTablet = width < 1024;
-
-  useEffect(() => {
-    getPublicMascots()
-      .then(setMascots)
-      .catch((err) => setError(err instanceof Error ? err.message : 'Failed to load mascots'))
-      .finally(() => setLoading(false));
-  }, []);
+  const [selectedTheme, setSelectedTheme] = useState('Të gjitha');
 
   const themes = useMemo(() => {
-    const all = mascots.map((m) => m.theme || 'Other').filter((v, i, a) => a.indexOf(v) === i);
-    return ['All', ...all];
-  }, [mascots]);
+    const existingThemes = mascotCards.map((item) => item.theme);
 
-  const filtered = useMemo(() => {
-    return mascots.filter((m) => {
-      const q = search.toLowerCase();
-      const matchSearch =
-        m.name.toLowerCase().includes(q) ||
-        m.character_name.toLowerCase().includes(q) ||
-        (m.theme || '').toLowerCase().includes(q);
-      const matchTheme = selectedTheme === 'All' || (m.theme || 'Other') === selectedTheme;
-      return matchSearch && matchTheme;
+    return themeOrder.filter(
+      (theme) => theme === 'Të gjitha' || existingThemes.includes(theme)
+    );
+  }, []);
+
+  const filteredMascots = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return mascotCards.filter((item) => {
+      const matchesSearch =
+        item.name.toLowerCase().includes(query) ||
+        item.theme.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query);
+
+      const matchesTheme =
+        selectedTheme === 'Të gjitha' || item.theme === selectedTheme;
+
+      return matchesSearch && matchesTheme;
     });
-  }, [mascots, search, selectedTheme]);
-
-  // ── Loading ──
-  if (loading) {
-    return (
-      <>
-        <style>{`@keyframes mp-spin { to { transform: rotate(360deg); } }`}</style>
-        <div style={{ background: '#faf7f2', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ width: 44, height: 44, borderRadius: '50%', border: '3px solid #e6d9c4', borderTopColor: '#c8841a', animation: 'mp-spin .85s linear infinite', margin: '0 auto 14px' }} />
-            <p style={{ margin: 0, color: '#7a6a52', fontSize: 15 }}>Loading characters…</p>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  // ── Error ──
-  if (error) {
-    return (
-      <div style={{ background: '#faf7f2', minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <div style={{ background: '#fff1f1', color: '#991b1b', border: '1.5px solid #fecaca', borderRadius: 16, padding: '28px 36px', fontSize: 15 }}>{error}</div>
-      </div>
-    );
-  }
+  }, [search, selectedTheme]);
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@400;500;600;700;800&display=swap');
 
-        .mp { font-family: 'DM Sans', sans-serif; background: #faf7f2; }
-        .mp-serif { font-family: 'Cormorant Garamond', serif; }
+        .mp,
+        .mp * {
+          box-sizing: border-box;
+        }
 
-        @keyframes mp-fadeUp  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes mp-marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+        .mp {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
+          background: #faf7f2;
+          color: #1a120b;
+          font-family: 'DM Sans', sans-serif;
+        }
 
-        .mp-a1 { animation: mp-fadeUp .5s ease both .05s; }
-        .mp-a2 { animation: mp-fadeUp .5s ease both .18s; }
-        .mp-a3 { animation: mp-fadeUp .5s ease both .30s; }
-        .mp-a4 { animation: mp-fadeUp .5s ease both .42s; }
+        .mp-serif {
+          font-family: 'Cormorant Garamond', serif;
+        }
 
-        /* search input */
+        @keyframes mp-fade-up {
+          from {
+            opacity: 0;
+            transform: translateY(22px);
+          }
+
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes mp-marquee {
+          from {
+            transform: translateX(0);
+          }
+
+          to {
+            transform: translateX(-50%);
+          }
+        }
+
+        .mp-a1 {
+          animation: mp-fade-up .55s ease both .05s;
+        }
+
+        .mp-a2 {
+          animation: mp-fade-up .55s ease both .18s;
+        }
+
+        .mp-a3 {
+          animation: mp-fade-up .55s ease both .30s;
+        }
+
+        .mp-hero {
+          position: relative;
+          overflow: hidden;
+          background: linear-gradient(135deg, #1a120b 0%, #2c1a0a 55%, #1a120b 100%);
+        }
+
+        .mp-hero::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: repeating-linear-gradient(
+            45deg,
+            rgba(200, 132, 26, .035) 0,
+            rgba(200, 132, 26, .035) 1px,
+            transparent 1px,
+            transparent 56px
+          );
+          pointer-events: none;
+        }
+
+        .mp-hero::after {
+          content: '';
+          position: absolute;
+          width: 620px;
+          height: 620px;
+          border-radius: 50%;
+          top: 45%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: radial-gradient(circle, rgba(200,132,26,.16) 0%, transparent 65%);
+          pointer-events: none;
+        }
+
+        .mp-hero-inner {
+          position: relative;
+          z-index: 1;
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 86px 44px 70px;
+          text-align: center;
+        }
+
+        .mp-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          margin-bottom: 26px;
+          padding: 8px 20px;
+          border-radius: 999px;
+          background: rgba(200,132,26,.12);
+          border: 1px solid rgba(200,132,26,.32);
+          color: #e8b56a;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: .15em;
+          text-transform: uppercase;
+        }
+
+        .mp-hero-title {
+          margin: 0 0 18px;
+          color: #fff;
+          font-size: 82px;
+          line-height: 1.02;
+          font-weight: 700;
+        }
+
+        .mp-hero-title em {
+          color: #c8841a;
+          font-style: italic;
+        }
+
+        .mp-hero-text {
+          margin: 0 auto 34px;
+          max-width: 680px;
+          color: rgba(255,255,255,.66);
+          font-size: 18px;
+          line-height: 1.85;
+        }
+
+        .mp-search-wrap {
+          width: 100%;
+          max-width: 540px;
+          margin: 0 auto;
+          position: relative;
+        }
+
+        .mp-search-icon {
+          position: absolute;
+          left: 20px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: rgba(255,255,255,.45);
+          pointer-events: none;
+        }
+
+        .mp-search {
+          width: 100%;
+          height: 54px;
+          border-radius: 999px;
+          border: 1.5px solid rgba(255,255,255,.14);
+          background: rgba(255,255,255,.07);
+          color: #fff;
+          padding: 0 22px 0 50px;
+          font-size: 15px;
+          font-family: inherit;
+          transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+        }
+
         .mp-search:focus {
-          border-color: rgba(200,132,26,.8) !important;
-          background: rgba(255,255,255,.12) !important;
+          border-color: rgba(200,132,26,.8);
+          background: rgba(255,255,255,.12);
           box-shadow: 0 0 0 3px rgba(200,132,26,.2);
           outline: none;
         }
-        .mp-search::placeholder { color: rgba(255,255,255,.4); }
 
-        /* filter buttons */
-        .mp-filter { transition: background .2s, color .2s, border-color .2s, transform .15s; }
-        .mp-filter:hover { transform: translateY(-1px); }
+        .mp-search::placeholder {
+          color: rgba(255,255,255,.45);
+        }
 
-        /* cards */
-        .mp-card { transition: transform .3s ease, box-shadow .3s ease; }
-        .mp-card:hover { transform: translateY(-5px); box-shadow: 0 20px 48px rgba(26,18,11,.12) !important; }
+        .mp-ticker-wrap {
+          width: 100%;
+          overflow: hidden;
+          border-top: 1px solid rgba(200,132,26,.18);
+          padding: 13px 0;
+        }
 
-        /* book button */
-        .mp-book-btn { transition: background .2s, color .2s; }
-        .mp-book-btn:hover { background: #c8841a !important; color: #fff !important; }
+        .mp-ticker {
+          display: flex;
+          width: max-content;
+          max-width: none;
+          animation: mp-marquee 24s linear infinite;
+          will-change: transform;
+        }
 
-        /* cta button */
-        .mp-cta-btn { transition: transform .2s, box-shadow .2s; }
-        .mp-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(200,132,26,.45) !important; }
+        .mp-ticker-group {
+          display: inline-flex;
+          align-items: center;
+          flex-shrink: 0;
+          max-width: none;
+        }
 
-        /* ticker */
-        .mp-ticker { display: inline-flex; animation: mp-marquee 22s linear infinite; }
+        .mp-ticker-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 16px;
+          padding-right: 40px;
+          white-space: nowrap;
+          max-width: none;
+        }
+
+        .mp-ticker-star {
+          color: #c8841a;
+          font-size: 13px;
+        }
+
+        .mp-ticker-text {
+          color: rgba(255,255,255,.45);
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: .08em;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+
+        .mp-main {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 62px 44px 96px;
+        }
+
+        .mp-head {
+          max-width: 760px;
+          margin: 0 auto 34px;
+          text-align: center;
+        }
+
+        .mp-kicker {
+          margin: 0 0 9px;
+          color: #c8841a;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+        }
+
+        .mp-head-title {
+          margin: 0 0 14px;
+          color: #1a120b;
+          font-size: 50px;
+          line-height: 1.08;
+          font-weight: 700;
+        }
+
+        .mp-head-title em {
+          color: #c8841a;
+          font-style: italic;
+        }
+
+        .mp-head-text {
+          margin: 0;
+          color: #7a6a52;
+          font-size: 16px;
+          line-height: 1.8;
+        }
+
+        .mp-filters {
+          display: flex;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin: 0 auto 34px;
+        }
+
+        .mp-filter-btn {
+          border: 1.5px solid #e6d9c4;
+          background: #fff;
+          color: #7a6a52;
+          border-radius: 999px;
+          padding: 10px 16px;
+          font-size: 13px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: background .2s ease, color .2s ease, border-color .2s ease, transform .2s ease;
+        }
+
+        .mp-filter-btn:hover {
+          transform: translateY(-1px);
+          border-color: rgba(200,132,26,.38);
+          color: #92640e;
+        }
+
+        .mp-filter-btn.active {
+          background: #c8841a;
+          color: #fff;
+          border-color: #c8841a;
+        }
+
+        .mp-result-count {
+          margin: 0 0 22px;
+          text-align: center;
+          color: #8a795f;
+          font-size: 14px;
+          font-weight: 700;
+          line-height: 1.6;
+        }
+
+        .mp-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 22px;
+          align-items: stretch;
+        }
+
+        .mp-card {
+          min-width: 0;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          border-radius: 24px;
+          background: #fff;
+          border: 1.5px solid #e6d9c4;
+          box-shadow: 0 8px 28px rgba(26,18,11,.06);
+          transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+        }
+
+        .mp-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 20px 42px rgba(26,18,11,.12);
+          border-color: rgba(200,132,26,.34);
+        }
+
+        .mp-image {
+          position: relative;
+          height: 235px;
+          overflow: hidden;
+          flex-shrink: 0;
+          background: #f2e8dc;
+        }
+
+        .mp-image-bg {
+          position: absolute;
+          inset: 0;
+          background-size: cover;
+          background-position: center;
+          transition: transform .5s ease;
+        }
+
+        .mp-card:hover .mp-image-bg {
+          transform: scale(1.05);
+        }
+
+        .mp-image::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to top, rgba(20,10,2,.62) 0%, transparent 58%);
+        }
+
+        .mp-theme {
+          position: absolute;
+          top: 14px;
+          left: 14px;
+          z-index: 1;
+          max-width: calc(100% - 28px);
+          padding: 7px 12px;
+          border-radius: 999px;
+          background: rgba(255,255,255,.94);
+          color: #92640e;
+          font-size: 11px;
+          font-weight: 900;
+          white-space: nowrap;
+        }
+
+        .mp-available {
+          position: absolute;
+          right: 14px;
+          bottom: 14px;
+          z-index: 1;
+          padding: 7px 12px;
+          border-radius: 999px;
+          background: #c8841a;
+          color: #fff;
+          font-size: 11px;
+          font-weight: 900;
+          white-space: nowrap;
+        }
+
+        .mp-content {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          padding: 20px 18px 18px;
+        }
+
+        .mp-title {
+          margin: 0 0 10px;
+          color: #1a120b;
+          font-size: 28px;
+          line-height: 1.05;
+          font-weight: 700;
+        }
+
+        .mp-description {
+          margin: 0;
+          color: #7a6a52;
+          font-size: 13.5px;
+          line-height: 1.7;
+        }
+
+        .mp-card-footer {
+          margin-top: auto;
+          padding-top: 18px;
+        }
+
+        .mp-card-line {
+          height: 1px;
+          width: 100%;
+          background: #f0e6d8;
+          margin-bottom: 16px;
+        }
+
+        .mp-card-action {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          color: #92640e;
+          font-size: 13px;
+          font-weight: 900;
+        }
+
+        .mp-card-action span:last-child {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: #fef3d0;
+          border: 1px solid #e8d5a0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: background .2s ease, color .2s ease;
+        }
+
+        .mp-card:hover .mp-card-action span:last-child {
+          background: #c8841a;
+          color: #fff;
+        }
+
+        .mp-quote {
+          margin-top: 58px;
+          border-radius: 30px;
+          background: linear-gradient(135deg, #1a120b 0%, #2c1a0a 100%);
+          position: relative;
+          overflow: hidden;
+          padding: 54px 42px;
+          text-align: center;
+        }
+
+        .mp-quote::before {
+          content: '';
+          position: absolute;
+          top: -80px;
+          right: -80px;
+          width: 300px;
+          height: 300px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(200,132,26,.20) 0%, transparent 70%);
+          pointer-events: none;
+        }
+
+        .mp-quote-content {
+          position: relative;
+          z-index: 1;
+          max-width: 820px;
+          margin: 0 auto;
+        }
+
+        .mp-quote-text {
+          margin: 0 0 18px;
+          color: #fff;
+          font-size: 36px;
+          line-height: 1.18;
+          font-weight: 700;
+        }
+
+        .mp-quote-text em {
+          color: #c8841a;
+          font-style: italic;
+        }
+
+        .mp-quote-small {
+          margin: 0;
+          color: rgba(255,255,255,.66);
+          font-size: 15px;
+          line-height: 1.8;
+        }
+
+        .mp-cta {
+          margin-top: 34px;
+          display: grid;
+          grid-template-columns: 1.15fr .85fr;
+          gap: 22px;
+          align-items: stretch;
+        }
+
+        .mp-cta-box {
+          border-radius: 26px;
+          border: 1.5px solid #e6d9c4;
+          background: #fff;
+          padding: 30px;
+          box-shadow: 0 8px 26px rgba(26,18,11,.05);
+        }
+
+        .mp-cta-title {
+          margin: 0 0 10px;
+          color: #1a120b;
+          font-size: 33px;
+          line-height: 1.1;
+          font-weight: 700;
+        }
+
+        .mp-cta-title em {
+          color: #c8841a;
+          font-style: italic;
+        }
+
+        .mp-cta-text {
+          margin: 0;
+          color: #7a6a52;
+          font-size: 15px;
+          line-height: 1.8;
+        }
+
+        .mp-cta-dark {
+          background: #1a120b;
+          border-color: rgba(200,132,26,.25);
+        }
+
+        .mp-cta-dark .mp-cta-title {
+          color: #fff;
+        }
+
+        .mp-cta-dark .mp-cta-text {
+          color: rgba(255,255,255,.66);
+        }
+
+        .mp-cta-btn {
+          margin-top: 22px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          min-height: 48px;
+          padding: 0 24px;
+          border-radius: 999px;
+          background: #c8841a;
+          color: #fff;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 900;
+          box-shadow: 0 8px 24px rgba(200,132,26,.34);
+          transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .mp-cta-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 34px rgba(200,132,26,.45);
+        }
+
+        .mp-empty {
+          border-radius: 24px;
+          background: #fff;
+          border: 1.5px solid #e6d9c4;
+          padding: 44px 24px;
+          text-align: center;
+          color: #7a6a52;
+          font-size: 15px;
+        }
+
+        .mp-scroll-top {
+          position: fixed;
+          bottom: 24px;
+          right: 22px;
+          z-index: 999;
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: #c8841a;
+          color: #fff;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 20px rgba(200,132,26,.45);
+          opacity: 0;
+          transform: translateY(14px) scale(.85);
+          pointer-events: none;
+          transition: opacity .28s ease, transform .28s ease;
+        }
+
+        .mp-scroll-top.visible {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+          pointer-events: auto;
+        }
+
+        @media (max-width: 1180px) {
+          .mp-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 900px) {
+          .mp-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .mp-cta {
+            grid-template-columns: 1fr;
+          }
+
+          .mp-hero-title {
+            font-size: 64px;
+          }
+
+          .mp-head-title {
+            font-size: 44px;
+          }
+        }
 
         @media (max-width: 639px) {
-          .mp-hero-search { max-width: 100% !important; }
-          .mp-filter-row  { gap: 8px !important; }
-          .mp-grid        { grid-template-columns: 1fr !important; }
-          .mp-cta-box     { padding: 48px 22px !important; }
-        }
-        @media (min-width: 640px) and (max-width: 1023px) {
-          .mp-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .mp-hero-inner {
+            padding: 58px 18px 48px;
+          }
+
+          .mp-hero::after {
+            width: 340px;
+            height: 340px;
+          }
+
+          .mp-badge {
+            padding: 7px 13px;
+            font-size: 10px;
+            letter-spacing: .09em;
+            margin-bottom: 22px;
+          }
+
+          .mp-hero-title {
+            font-size: 42px;
+            line-height: 1.05;
+          }
+
+          .mp-hero-text {
+            font-size: 14.5px;
+            line-height: 1.75;
+          }
+
+          .mp-search {
+            height: 50px;
+            font-size: 14px;
+          }
+
+          .mp-ticker {
+            animation-duration: 18s;
+          }
+
+          .mp-ticker-item {
+            gap: 10px;
+            padding-right: 26px;
+          }
+
+          .mp-ticker-text {
+            font-size: 10px;
+            letter-spacing: .05em;
+          }
+
+          .mp-main {
+            padding: 44px 16px 76px;
+          }
+
+          .mp-head {
+            margin-bottom: 28px;
+          }
+
+          .mp-kicker {
+            font-size: 10.5px;
+            letter-spacing: .15em;
+          }
+
+          .mp-head-title {
+            font-size: 33px;
+          }
+
+          .mp-head-text {
+            font-size: 14px;
+          }
+
+          .mp-filters {
+            gap: 8px;
+            margin-bottom: 28px;
+          }
+
+          .mp-filter-btn {
+            padding: 9px 13px;
+            font-size: 12px;
+          }
+
+          .mp-result-count {
+            font-size: 13px;
+            padding: 0 8px;
+          }
+
+          .mp-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+          }
+
+          .mp-card {
+            border-radius: 22px;
+          }
+
+          .mp-image {
+            height: 245px;
+          }
+
+          .mp-title {
+            font-size: 29px;
+          }
+
+          .mp-description {
+            font-size: 13.8px;
+          }
+
+          .mp-quote {
+            margin-top: 44px;
+            border-radius: 24px;
+            padding: 42px 20px;
+          }
+
+          .mp-quote-text {
+            font-size: 29px;
+          }
+
+          .mp-cta {
+            margin-top: 24px;
+          }
+
+          .mp-cta-box {
+            padding: 24px 20px;
+            border-radius: 22px;
+          }
+
+          .mp-cta-title {
+            font-size: 28px;
+          }
+
+          .mp-cta-btn {
+            width: 100%;
+          }
+
+          .mp-scroll-top {
+            width: 44px;
+            height: 44px;
+            right: 16px;
+            bottom: 18px;
+          }
         }
       `}</style>
 
-      <div className="mp">
-
-        {/* ── HERO ────────────────────────────────────────────────────── */}
-        <div style={{
-          background: 'linear-gradient(135deg, #1a120b 0%, #2c1a0a 55%, #1a120b 100%)',
-          position: 'relative', overflow: 'hidden',
-        }}>
-          {/* diagonal texture */}
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'repeating-linear-gradient(45deg,rgba(200,132,26,.035) 0,rgba(200,132,26,.035) 1px,transparent 1px,transparent 56px)', pointerEvents: 'none' }} />
-          {/* glow */}
-          <div style={{ position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%,-50%)', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle,rgba(200,132,26,.16) 0%,transparent 65%)', pointerEvents: 'none' }} />
-
-          <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '60px 22px 54px' : '84px 44px 76px', position: 'relative', zIndex: 1, textAlign: 'center' }}>
-
-            {/* eyebrow */}
-            <div className="mp-a1" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(200,132,26,.12)', border: '1px solid rgba(200,132,26,.3)', borderRadius: 99, padding: '8px 20px', marginBottom: 28 }}>
-              <span style={{ fontSize: 16 }}>🎭</span>
-              <span style={{ color: '#e8b56a', fontSize: 12, fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase' }}>
-                {mascots.length > 0 ? `${mascots.length}+` : '50+'} Characters Available
-              </span>
+      <main className="mp">
+        <section className="mp-hero">
+          <div className="mp-hero-inner">
+            <div className="mp-badge mp-a1">
+              <span>🎭</span>
+              <span>50+ personazhe në dispozicion</span>
             </div>
 
-            <h1 className="mp-serif mp-a2" style={{ margin: '0 0 18px', color: '#fff', fontSize: isMobile ? '48px' : isTablet ? '64px' : '82px', lineHeight: 1.02, fontWeight: 700 }}>
-              Mascot{' '}
-              <em style={{ fontStyle: 'italic', color: '#c8841a' }}>Characters</em>
+            <h1 className="mp-serif mp-hero-title mp-a2">
+              Maskota dhe <em>personazhe</em>
             </h1>
 
-            <p className="mp-a3" style={{ margin: '0 auto 40px', color: 'rgba(255,255,255,.65)', fontSize: isMobile ? '16px' : '18px', lineHeight: 1.85, maxWidth: 580 }}>
-              Bring magic and excitement to your celebration with our beloved character collection. From princesses to superheroes — every child's dream comes to life.
+            <p className="mp-hero-text mp-a3">
+              Sillni magji, gëzim dhe emocion në festën tuaj me maskota të dashura
+              për fëmijë. Nga personazhet klasikë deri te superheronjtë, çdo festë
+              bëhet më e gjallë.
             </p>
 
-            {/* search */}
-            <div className="mp-a4" style={{ display: 'flex', justifyContent: 'center' }}>
-              <div style={{ position: 'relative', width: '100%', maxWidth: 520 }} className="mp-hero-search">
-                <svg style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <circle cx="8" cy="8" r="6" stroke="rgba(255,255,255,.45)" strokeWidth="1.8"/>
-                  <path d="M13 13l3 3" stroke="rgba(255,255,255,.45)" strokeWidth="1.8" strokeLinecap="round"/>
+            <div className="mp-search-wrap mp-a3">
+              <span className="mp-search-icon">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <circle
+                    cx="8"
+                    cy="8"
+                    r="6"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  />
+                  <path
+                    d="M13 13l3 3"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
                 </svg>
-                <input
-                  className="mp-search"
-                  type="text"
-                  placeholder="Search by name, theme…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  style={{
-                    width: '100%', height: 54, borderRadius: 99,
-                    border: '1.5px solid rgba(255,255,255,.14)',
-                    background: 'rgba(255,255,255,.07)',
-                    color: '#fff', padding: '0 22px 0 50px',
-                    fontSize: 15, fontFamily: 'inherit',
-                    transition: 'border-color .2s, background .2s',
-                  }}
-                />
-              </div>
+              </span>
+
+              <input
+                className="mp-search"
+                type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Kërko sipas emrit ose temës..."
+              />
             </div>
           </div>
 
-          {/* ticker */}
-          <div style={{ borderTop: '1px solid rgba(200,132,26,.18)', padding: '13px 0', overflow: 'hidden' }}>
+          <div className="mp-ticker-wrap">
             <div className="mp-ticker">
-              {[...Array(2)].map((_, ri) => (
-                <span key={ri} style={{ display: 'inline-flex' }}>
-                  {['Princess', 'Superhero', 'Disney', 'Cartoon', 'Animal', 'Fantasy', 'Pirate', 'Fairy'].map((t) => (
-                    <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 16, paddingRight: 40 }}>
-                      <span style={{ color: '#c8841a', fontSize: 13 }}>✦</span>
-                      <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 12, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase' }}>{t}</span>
+              {[0, 1].map((groupIndex) => (
+                <div className="mp-ticker-group" key={groupIndex}>
+                  {tickerItems.map((item) => (
+                    <span className="mp-ticker-item" key={`${groupIndex}-${item}`}>
+                      <span className="mp-ticker-star">✦</span>
+                      <span className="mp-ticker-text">{item}</span>
                     </span>
                   ))}
-                </span>
+                </div>
               ))}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* ── FILTERS + GRID ────────────────────────────────────────────── */}
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '36px 22px 72px' : '48px 44px 96px' }}>
+        <section className="mp-main">
+          <div className="mp-head">
+            <p className="mp-kicker">Zgjidh personazhin</p>
 
-          {/* filter row */}
-          <div className="mp-filter-row" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 32 }}>
-            {themes.map((theme) => {
-              const active = selectedTheme === theme;
-              return (
-                <button
-                  key={theme}
-                  type="button"
-                  className="mp-filter"
-                  onClick={() => setSelectedTheme(theme)}
-                  style={{
-                    padding: '9px 20px', borderRadius: 99, fontSize: 13, fontWeight: 700,
-                    cursor: 'pointer', fontFamily: 'inherit',
-                    border: active ? 'none' : '1.5px solid #e6d9c4',
-                    background: active ? '#c8841a' : '#fff',
-                    color: active ? '#fff' : '#6b5a45',
-                    boxShadow: active ? '0 4px 16px rgba(200,132,26,.3)' : '0 2px 8px rgba(26,18,11,.04)',
-                  }}
-                >
-                  {theme}
-                </button>
-              );
-            })}
+            <h2 className="mp-serif mp-head-title">
+              Çdo fëmijë ka një personazh <em>të preferuar.</em>
+            </h2>
+
+            <p className="mp-head-text">
+              Këtu janë disa nga maskotat tona. Përveç këtyre, kemi edhe karaktere të
+              tjera deri në 50+ personazhe, të cilat mund t’i përshtatim sipas temës së
+              eventit tuaj.
+            </p>
           </div>
 
-          {/* count */}
-          <p style={{ margin: '0 0 28px', textAlign: 'center', color: '#9a8878', fontSize: 14, fontWeight: 500 }}>
-            Showing <strong style={{ color: '#1a120b' }}>{filtered.length}</strong> character{filtered.length !== 1 ? 's' : ''}
-            {selectedTheme !== 'All' && <span style={{ color: '#c8841a' }}> · {selectedTheme}</span>}
+          <div className="mp-filters">
+            {themes.map((theme) => (
+              <button
+                key={theme}
+                type="button"
+                className={
+                  selectedTheme === theme
+                    ? 'mp-filter-btn active'
+                    : 'mp-filter-btn'
+                }
+                onClick={() => setSelectedTheme(theme)}
+              >
+                {theme}
+              </button>
+            ))}
+          </div>
+
+          <p className="mp-result-count">
+            Duke shfaqur {filteredMascots.length} karta me kombinime maskotash nga koleksioni ynë 50+ personazhe
           </p>
 
-          {/* empty state */}
-          {filtered.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '80px 24px', background: '#fff', borderRadius: 24, border: '1.5px solid #e6d9c4' }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>🎭</div>
-              <h3 style={{ margin: '0 0 10px', fontSize: 26, fontWeight: 800, color: '#1a120b', fontFamily: "'Cormorant Garamond',serif" }}>No characters found</h3>
-              <p style={{ margin: 0, color: '#7a6a52', fontSize: 16 }}>Try adjusting your search or filter.</p>
+          {filteredMascots.length > 0 ? (
+            <div className="mp-grid">
+              {filteredMascots.map((mascot) => (
+                <article className="mp-card" key={mascot.name}>
+                  <div className="mp-image">
+                    <div
+                      className="mp-image-bg"
+                      style={{ backgroundImage: `url("${mascot.image}")` }}
+                    />
+
+                    <div className="mp-theme">{mascot.theme}</div>
+                    <div className="mp-available">Në dispozicion</div>
+                  </div>
+
+                  <div className="mp-content">
+                    <h3 className="mp-serif mp-title">{mascot.name}</h3>
+
+                    <p className="mp-description">{mascot.description}</p>
+
+                    <div className="mp-card-footer">
+                      <div className="mp-card-line" />
+
+                      <div className="mp-card-action">
+                        <span>Mund të shtohet në event</span>
+                        <span>→</span>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
           ) : (
-            <div className="mp-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 20 }}>
-              {filtered.map((item) => {
-                const tc = getThemeColor(item.theme || 'Other');
-                return (
-                  <article key={item.id} className="mp-card" style={{
-                    background: '#fff', borderRadius: 22,
-                    border: '1.5px solid #e6d9c4',
-                    padding: '22px',
-                    boxShadow: '0 4px 20px rgba(26,18,11,.06)',
-                    display: 'flex', flexDirection: 'column',
-                  }}>
-                    {/* top row */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
-                      {/* avatar */}
-                      <div style={{
-                        width: 56, height: 56, borderRadius: 16,
-                        background: tc.bg, color: tc.text,
-                        fontSize: 26, fontWeight: 800,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: "'Cormorant Garamond',serif",
-                        flexShrink: 0,
-                      }}>
-                        {item.character_name.charAt(0)}
-                      </div>
-
-                      {/* availability badge */}
-                      <span style={{
-                        padding: '5px 12px', borderRadius: 99, fontSize: 12, fontWeight: 700,
-                        background: item.is_available ? '#dcfce7' : '#fef9c3',
-                        color: item.is_available ? '#15803d' : '#a16207',
-                      }}>
-                        {item.is_available ? '● Available' : '○ Booked'}
-                      </span>
-                    </div>
-
-                    {/* name + theme */}
-                    <h3 style={{ margin: '0 0 4px', fontSize: 22, fontWeight: 800, color: '#1a120b', lineHeight: 1.1, fontFamily: "'Cormorant Garamond',serif" }}>
-                      {item.character_name}
-                    </h3>
-                    <span style={{
-                      display: 'inline-block', marginBottom: 12,
-                      background: tc.bg, color: tc.text,
-                      fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 99,
-                      letterSpacing: '.06em', textTransform: 'uppercase',
-                      alignSelf: 'flex-start',
-                    }}>
-                      {item.theme || item.name}
-                    </span>
-
-                    {/* description */}
-                    <p style={{ margin: '0 0 auto', color: '#7a6a52', fontSize: 14, lineHeight: 1.75, paddingBottom: 18 }}>
-                      {item.description}
-                    </p>
-
-                    {/* divider */}
-                    <div style={{ height: 1, background: '#f0e9dd', margin: '0 0 16px' }} />
-
-                    {/* price + duration */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-                      <span style={{ fontSize: 26, fontWeight: 800, color: '#c8841a', fontFamily: "'Cormorant Garamond',serif" }}>
-                        €{item.price}<span style={{ fontSize: 14, fontWeight: 600, color: '#9a8878' }}>/hr</span>
-                      </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: '#9a8878', fontWeight: 500 }}>
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                          <circle cx="7" cy="7" r="5.5" stroke="#9a8878" strokeWidth="1.4"/>
-                          <path d="M7 4.5V7l2 1.5" stroke="#9a8878" strokeWidth="1.4" strokeLinecap="round"/>
-                        </svg>
-                        {item.duration_minutes} min
-                      </span>
-                    </div>
-
-                    {/* book button */}
-                    <Link to="/booking" className="mp-book-btn" style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      height: 46, borderRadius: 12, textDecoration: 'none',
-                      background: '#fef3d0', color: '#92640e',
-                      fontWeight: 700, fontSize: 14,
-                      border: '1.5px solid #e8d5a0',
-                    }}>
-                      Book Character
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </Link>
-                  </article>
-                );
-              })}
+            <div className="mp-empty">
+              Nuk u gjet asnjë personazh me këtë kërkim. Provo një emër ose temë tjetër.
             </div>
           )}
-        </div>
 
-        {/* ── CTA ─────────────────────────────────────────────────────── */}
-        <div style={{ padding: isMobile ? '0 22px 72px' : '0 44px 96px' }}>
-          <div className="mp-cta-box" style={{
-            background: 'linear-gradient(135deg, #1a120b 0%, #2c1a0a 100%)',
-            borderRadius: 28, padding: isMobile ? '48px 24px' : '72px 60px',
-            textAlign: 'center', position: 'relative', overflow: 'hidden',
-          }}>
-            <div style={{ position: 'absolute', top: -60, right: -60, width: 320, height: 320, borderRadius: '50%', background: 'radial-gradient(circle,rgba(200,132,26,.18) 0%,transparent 70%)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', bottom: -40, left: -40, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle,rgba(200,132,26,.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
+          <div className="mp-quote">
+            <div className="mp-quote-content">
+              <p className="mp-serif mp-quote-text">
+                “Një maskotë nuk është vetëm kostum, është{' '}
+                <em>momenti kur festa merr jetë.</em>”
+              </p>
 
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <p style={{ margin: '0 0 10px', color: '#c8841a', fontSize: 12, fontWeight: 700, letterSpacing: '.16em', textTransform: 'uppercase' }}>
-                Found Your Favorites?
+              <p className="mp-quote-small">
+                Fëmijët i kujtojnë më gjatë momentet kur personazhi i tyre i preferuar
+                shfaqet papritur, luan me ta dhe bëhet pjesë e gëzimit të festës.
               </p>
-              <h2 className="mp-serif" style={{ margin: '0 0 16px', color: '#fff', fontSize: isMobile ? '30px' : '50px', fontWeight: 700, lineHeight: 1.1 }}>
-                Add characters to your<br />
-                <em style={{ fontStyle: 'italic', color: '#c8841a' }}>perfect celebration.</em>
-              </h2>
-              <p style={{ margin: '0 auto 36px', color: 'rgba(255,255,255,.6)', fontSize: 16, lineHeight: 1.85, maxWidth: 520 }}>
-                Create an unforgettable event with playful characters your guests will love. Combine with decorations and activities for the ultimate package.
-              </p>
-              <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <Link to="/booking" className="mp-cta-btn" style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 10,
-                  textDecoration: 'none', background: '#c8841a', color: '#fff',
-                  padding: '15px 30px', borderRadius: 99, fontWeight: 700, fontSize: 15,
-                  boxShadow: '0 6px 24px rgba(200,132,26,.35)',
-                }}>
-                  Book Characters
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M3 8h10M9 4l4 4-4 4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </Link>
-                <Link to="/packages" style={{
-                  display: 'inline-flex', alignItems: 'center',
-                  textDecoration: 'none', background: 'rgba(255,255,255,.08)', color: '#fff',
-                  padding: '15px 28px', borderRadius: 99, fontWeight: 700, fontSize: 15,
-                  border: '1px solid rgba(255,255,255,.18)',
-                }}>
-                  View Packages
-                </Link>
-              </div>
             </div>
           </div>
-        </div>
 
-      </div>
+          <div className="mp-cta">
+            <div className="mp-cta-box">
+              <p className="mp-kicker">50+ karaktere</p>
+
+              <h3 className="mp-serif mp-cta-title">
+                Nuk e sheh personazhin që dëshiron?
+              </h3>
+
+              <p className="mp-cta-text">
+                Kjo faqe shfaq vetëm një pjesë të koleksionit. Ne kemi edhe shumë
+                karaktere të tjera, prandaj mund të na tregoni temën e festës dhe
+                personazhin që kërkoni.
+              </p>
+            </div>
+
+            <div className="mp-cta-box mp-cta-dark">
+              <p className="mp-kicker">Rezervim</p>
+
+              <h3 className="mp-serif mp-cta-title">
+                Zgjidh maskotën për <em>eventin tënd.</em>
+              </h3>
+
+              <p className="mp-cta-text">
+                Na tregoni datën, vendin, moshën e fëmijëve dhe personazhin e preferuar.
+                Ne ju ndihmojmë të krijoni kombinimin më të bukur për festë.
+              </p>
+
+              <Link to="/booking" className="mp-cta-btn">
+                Rezervo Eventin
+                <span>→</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
 
       <ScrollToTop />
     </>

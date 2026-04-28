@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import type { FormEvent } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 type ResetState = 'idle' | 'success' | 'error';
 
@@ -34,41 +35,42 @@ export default function ResetPasswordPage() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
     setMessage('');
     setErrorMessage('');
+    setStatus('idle');
 
     if (!token) {
-      setErrorMessage('Reset token is missing or invalid.');
       setStatus('error');
+      setErrorMessage('Linku për ndryshimin e fjalëkalimit mungon ose nuk është i vlefshëm.');
       return;
     }
 
-    if (!password) {
-      setErrorMessage('New password is required.');
+    if (!password.trim()) {
       setStatus('error');
+      setErrorMessage('Ju lutem shkruani fjalëkalimin e ri.');
       return;
     }
 
     if (!isStrongPassword(password)) {
-      setErrorMessage(
-        'Password must be at least 8 characters and include uppercase, lowercase, number and special character.'
-      );
       setStatus('error');
+      setErrorMessage(
+        'Fjalëkalimi duhet të ketë së paku 8 karaktere, një shkronjë të madhe, një shkronjë të vogël, një numër dhe një karakter special.',
+      );
       return;
     }
 
-    if (!confirmPassword) {
-      setErrorMessage('Please confirm your new password.');
+    if (!confirmPassword.trim()) {
       setStatus('error');
+      setErrorMessage('Ju lutem konfirmoni fjalëkalimin e ri.');
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match.');
       setStatus('error');
+      setErrorMessage('Fjalëkalimet nuk përputhen.');
       return;
     }
 
@@ -89,18 +91,16 @@ export default function ResetPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Password reset failed.');
+        throw new Error(data?.message || 'Ndryshimi i fjalëkalimit dështoi.');
       }
 
       setStatus('success');
-      setMessage(
-        data.message || 'Your password has been reset successfully.'
-      );
+      setMessage(data?.message || 'Fjalëkalimi u ndryshua me sukses. Tani mund të kyçeni përsëri.');
 
       setPassword('');
       setConfirmPassword('');
 
-      setTimeout(() => {
+      window.setTimeout(() => {
         navigate('/signin');
       }, 1800);
     } catch (error) {
@@ -108,7 +108,7 @@ export default function ResetPasswordPage() {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : 'Something went wrong. Please try again.'
+          : 'Diçka shkoi gabim. Ju lutem provoni përsëri.',
       );
     } finally {
       setIsSubmitting(false);
@@ -118,250 +118,487 @@ export default function ResetPasswordPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
 
-        @keyframes pageFadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes cardEnter {
+        @keyframes resetFadeIn {
           from {
             opacity: 0;
-            transform: translateY(26px) scale(0.985);
           }
+
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes resetCardEnter {
+          from {
+            opacity: 0;
+            transform: translateY(26px) scale(.98);
+          }
+
           to {
             opacity: 1;
             transform: translateY(0) scale(1);
           }
         }
 
-        .reset-page-root { animation: pageFadeIn 0.5s ease; }
-        .reset-card {
-          animation: cardEnter 0.65s ease;
-          transition: transform 0.25s ease, box-shadow 0.25s ease;
+        .reset-page {
+          min-height: 100vh;
+          padding: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background:
+            radial-gradient(circle at 12% 18%, rgba(212,145,30,.18), transparent 30%),
+            radial-gradient(circle at 88% 82%, rgba(212,145,30,.14), transparent 28%),
+            linear-gradient(135deg, #fffaf2 0%, #ffffff 48%, #f7efe3 100%);
+          font-family: 'DM Sans', system-ui, sans-serif;
+          animation: resetFadeIn .45s ease;
         }
-        .reset-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 28px 70px rgba(26,18,11,0.14);
+
+        .reset-shell {
+          width: min(100%, 1040px);
+          display: grid;
+          grid-template-columns: 1.08fr .92fr;
+          border-radius: 32px;
+          overflow: hidden;
+          background: rgba(255,255,255,.95);
+          border: 1px solid #eadfce;
+          box-shadow: 0 24px 70px rgba(26,18,11,.15);
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity .35s ease, transform .35s ease;
+          animation: resetCardEnter .65s ease;
+        }
+
+        .reset-shell.visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .reset-left {
+          position: relative;
+          overflow: hidden;
+          padding: 44px;
+          color: #ffffff;
+          background:
+            radial-gradient(circle at 18% 18%, rgba(212,145,30,.34), transparent 32%),
+            linear-gradient(135deg, #1a120b 0%, #2b1a0d 58%, #120d07 100%);
+        }
+
+        .reset-left::after {
+          content: "MD";
+          position: absolute;
+          right: -20px;
+          bottom: -38px;
+          font-size: clamp(120px, 18vw, 210px);
+          line-height: 1;
+          font-weight: 950;
+          color: rgba(212,145,30,.09);
+          pointer-events: none;
+        }
+
+        .reset-logo {
+          position: relative;
+          z-index: 1;
+          width: 60px;
+          height: 60px;
+          border-radius: 19px;
+          background: linear-gradient(135deg, #d4911e, #b87318);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 22px;
+          font-weight: 950;
+          box-shadow: 0 16px 34px rgba(212,145,30,.25);
+          margin-bottom: 30px;
+        }
+
+        .reset-kicker {
+          position: relative;
+          z-index: 1;
+          margin: 0 0 10px;
+          color: #d4911e;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+        }
+
+        .reset-title {
+          position: relative;
+          z-index: 1;
+          margin: 0;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(42px, 6vw, 68px);
+          line-height: .95;
+          font-weight: 700;
+        }
+
+        .reset-title span {
+          color: #d4911e;
+          font-style: italic;
+        }
+
+        .reset-subtitle {
+          position: relative;
+          z-index: 1;
+          margin: 18px 0 0;
+          max-width: 470px;
+          color: rgba(255,255,255,.70);
+          font-size: 14px;
+          line-height: 1.8;
+        }
+
+        .reset-info-list {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          gap: 12px;
+          margin-top: 34px;
+        }
+
+        .reset-info-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: rgba(255,255,255,.78);
+          font-size: 13px;
+          font-weight: 750;
+        }
+
+        .reset-dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          background: #d4911e;
+          box-shadow: 0 0 0 5px rgba(212,145,30,.12);
+          flex-shrink: 0;
+        }
+
+        .reset-right {
+          padding: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 0;
+        }
+
+        .reset-form {
+          width: 100%;
+          max-width: 420px;
+          display: grid;
+          gap: 15px;
+        }
+
+        .reset-form-title {
+          margin: 0;
+          color: #1a120b;
+          font-size: clamp(26px, 3vw, 34px);
+          line-height: 1.1;
+          font-weight: 950;
+        }
+
+        .reset-form-text {
+          margin: -5px 0 10px;
+          color: #7a6a52;
+          font-size: 14px;
+          line-height: 1.65;
+        }
+
+        .reset-alert {
+          margin: 0;
+          padding: 12px 14px;
+          border-radius: 14px;
+          font-size: 13px;
+          font-weight: 750;
+          line-height: 1.45;
+        }
+
+        .reset-alert.success {
+          background: #ecfdf5;
+          border: 1px solid #bbf7d0;
+          color: #047857;
+        }
+
+        .reset-alert.error {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #991b1b;
+        }
+
+        .reset-field {
+          display: flex;
+          flex-direction: column;
+          gap: 7px;
+        }
+
+        .reset-label {
+          color: #6b5a45;
+          font-size: 12px;
+          font-weight: 850;
+          letter-spacing: .04em;
+          text-transform: uppercase;
         }
 
         .reset-input {
-          transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+          width: 100%;
+          height: 46px;
+          border-radius: 14px;
+          border: 1.5px solid #eadfce;
+          background: #fffdf8;
+          color: #1a120b;
+          padding: 0 14px;
+          font-size: 14px;
+          outline: none;
+          transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        .reset-input::placeholder {
+          color: #b8a48e;
         }
 
         .reset-input:focus {
           border-color: #c8841a;
-          box-shadow: 0 0 0 4px rgba(200, 132, 26, 0.12);
-          background-color: #fffefd;
+          box-shadow: 0 0 0 4px rgba(200,132,26,.12);
+          background: #ffffff;
+        }
+
+        .reset-rules {
+          margin: -4px 0 0;
+          padding: 12px 14px;
+          border-radius: 16px;
+          background: #fffaf2;
+          border: 1px solid #f3eadc;
+          color: #8a7558;
+          font-size: 12px;
+          line-height: 1.6;
         }
 
         .reset-button {
-          transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+          height: 48px;
+          border: none;
+          border-radius: 15px;
+          background: linear-gradient(135deg, #d4911e, #b87318);
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 950;
+          cursor: pointer;
+          box-shadow: 0 12px 26px rgba(200,132,26,.26);
+          transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
         }
 
-        .reset-button:hover {
+        .reset-button:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 14px 28px rgba(200, 132, 26, 0.28);
-          filter: brightness(1.02);
+          box-shadow: 0 16px 34px rgba(200,132,26,.34);
         }
 
-        @media (max-width: 640px) {
-          .reset-page-root { padding: 16px; }
-          .reset-card { border-radius: 22px !important; padding: 28px 22px !important; }
-          .reset-title { font-size: 36px !important; }
+        .reset-button:disabled {
+          opacity: .68;
+          cursor: not-allowed;
+        }
+
+        .reset-footer {
+          margin: 8px 0 0;
+          display: flex;
+          justify-content: center;
+          gap: 6px;
+          flex-wrap: wrap;
+          color: #7a6a52;
+          font-size: 14px;
+          line-height: 1.6;
+        }
+
+        .reset-link {
+          color: #9a5d0a;
+          font-size: 14px;
+          font-weight: 850;
+          text-decoration: none;
+          transition: opacity .2s ease;
+        }
+
+        .reset-link:hover {
+          opacity: .75;
+          text-decoration: underline;
+        }
+
+        .reset-note {
+          margin: 10px 0 0;
+          padding: 13px 14px;
+          border-radius: 16px;
+          background: #fffaf2;
+          border: 1px solid #f3eadc;
+          color: #8a7558;
+          font-size: 12px;
+          line-height: 1.55;
+          text-align: center;
+        }
+
+        @media (max-width: 900px) {
+          .reset-shell {
+            grid-template-columns: 1fr;
+            max-width: 640px;
+          }
+
+          .reset-left {
+            padding: 34px;
+          }
+
+          .reset-right {
+            padding: 34px;
+          }
+
+          .reset-info-list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 28px;
+          }
+        }
+
+        @media (max-width: 560px) {
+          .reset-page {
+            padding: 16px;
+            align-items: flex-start;
+          }
+
+          .reset-shell {
+            border-radius: 24px;
+          }
+
+          .reset-left,
+          .reset-right {
+            padding: 24px;
+          }
+
+          .reset-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            font-size: 19px;
+            margin-bottom: 22px;
+          }
+
+          .reset-info-list {
+            grid-template-columns: 1fr;
+          }
+
+          .reset-input,
+          .reset-button {
+            height: 45px;
+          }
         }
       `}</style>
 
-      <div className="reset-page-root" style={pageStyle}>
-        <div className="reset-card" style={{ ...cardStyle, opacity: isVisible ? 1 : 0 }}>
-          <div style={badgeStyle}>MD Creative</div>
+      <main className="reset-page">
+        <section className={`reset-shell ${isVisible ? 'visible' : ''}`}>
+          <div className="reset-left">
+            <div className="reset-logo">MD</div>
 
-          <h1 className="reset-title" style={titleStyle}>
-            Create a New Password
-          </h1>
+            <p className="reset-kicker">Siguria e llogarisë</p>
 
-          <p style={subtitleStyle}>
-            Choose a strong new password to restore access to your account securely.
-          </p>
+            <h1 className="reset-title">
+              Vendos <span>fjalëkalim të ri</span>
+            </h1>
 
-          {message ? <div style={successBoxStyle}>{message}</div> : null}
-          {errorMessage ? <div style={errorBoxStyle}>{errorMessage}</div> : null}
+            <p className="reset-subtitle">
+              Krijo një fjalëkalim të fortë për ta rikthyer qasjen në llogarinë tënde dhe për ta mbajtur
+              të sigurt profilin tënd në MD Creative.
+            </p>
 
-          {status !== 'success' ? (
-            <form style={formStyle} onSubmit={handleSubmit}>
-              <div style={fieldStyle}>
-                <label style={labelStyle}>New Password</label>
-                <input
-                  className="reset-input"
-                  type="password"
-                  placeholder="Enter your new password"
-                  style={inputStyle}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+            <div className="reset-info-list">
+              <div className="reset-info-item">
+                <span className="reset-dot" />
+                Fjalëkalim më i sigurt
               </div>
 
-              <div style={fieldStyle}>
-                <label style={labelStyle}>Confirm New Password</label>
-                <input
-                  className="reset-input"
-                  type="password"
-                  placeholder="Repeat your new password"
-                  style={inputStyle}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
+              <div className="reset-info-item">
+                <span className="reset-dot" />
+                Qasje e mbrojtur
               </div>
 
-              <button
-                className="reset-button"
-                type="submit"
-                style={buttonStyle}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Updating...' : 'Reset Password'}
-              </button>
-            </form>
-          ) : null}
+              <div className="reset-info-item">
+                <span className="reset-dot" />
+                Verifikim me link
+              </div>
 
-          <div style={backWrapperStyle}>
-            <Link to="/signin" style={backLinkStyle}>
-              Back to Sign In
-            </Link>
+              <div className="reset-info-item">
+                <span className="reset-dot" />
+                Rikthim i shpejtë
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+
+          <div className="reset-right">
+            <form className="reset-form" onSubmit={handleSubmit}>
+              <div>
+                <h2 className="reset-form-title">Ndrysho fjalëkalimin</h2>
+                <p className="reset-form-text">
+                  Shkruaj fjalëkalimin e ri dhe përsërite për konfirmim.
+                </p>
+              </div>
+
+              {message && <p className="reset-alert success">{message}</p>}
+              {errorMessage && <p className="reset-alert error">{errorMessage}</p>}
+
+              {status !== 'success' && (
+                <>
+                  <div className="reset-field">
+                    <label htmlFor="password" className="reset-label">
+                      Fjalëkalimi i ri
+                    </label>
+
+                    <input
+                      id="password"
+                      type="password"
+                      placeholder="Shkruaj fjalëkalimin e ri"
+                      className="reset-input"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="reset-field">
+                    <label htmlFor="confirmPassword" className="reset-label">
+                      Konfirmo fjalëkalimin
+                    </label>
+
+                    <input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="Përsërite fjalëkalimin e ri"
+                      className="reset-input"
+                      value={confirmPassword}
+                      onChange={(event) => setConfirmPassword(event.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <p className="reset-rules">
+                    Fjalëkalimi duhet të ketë së paku 8 karaktere, shkronjë të madhe, shkronjë të vogël,
+                    numër dhe karakter special.
+                  </p>
+
+                  <button type="submit" className="reset-button" disabled={isSubmitting}>
+                    {isSubmitting ? 'Duke u ndryshuar...' : 'Ndrysho fjalëkalimin'}
+                  </button>
+                </>
+              )}
+
+              <div className="reset-footer">
+                <span>E kujtuat fjalëkalimin?</span>
+                <Link to="/signin" className="reset-link">
+                  Kyçuni
+                </Link>
+              </div>
+
+              <p className="reset-note">
+                Pas ndryshimit të fjalëkalimit do të ridrejtoheni automatikisht te faqja e kyçjes.
+              </p>
+            </form>
+          </div>
+        </section>
+      </main>
     </>
   );
 }
-
-const pageStyle: React.CSSProperties = {
-  minHeight: '100vh',
-  background: 'linear-gradient(135deg, #faf7f2 0%, #f6efe5 50%, #fffaf2 100%)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '24px',
-  boxSizing: 'border-box',
-  fontFamily: "'DM Sans', sans-serif",
-};
-
-const cardStyle: React.CSSProperties = {
-  width: '100%',
-  maxWidth: '560px',
-  backgroundColor: '#ffffff',
-  borderRadius: '28px',
-  boxShadow: '0 24px 60px rgba(26,18,11,0.12)',
-  padding: '40px 32px',
-  textAlign: 'center',
-};
-
-const badgeStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  padding: '8px 14px',
-  borderRadius: '999px',
-  backgroundColor: 'rgba(200,132,26,0.16)',
-  border: '1px solid rgba(200,132,26,0.28)',
-  color: '#b7791f',
-  fontSize: '12px',
-  fontWeight: 700,
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  marginBottom: '18px',
-};
-
-const titleStyle: React.CSSProperties = {
-  margin: 0,
-  fontFamily: "'Cormorant Garamond', serif",
-  fontSize: '48px',
-  lineHeight: 1,
-  fontWeight: 700,
-  color: '#1a120b',
-};
-
-const subtitleStyle: React.CSSProperties = {
-  marginTop: '14px',
-  marginBottom: '24px',
-  color: '#5e5146',
-  fontSize: '15px',
-  lineHeight: 1.8,
-};
-
-const formStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '14px',
-  marginTop: '8px',
-};
-
-const fieldStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '6px',
-  textAlign: 'left',
-};
-
-const labelStyle: React.CSSProperties = {
-  color: '#3d3024',
-  fontSize: '13px',
-  fontWeight: 700,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  height: '52px',
-  borderRadius: '14px',
-  border: '1px solid #e7d8c4',
-  backgroundColor: '#fffaf4',
-  padding: '0 14px',
-  fontSize: '14px',
-  outline: 'none',
-  boxSizing: 'border-box',
-  color: '#1f1a17',
-};
-
-const buttonStyle: React.CSSProperties = {
-  marginTop: '8px',
-  height: '52px',
-  borderRadius: '14px',
-  border: 'none',
-  background: 'linear-gradient(135deg, #d7a04a 0%, #c8841a 100%)',
-  color: '#ffffff',
-  fontSize: '15px',
-  fontWeight: 800,
-  cursor: 'pointer',
-};
-
-const successBoxStyle: React.CSSProperties = {
-  padding: '12px 14px',
-  borderRadius: '14px',
-  backgroundColor: '#eefbf3',
-  border: '1px solid #bbf7d0',
-  color: '#166534',
-  fontSize: '13px',
-  fontWeight: 700,
-  marginTop: '18px',
-};
-
-const errorBoxStyle: React.CSSProperties = {
-  padding: '12px 14px',
-  borderRadius: '14px',
-  backgroundColor: '#fef2f2',
-  border: '1px solid #fecaca',
-  color: '#b91c1c',
-  fontSize: '13px',
-  fontWeight: 700,
-  marginTop: '18px',
-};
-
-const backWrapperStyle: React.CSSProperties = {
-  textAlign: 'center',
-  marginTop: '18px',
-};
-
-const backLinkStyle: React.CSSProperties = {
-  color: '#7a6a52',
-  textDecoration: 'none',
-  fontWeight: 600,
-};

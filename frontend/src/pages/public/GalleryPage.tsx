@@ -1,367 +1,1986 @@
-import { useMemo, useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import type { SVGProps } from 'react';
 
-type GalleryItem = {
-  id: number;
+type Album = {
+  id: string;
   title: string;
-  category: 'All' | 'Decorations' | 'Mascots' | 'Activities' | 'Photo Booth' | 'Packages';
-  image: string;
+  subtitle: string;
   description: string;
+  photos: string[];
+  badge: string;
+  countLabel: string;
+  tone: 'gold' | 'cream' | 'rose' | 'brown';
 };
 
-const galleryItems: GalleryItem[] = [
-  { id: 1, title: 'Princess Birthday Setup', category: 'Decorations', image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80', description: 'Elegant pastel balloon styling with luxury birthday table details.' },
-  { id: 2, title: 'Mascot Celebration', category: 'Mascots', image: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=1200&q=80', description: 'Interactive mascot moment full of joy, energy, and smiles.' },
-  { id: 3, title: 'Photo Booth Corner', category: 'Photo Booth', image: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1200&q=80', description: 'Modern event booth corner prepared for photos and instant memories.' },
-  { id: 4, title: 'Kids Activity Zone', category: 'Activities', image: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1200&q=80', description: 'Creative children activities arranged for active and playful events.' },
-  { id: 5, title: 'Luxury Balloon Wall', category: 'Decorations', image: 'https://images.unsplash.com/photo-1464349153735-7db50ed83c84?auto=format&fit=crop&w=1200&q=80', description: 'High-end decorative wall with balloon composition and themed styling.' },
-  { id: 6, title: 'Bubble & Bounce Package', category: 'Packages', image: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80', description: 'A premium package look combining fun structure and event styling.' },
-  { id: 7, title: 'Birthday Table Design', category: 'Decorations', image: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=1200&q=80', description: 'Refined birthday table styling with coordinated colors and details.' },
-  { id: 8, title: 'Happy Mascot Entrance', category: 'Mascots', image: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=1200&q=80', description: 'A memorable entrance moment for children at a special celebration.' },
+type GoldIconName =
+  | 'camera'
+  | 'heart'
+  | 'sparkles'
+  | 'grid'
+  | 'arrow'
+  | 'close'
+  | 'instagram'
+  | 'tiktok';
+
+function GoldIcon({ name }: { name: GoldIconName }) {
+  const props: SVGProps<SVGSVGElement> = {
+    width: 20,
+    height: 20,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+  };
+
+  if (name === 'camera') {
+    return (
+      <svg {...props}>
+        <path
+          d="M8.5 6.5 10 4h4l1.5 2.5H19A2.5 2.5 0 0 1 21.5 9v8A2.5 2.5 0 0 1 19 19.5H5A2.5 2.5 0 0 1 2.5 17V9A2.5 2.5 0 0 1 5 6.5h3.5Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M12 16a3.2 3.2 0 1 0 0-6.4A3.2 3.2 0 0 0 12 16Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+      </svg>
+    );
+  }
+
+  if (name === 'heart') {
+    return (
+      <svg {...props}>
+        <path
+          d="M20.4 5.8c-1.7-1.9-4.4-2-6.2-.3L12 7.6 9.8 5.5C8 3.8 5.3 3.9 3.6 5.8c-1.8 2-1.7 5.1.3 7l8.1 7.5 8.1-7.5c2-1.9 2.1-5 .3-7Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  if (name === 'sparkles') {
+    return (
+      <svg {...props}>
+        <path
+          d="M12 2.7l1.7 5 5 1.7-5 1.7-1.7 5-1.7-5-5-1.7 5-1.7 1.7-5Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  if (name === 'grid') {
+    return (
+      <svg {...props}>
+        <path
+          d="M4 4h6v6H4V4ZM14 4h6v6h-6V4ZM4 14h6v6H4v-6ZM14 14h6v6h-6v-6Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  if (name === 'instagram') {
+    return (
+      <svg {...props}>
+        <rect
+          x="4"
+          y="4"
+          width="16"
+          height="16"
+          rx="5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="17.2" cy="6.8" r="1" fill="currentColor" />
+      </svg>
+    );
+  }
+
+  if (name === 'tiktok') {
+    return (
+      <svg {...props}>
+        <path
+          d="M14 4v9.2a3.8 3.8 0 1 1-3.8-3.8"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <path
+          d="M14 4c1 2 2.5 3.2 4.5 3.5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  if (name === 'close') {
+    return (
+      <svg {...props}>
+        <path
+          d="M6 6l12 12M18 6 6 18"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...props}>
+      <path
+        d="M4 12h14M14 7l5 5-5 5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+const galleryPath = '/images/gallery';
+const thankYouBackground = `${galleryPath}/wedding4.png`;
+
+const albums: Album[] = [
+  {
+    id: 'mascots',
+    title: 'Maskota dhe personazhe',
+    subtitle: 'Argëtim për fëmijë',
+    description:
+      'Momente plot buzëqeshje me personazhe të dashura për fëmijë. Ky album përmban disa nga karakteret tona më të kërkuara.',
+    photos: Array.from({ length: 10 }, (_, i) => `${galleryPath}/mascots${i + 1}.png`),
+    badge: '10 foto',
+    countLabel: '50+ karaktere',
+    tone: 'gold',
+  },
+  {
+    id: 'wedding-engagement',
+    title: 'Dasma dhe fejesa',
+    subtitle: 'Elegancë festive',
+    description:
+      'Dekore elegante për momente të mëdha familjare, me atmosferë të kuruar dhe stil në çdo cep.',
+    photos: [
+      ...Array.from({ length: 5 }, (_, i) => `${galleryPath}/wedding${i + 1}.png`),
+      ...Array.from({ length: 5 }, (_, i) => `${galleryPath}/engagement${i + 1}.png`),
+    ],
+    badge: '10 foto',
+    countLabel: 'Dasma & fejesa',
+    tone: 'cream',
+  },
+  {
+    id: 'kids-decor',
+    title: 'Dekore për vajza dhe djem',
+    subtitle: 'Ditëlindje me temë',
+    description:
+      'Një album i përbashkët me dekore për vajza dhe djem, me shumë ngjyra, tema kreative dhe detaje të personalizuara.',
+    photos: [
+      ...Array.from({ length: 5 }, (_, i) => `${galleryPath}/decoration-girl${i + 1}.png`),
+      ...Array.from({ length: 5 }, (_, i) => `${galleryPath}/decoration-boy${i + 1}.png`),
+    ],
+    badge: '10 foto',
+    countLabel: 'Vajza & djem',
+    tone: 'rose',
+  },
+  {
+    id: 'bounce-bubble',
+    title: 'Bounce dhe Bubble House',
+    subtitle: 'Argëtim aktiv',
+    description:
+      'Kënde lojërash për fëmijë me bounce house dhe bubble house, të kombinuara me atmosferë festive.',
+    photos: [
+      ...Array.from({ length: 5 }, (_, i) => `${galleryPath}/bounce${i + 1}.png`),
+      ...Array.from({ length: 5 }, (_, i) => `${galleryPath}/bubble${i + 1}.png`),
+    ],
+    badge: '10 foto',
+    countLabel: 'Bounce & bubble',
+    tone: 'gold',
+  },
+  {
+    id: 'baby-shower',
+    title: 'Baby Shower',
+    subtitle: 'Momente të buta',
+    description:
+      'Dekore të ëmbla dhe të kujdesshme për një ditë të paharrueshme, me ngjyra të buta dhe shumë ndjeshmëri.',
+    photos: Array.from({ length: 10 }, (_, i) => `${galleryPath}/baby-shower${i + 1}.png`),
+    badge: '10 foto',
+    countLabel: 'Baby shower',
+    tone: 'rose',
+  },
+  {
+    id: 'photo-booth',
+    title: 'Photo Booth & Photo Box',
+    subtitle: 'Kujtime nga eventi',
+    description:
+      'Photo booth, photo box dhe pasqyrë e personalizuar për kujtime të bukura që mbesin edhe pas eventit.',
+    photos: [
+      '/images/photo-booth/photo-both.png',
+      '/images/photo-booth/photo-box.png',
+      '/images/photo-booth/personalized-mirror.png',
+      `${galleryPath}/extra1.png`,
+      `${galleryPath}/extra2.png`,
+      `${galleryPath}/extra3.png`,
+      `${galleryPath}/extra4.png`,
+      `${galleryPath}/extra5.png`,
+      `${galleryPath}/extra6.png`,
+      `${galleryPath}/extra7.png`,
+    ],
+    badge: '10 foto',
+    countLabel: 'Photo booth',
+    tone: 'gold',
+  },
+  {
+    id: 'extra',
+    title: 'Ekstra dhe detaje të veçanta',
+    subtitle: 'Mirëseardhje, karrocë, pasqyrë',
+    description:
+      'Karroca, mirëseardhja, pasqyra e personalizuar dhe shumë detaje tjera që e bëjnë hyrjen dhe atmosferën më të plotë.',
+    photos: Array.from({ length: 10 }, (_, i) => `${galleryPath}/extra${i + 1}.png`),
+    badge: '10 foto',
+    countLabel: 'Ekstra',
+    tone: 'cream',
+  },
+  {
+    id: 'bride-to-be',
+    title: 'Kanagjegj / Bride to Be',
+    subtitle: 'Detaje për nusen',
+    description:
+      'Kënde të veçanta për kanagjegj, me dekorime elegante dhe pamje që duken bukur në çdo fotografi.',
+    photos: Array.from({ length: 5 }, (_, i) => `${galleryPath}/bride-to-be${i + 1}.png`),
+    badge: '5 foto',
+    countLabel: 'Bride to be',
+    tone: 'cream',
+  },
+  {
+    id: 'synetia',
+    title: 'Syneti',
+    subtitle: 'Dekor familjar',
+    description:
+      'Dekore për syneti me pamje festive dhe të kuruar, të përshtatura për organizim familjar.',
+    photos: Array.from({ length: 5 }, (_, i) => `${galleryPath}/synetia${i + 1}.png`),
+    badge: '5 foto',
+    countLabel: 'Syneti',
+    tone: 'brown',
+  },
 ];
 
-const filters: GalleryItem['category'][] = ['All', 'Decorations', 'Mascots', 'Activities', 'Photo Booth', 'Packages'];
-
-// ── Hooks ─────────────────────────────────────────────────────────────────
-function useWindowWidth() {
-  const [w, setW] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
-  useEffect(() => {
-    const fn = () => setW(window.innerWidth);
-    window.addEventListener('resize', fn);
-    return () => window.removeEventListener('resize', fn);
-  }, []);
-  return w;
-}
+const tickerItems = [
+  'Maskota dhe personazhe',
+  'Dekore për vajza dhe djem',
+  'Dasma dhe fejesa',
+  'Bounce & Bubble House',
+  'Baby Shower',
+  'Kanagjegj',
+  'Syneti',
+  'Photo Booth',
+  'Photo Box',
+  'Karroca',
+  'Mirëseardhje',
+  'Pasqyrë e personalizuar',
+];
 
 function ScrollToTop() {
   const [visible, setVisible] = useState(false);
+
   useEffect(() => {
-    const fn = () => setVisible(window.scrollY > 400);
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
+    const onScroll = () => setVisible(window.scrollY > 420);
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
   return (
-    <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Scroll to top"
-      style={{
-        position: 'fixed', bottom: 28, right: 24, zIndex: 1000,
-        width: 48, height: 48, borderRadius: '50%',
-        background: '#c8841a', border: 'none', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 4px 20px rgba(200,132,26,.45)',
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0) scale(1)' : 'translateY(14px) scale(0.85)',
-        transition: 'opacity 0.3s ease, transform 0.3s ease',
-        pointerEvents: visible ? 'auto' : 'none',
-      }}>
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path d="M10 15V5M10 5L5 10M10 5L15 10" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    <button
+      type="button"
+      aria-label="Kthehu lart"
+      className={visible ? 'gallery-scroll visible' : 'gallery-scroll'}
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+    >
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M10 15V5M10 5L5 10M10 5L15 10"
+          stroke="#fff"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     </button>
   );
 }
 
-// ── useCountUp ────────────────────────────────────────────────────────────
-function useCountUp(target: number, duration = 3200) {
-  const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(false);
-  const ref = useRef<HTMLDivElement | null>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setStarted(true); obs.disconnect(); } },
-      { threshold: 0.3 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  useEffect(() => {
-    if (!started || target === 0) { setCount(target); return; }
-    let s: number | null = null;
-    const step = (ts: number) => {
-      if (!s) s = ts;
-      const p = Math.min((ts - s) / duration, 1);
-      setCount(Math.floor((1 - Math.pow(1 - p, 3)) * target));
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [started, target, duration]);
-  return { count, ref };
-}
-
-// ── StatCount ─────────────────────────────────────────────────────────────
-function StatCount({ target, suffix = '', label, isMobile }: {
-  target: number; suffix?: string; label: string; isMobile: boolean;
-}) {
-  const { count, ref } = useCountUp(target);
-  return (
-    <div ref={ref} style={{ textAlign: 'center', padding: isMobile ? '20px 12px' : '28px 20px' }}>
-      <p className="gp-serif" style={{ margin: '0 0 6px', fontSize: isMobile ? '28px' : 'clamp(28px,3vw,42px)', fontWeight: 700, color: '#1a120b', lineHeight: 1 }}>
-        {count.toLocaleString()}{suffix}
-      </p>
-      <p style={{ margin: 0, fontSize: 14, color: '#9a8878' }}>{label}</p>
-    </div>
-  );
-}
-
-
 export default function GalleryPage() {
-  const [activeFilter, setActiveFilter] = useState<GalleryItem['category']>('All');
-  const [selected, setSelected] = useState<GalleryItem | null>(null);
-  const width = useWindowWidth();
-  const isMobile = width < 640;
-  const isTablet = width < 1024;
+  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
-  const filtered = useMemo(() => {
-    if (activeFilter === 'All') return galleryItems;
-    return galleryItems.filter((i) => i.category === activeFilter);
-  }, [activeFilter]);
+  const totalPhotos = useMemo(
+    () => albums.reduce((total, album) => total + album.photos.length, 0),
+    []
+  );
 
-  // lock body scroll when modal open
   useEffect(() => {
-    document.body.style.overflow = selected ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [selected]);
+    document.body.style.overflow = selectedAlbum || selectedPhoto ? 'hidden' : '';
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedAlbum, selectedPhoto]);
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,500;1,600&family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
 
-        .gp { font-family: 'DM Sans', sans-serif; background: #faf7f2; }
-        .gp-serif { font-family: 'Cormorant Garamond', serif; }
-
-        @keyframes gp-fadeUp  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes gp-marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-        @keyframes gp-modalIn { from{opacity:0;transform:scale(.94)} to{opacity:1;transform:scale(1)} }
-        @keyframes gp-overlayIn { from{opacity:0} to{opacity:1} }
-
-        .gp-a1 { animation: gp-fadeUp .55s ease both .05s; }
-        .gp-a2 { animation: gp-fadeUp .55s ease both .18s; }
-        .gp-a3 { animation: gp-fadeUp .55s ease both .30s; }
-
-        .gp-ticker { display: inline-flex; animation: gp-marquee 26s linear infinite; }
-
-        /* filters */
-        .gp-filter { transition: background .2s, color .2s, border-color .2s, transform .15s; }
-        .gp-filter:hover:not(.active) { transform: translateY(-1px); border-color: #c8841a !important; color: #c8841a !important; }
-
-        /* gallery cards */
-        .gp-card { transition: transform .35s ease, box-shadow .35s ease; cursor: pointer; }
-        .gp-card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 24px 52px rgba(26,18,11,.18) !important; }
-        .gp-card:hover .gp-card-img { transform: scale(1.06); }
-        .gp-card-img { transition: transform .5s ease; width: 100%; height: 100%; object-fit: cover; display: block; }
-        .gp-card:hover .gp-overlay { background: linear-gradient(180deg,rgba(20,10,2,.06) 0%,rgba(20,10,2,.85) 100%) !important; }
-        .gp-overlay { transition: background .3s; }
-
-        /* stat card */
-        .gp-stat { transition: transform .25s, box-shadow .25s; }
-        .gp-stat:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(26,18,11,.1) !important; }
-
-        /* modal */
-        .gp-modal-overlay { animation: gp-overlayIn .22s ease; }
-        .gp-modal-card    { animation: gp-modalIn .28s cubic-bezier(.34,1.56,.64,1); }
-        .gp-close:hover { background: #c8841a !important; }
-
-        /* bottom cta */
-        .gp-cta-btn { transition: transform .2s, box-shadow .2s; }
-        .gp-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(200,132,26,.45) !important; }
-
-        /* ── RESPONSIVE ── */
-        @media (max-width: 639px) {
-          .gp-stats-grid  { grid-template-columns: 1fr !important; gap: 12px !important; }
-          .gp-gallery-grid { grid-template-columns: 1fr !important; }
-          .gp-filter-row  { gap: 8px !important; }
-          .gp-modal-inner { flex-direction: column !important; }
-          .gp-modal-img   { height: 240px !important; width: 100% !important; flex-shrink: 0; }
-          .gp-cta-btns    { flex-direction: column !important; }
-          .gp-cta-btns a  { text-align: center; }
+        * {
+          box-sizing: border-box;
         }
-        @media (min-width: 640px) and (max-width: 1023px) {
-          .gp-stats-grid   { grid-template-columns: repeat(3, 1fr) !important; }
-          .gp-gallery-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+        .gallery-page {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
+          background:
+            radial-gradient(circle at 10% 10%, rgba(200,132,26,0.10), transparent 26%),
+            radial-gradient(circle at 85% 40%, rgba(90,45,18,0.08), transparent 32%),
+            linear-gradient(180deg, #f8f4ee 0%, #fbf8f4 48%, #f6efe6 100%);
+          color: #1a120b;
+          font-family: 'DM Sans', sans-serif;
         }
-        @media (min-width: 1024px) {
-          .gp-gallery-grid { grid-template-columns: repeat(3, 1fr) !important; }
+
+        .gallery-serif {
+          font-family: 'Cormorant Garamond', serif;
+        }
+
+        .gallery-wrap {
+          width: 100%;
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 0 28px;
+        }
+
+        @keyframes galleryFadeUp {
+          from {
+            opacity: 0;
+            transform: translateY(28px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes galleryZoom {
+          from {
+            transform: scale(1.08);
+          }
+          to {
+            transform: scale(1.02);
+          }
+        }
+
+        @keyframes galleryMarquee {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-50%);
+          }
+        }
+
+        @keyframes galleryModal {
+          from {
+            opacity: 0;
+            transform: scale(0.94) translateY(18px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+
+        .gallery-hero {
+          position: relative;
+          min-height: 78vh;
+          display: flex;
+          align-items: center;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at 15% 20%, rgba(212,145,31,0.18), transparent 26%),
+            radial-gradient(circle at 82% 25%, rgba(255,255,255,0.06), transparent 20%),
+            linear-gradient(120deg, #120c07 0%, #201209 42%, #2b1709 72%, #1b110b 100%);
+          isolation: isolate;
+        }
+
+        .gallery-hero-bg {
+          position: absolute;
+          inset: 0;
+          background:
+            linear-gradient(135deg, rgba(255,255,255,0.03), transparent 35%),
+            repeating-linear-gradient(
+              45deg,
+              rgba(255,255,255,0.03) 0,
+              rgba(255,255,255,0.03) 1px,
+              transparent 1px,
+              transparent 72px
+            );
+          animation: galleryZoom 1.8s ease both;
+        }
+
+        .gallery-hero::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(circle at 75% 30%, rgba(212,145,31,0.10), transparent 24%),
+            radial-gradient(circle at 78% 78%, rgba(212,145,31,0.08), transparent 20%);
+          z-index: 1;
+          pointer-events: none;
+        }
+
+        .gallery-hero-layout {
+          position: relative;
+          z-index: 2;
+          display: grid;
+          grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+          gap: 32px;
+          align-items: center;
+        }
+
+        .gallery-hero-content {
+          position: relative;
+          z-index: 2;
+          max-width: 760px;
+          padding: 88px 0 76px;
+          animation: galleryFadeUp 0.9s ease both;
+        }
+
+        .gallery-hero-illustration {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 520px;
+          animation: galleryFadeUp 1s ease both;
+        }
+
+        .gallery-camera-wrap {
+          position: relative;
+          width: min(100%, 500px);
+          height: 470px;
+        }
+
+        .gallery-camera-glow {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 340px;
+          height: 340px;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          background: radial-gradient(circle, rgba(212,145,31,0.26) 0%, rgba(212,145,31,0.10) 38%, transparent 72%);
+          filter: blur(10px);
+        }
+
+        .gallery-camera-card {
+          position: absolute;
+          border-radius: 26px;
+          border: 1px solid rgba(255,255,255,0.10);
+          background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+          box-shadow: 0 18px 46px rgba(0,0,0,0.26);
+          backdrop-filter: blur(8px);
+        }
+
+        .gallery-camera-card.back {
+          width: 240px;
+          height: 150px;
+          top: 44px;
+          right: 36px;
+          transform: rotate(10deg);
+          opacity: 0.65;
+        }
+
+        .gallery-camera-card.front {
+          width: 250px;
+          height: 160px;
+          bottom: 48px;
+          left: 26px;
+          transform: rotate(-8deg);
+        }
+
+        .gallery-camera-body {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 320px;
+          height: 220px;
+          transform: translate(-50%, -50%);
+          border-radius: 34px;
+          background: linear-gradient(180deg, #2e231d 0%, #1c1511 100%);
+          border: 1px solid rgba(255,255,255,0.10);
+          box-shadow: 0 24px 60px rgba(0,0,0,0.34);
+        }
+
+        .gallery-camera-top {
+          position: absolute;
+          top: -28px;
+          left: 38px;
+          width: 140px;
+          height: 54px;
+          border-radius: 18px 18px 10px 10px;
+          background: linear-gradient(180deg, #332720 0%, #211915 100%);
+          border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .gallery-camera-lens-ring {
+          position: absolute;
+          left: 50%;
+          top: 52%;
+          width: 140px;
+          height: 140px;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          background: radial-gradient(circle, #15110f 0%, #221915 38%, #0f0b09 70%, #3a2a21 100%);
+          box-shadow:
+            inset 0 0 0 10px #2f241d,
+            inset 0 0 0 22px #1a1310,
+            0 0 0 8px rgba(255,255,255,0.03);
+        }
+
+        .gallery-camera-lens-core {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 68px;
+          height: 68px;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          background:
+            radial-gradient(circle at 35% 35%, rgba(255,255,255,0.55), rgba(255,255,255,0.06) 22%, rgba(52,125,173,0.36) 35%, #0f1e2c 68%, #091018 100%);
+          box-shadow: inset 0 0 18px rgba(255,255,255,0.18);
+        }
+
+        .gallery-camera-flash {
+          position: absolute;
+          top: 36px;
+          right: 42px;
+          width: 42px;
+          height: 30px;
+          border-radius: 10px;
+          background: linear-gradient(180deg, #efe3cd 0%, #cab18e 100%);
+          box-shadow: inset 0 0 10px rgba(255,255,255,0.35);
+        }
+
+        .gallery-camera-button {
+          position: absolute;
+          top: -16px;
+          right: 42px;
+          width: 48px;
+          height: 16px;
+          border-radius: 10px;
+          background: linear-gradient(180deg, #d59a2e 0%, #b77c18 100%);
+        }
+
+        .gallery-camera-small-circle {
+          position: absolute;
+          top: 42px;
+          left: 46px;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: #d89a2d;
+          box-shadow: 0 0 18px rgba(216,154,45,0.45);
+        }
+
+        .gallery-camera-label {
+          position: absolute;
+          right: 26px;
+          bottom: 24px;
+          padding: 10px 14px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.08);
+          color: #f3dfbf;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+        }
+
+        .gallery-floating-badge {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 16px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.10);
+          border: 1px solid rgba(255,255,255,0.12);
+          color: #fff7ea;
+          font-size: 12px;
+          font-weight: 800;
+          box-shadow: 0 14px 30px rgba(0,0,0,0.18);
+          backdrop-filter: blur(8px);
+        }
+
+        .gallery-floating-badge.one {
+          left: 0;
+          top: 74px;
+        }
+
+        .gallery-floating-badge.two {
+          right: 0;
+          bottom: 92px;
+        }
+
+        .gallery-floating-badge .dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #d89a2d;
+          box-shadow: 0 0 12px rgba(216,154,45,0.55);
+        }
+
+        .gallery-kicker {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 9px 18px;
+          border-radius: 999px;
+          background: rgba(200,132,26,0.14);
+          border: 1px solid rgba(200,132,26,0.34);
+          color: #e8b56a;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+        }
+
+        .gallery-kicker svg {
+          color: #d89a2d;
+        }
+
+        .gallery-hero-title {
+          margin: 22px 0 18px;
+          color: #fff;
+          font-size: clamp(58px, 7vw, 102px);
+          line-height: 0.92;
+          font-weight: 700;
+          letter-spacing: -0.03em;
+        }
+
+        .gallery-hero-title em {
+          color: #d89a2d;
+          font-style: italic;
+        }
+
+        .gallery-hero-text {
+          max-width: 650px;
+          margin: 0;
+          color: rgba(255,255,255,0.82);
+          font-size: 17px;
+          line-height: 1.9;
+        }
+
+        .gallery-hero-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 30px;
+        }
+
+        .gallery-btn-gold,
+        .gallery-btn-light,
+        .gallery-social-link {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          min-height: 52px;
+          padding: 0 24px;
+          border-radius: 16px;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 800;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+        }
+
+        .gallery-btn-gold {
+          border: none;
+          cursor: pointer;
+          background: linear-gradient(135deg, #d4911e, #c8841a);
+          color: #fff;
+          box-shadow: 0 12px 28px rgba(200,132,26,0.34);
+        }
+
+        .gallery-btn-light {
+          background: rgba(255,255,255,0.10);
+          border: 1px solid rgba(255,255,255,0.18);
+          color: #fff;
+        }
+
+        .gallery-btn-gold:hover,
+        .gallery-btn-light:hover,
+        .gallery-social-link:hover {
+          transform: translateY(-2px);
+        }
+
+        .gallery-marquee {
+          overflow: hidden;
+          background: linear-gradient(90deg, #170d07, #2a1609, #170d07);
+          border-top: 1px solid rgba(255,255,255,0.08);
+          border-bottom: 1px solid rgba(255,255,255,0.08);
+          padding: 15px 0;
+        }
+
+        .gallery-marquee-track {
+          display: flex;
+          width: max-content;
+          animation: galleryMarquee 34s linear infinite;
+        }
+
+        .gallery-marquee-group {
+          display: flex;
+          white-space: nowrap;
+        }
+
+        .gallery-marquee-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 16px;
+          padding: 0 24px;
+          color: #f2dfbd;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          line-height: 1;
+        }
+
+        .gallery-marquee-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 2px;
+          background: #d1911f;
+          transform: rotate(45deg);
+          box-shadow: 0 0 14px rgba(209,145,31,0.58);
+        }
+
+        .gallery-stats-section {
+          position: relative;
+          z-index: 4;
+          margin-top: -42px;
+          padding: 0 0 44px;
+        }
+
+        .gallery-stats {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          max-width: 920px;
+          margin: 0 auto;
+          overflow: hidden;
+          background: rgba(255,255,255,0.98);
+          border: 1px solid #ece0d0;
+          border-radius: 26px;
+          box-shadow: 0 18px 44px rgba(26,18,11,0.1);
+        }
+
+        .gallery-stat {
+          padding: 26px 18px;
+          text-align: center;
+          border-left: 1px solid #f1e7d9;
+        }
+
+        .gallery-stat:first-child {
+          border-left: none;
+        }
+
+        .gallery-stat-icon {
+          width: 42px;
+          height: 42px;
+          margin: 0 auto 10px;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(200,132,26,0.1);
+          color: #c8841a;
+        }
+
+        .gallery-stat-number {
+          display: block;
+          margin-bottom: 6px;
+          color: #1a120b;
+          font-size: clamp(30px, 4vw, 44px);
+          font-weight: 700;
+          line-height: 1;
+        }
+
+        .gallery-stat-label {
+          color: #786b5c;
+          font-size: 13px;
+          line-height: 1.5;
+        }
+
+        .gallery-intro {
+          padding: 18px 0 34px;
+          text-align: center;
+        }
+
+        .gallery-section-title {
+          max-width: 860px;
+          margin: 16px auto 14px;
+          color: #1a120b;
+          font-size: clamp(42px, 5vw, 72px);
+          line-height: 0.98;
+          font-weight: 700;
+        }
+
+        .gallery-section-title em {
+          color: #c8841a;
+          font-style: italic;
+        }
+
+        .gallery-section-text {
+          max-width: 760px;
+          margin: 0 auto;
+          color: #74685b;
+          font-size: 16px;
+          line-height: 1.85;
+        }
+
+        .gallery-albums {
+          padding: 10px 0 78px;
+        }
+
+        .gallery-grid {
+          display: grid;
+          grid-template-columns: repeat(12, 1fr);
+          gap: 22px;
+          align-items: stretch;
+        }
+
+        .gallery-card {
+          position: relative;
+          border: 1px solid #eadfce;
+          border-radius: 30px;
+          overflow: hidden;
+          padding: 0;
+          cursor: pointer;
+          text-align: left;
+          background: linear-gradient(180deg, #fffdf9 0%, #f8f1e8 100%);
+          box-shadow: 0 16px 38px rgba(26, 18, 11, 0.10);
+          animation: galleryFadeUp 0.8s ease both;
+          transition: transform 0.35s ease, box-shadow 0.35s ease;
+          min-height: 440px;
+        }
+
+        .gallery-card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 26px 54px rgba(26, 18, 11, 0.16);
+        }
+
+        .gallery-card:nth-child(1),
+        .gallery-card:nth-child(2),
+        .gallery-card:nth-child(6),
+        .gallery-card:nth-child(7),
+        .gallery-card:nth-child(8),
+        .gallery-card:nth-child(9) {
+          grid-column: span 6;
+        }
+
+        .gallery-card:nth-child(3),
+        .gallery-card:nth-child(4),
+        .gallery-card:nth-child(5) {
+          grid-column: span 4;
+          min-height: 420px;
+        }
+
+        .gallery-card:nth-child(6),
+        .gallery-card:nth-child(7) {
+          min-height: 470px;
+        }
+
+        .gallery-card:nth-child(8),
+        .gallery-card:nth-child(9) {
+          min-height: 410px;
+        }
+
+        .gallery-card-visual {
+          position: relative;
+          min-height: 220px;
+          padding: 18px 18px 10px;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at top right, rgba(212, 145, 31, 0.14), transparent 28%),
+            radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.6), transparent 32%),
+            linear-gradient(135deg, #f7efe4 0%, #efe2d2 100%);
+          border-bottom: 1px solid #efe4d6;
+        }
+
+        .gallery-card-visual.tone-gold {
+          background:
+            radial-gradient(circle at top right, rgba(212, 145, 31, 0.18), transparent 30%),
+            linear-gradient(135deg, #f8f0e4 0%, #efe1cf 100%);
+        }
+
+        .gallery-card-visual.tone-rose {
+          background:
+            radial-gradient(circle at top right, rgba(221, 167, 167, 0.16), transparent 30%),
+            linear-gradient(135deg, #fbf1ef 0%, #f2e3dd 100%);
+        }
+
+        .gallery-card-visual.tone-cream {
+          background:
+            radial-gradient(circle at top right, rgba(255, 223, 163, 0.18), transparent 30%),
+            linear-gradient(135deg, #fcf7f0 0%, #f2e8db 100%);
+        }
+
+        .gallery-card-visual.tone-brown {
+          background:
+            radial-gradient(circle at top right, rgba(172, 96, 35, 0.12), transparent 30%),
+            linear-gradient(135deg, #f4ece4 0%, #eadccf 100%);
+        }
+
+        .gallery-card-visual::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(rgba(255,255,255,0.22), rgba(255,255,255,0.22)),
+            repeating-linear-gradient(
+              45deg,
+              rgba(255,255,255,0.07) 0,
+              rgba(255,255,255,0.07) 1px,
+              transparent 1px,
+              transparent 36px
+            );
+          pointer-events: none;
+        }
+
+        .gallery-card-top {
+          position: relative;
+          z-index: 3;
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+          align-items: center;
+        }
+
+        .gallery-card-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 9px 13px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.94);
+          color: #1a120b;
+          font-size: 12px;
+          font-weight: 900;
+          box-shadow: 0 8px 22px rgba(26,18,11,0.10);
+        }
+
+        .gallery-card-badge svg {
+          color: #c8841a;
+          width: 17px;
+          height: 17px;
+        }
+
+        .gallery-card-count {
+          padding: 10px 14px;
+          border-radius: 999px;
+          background: #d1911f;
+          color: #fff;
+          font-size: 12px;
+          font-weight: 900;
+          box-shadow: 0 8px 22px rgba(209,145,31,0.30);
+        }
+
+        .gallery-album-center {
+          position: relative;
+          z-index: 2;
+          min-height: 170px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px 8px 10px;
+        }
+
+        .gallery-album-stack {
+          position: relative;
+          width: 220px;
+          height: 140px;
+        }
+
+        .gallery-album-sheet {
+          position: absolute;
+          inset: 0;
+          border-radius: 22px;
+          border: 1px solid rgba(212, 145, 31, 0.18);
+          box-shadow: 0 12px 28px rgba(26, 18, 11, 0.08);
+        }
+
+        .gallery-album-sheet-back {
+          background: linear-gradient(180deg, #f6ecdf 0%, #ebdccb 100%);
+          transform: rotate(-8deg) translate(-12px, 8px);
+          opacity: 0.8;
+        }
+
+        .gallery-album-sheet-middle {
+          background: linear-gradient(180deg, #fff8f0 0%, #efe2d3 100%);
+          transform: rotate(6deg) translate(10px, 4px);
+          opacity: 0.92;
+        }
+
+        .gallery-album-sheet-front {
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0.78)),
+            linear-gradient(135deg, #fdfaf5 0%, #f1e5d6 100%);
+          backdrop-filter: blur(3px);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 20px;
+          transition: transform 0.35s ease, box-shadow 0.35s ease;
+        }
+
+        .gallery-card:hover .gallery-album-sheet-front {
+          transform: translateY(-6px) scale(1.02);
+          box-shadow: 0 18px 34px rgba(26, 18, 11, 0.12);
+        }
+
+        .gallery-album-icon {
+          width: 52px;
+          height: 52px;
+          border-radius: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(212, 145, 31, 0.12);
+          color: #c8841a;
+        }
+
+        .gallery-album-mini-title {
+          text-align: center;
+          color: #2c1d12;
+          font-size: 15px;
+          font-weight: 900;
+          line-height: 1.25;
+        }
+
+        .gallery-album-mini-subtitle {
+          text-align: center;
+          color: #8a7660;
+          font-size: 12px;
+          font-weight: 700;
+          line-height: 1.4;
+        }
+
+        .gallery-card-body {
+          position: relative;
+          padding: 24px 24px 24px;
+          background:
+            radial-gradient(circle at top right, rgba(212,145,31,0.07), transparent 32%),
+            linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(255,248,240,0.94) 100%);
+        }
+
+        .gallery-card-subtitle {
+          display: inline-block;
+          margin-bottom: 10px;
+          color: #c8841a;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: 0.13em;
+          text-transform: uppercase;
+        }
+
+        .gallery-card-title {
+          margin: 0 0 12px;
+          color: #1a120b;
+          font-size: clamp(34px, 3.3vw, 48px);
+          line-height: 0.94;
+          font-weight: 700;
+        }
+
+        .gallery-card-desc {
+          max-width: 620px;
+          margin: 0 0 18px;
+          color: #6f6254;
+          font-size: 14px;
+          line-height: 1.72;
+        }
+
+        .gallery-card-action {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          min-height: 42px;
+          padding: 0 16px;
+          border-radius: 999px;
+          background: rgba(212, 145, 31, 0.10);
+          border: 1px solid rgba(212, 145, 31, 0.20);
+          color: #9f6712;
+          font-size: 13px;
+          font-weight: 800;
+          transition: all 0.25s ease;
+        }
+
+        .gallery-card:hover .gallery-card-action {
+          background: #d1911f;
+          color: #fff;
+          transform: translateX(4px);
+        }
+
+        .gallery-note {
+          padding: 0 0 34px;
+        }
+
+        .gallery-note-box {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 24px;
+          align-items: center;
+          padding: 28px 30px;
+          border-radius: 28px;
+          background:
+            linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,250,242,0.96));
+          border: 1px solid #eadfce;
+          box-shadow: 0 14px 34px rgba(26,18,11,0.08);
+        }
+
+        .gallery-note-title {
+          margin: 0 0 8px;
+          color: #1a120b;
+          font-size: 28px;
+          font-weight: 900;
+        }
+
+        .gallery-note-text {
+          margin: 0;
+          color: #756758;
+          font-size: 15px;
+          line-height: 1.8;
+        }
+
+        .gallery-socials {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        .gallery-social-link {
+          background: #1a120b;
+          color: #fff;
+        }
+
+        .gallery-social-link:hover {
+          background: #c8841a;
+        }
+
+        .gallery-thankyou {
+          padding: 0 0 78px;
+        }
+
+        .gallery-thankyou-box {
+          position: relative;
+          overflow: hidden;
+          border-radius: 32px;
+          padding: 54px 30px;
+          text-align: center;
+          background:
+            linear-gradient(135deg, rgba(20,12,6,0.94), rgba(64,37,14,0.88)),
+            url('${thankYouBackground}');
+          background-size: cover;
+          background-position: center;
+          color: #fff;
+          box-shadow: 0 20px 48px rgba(26,18,11,0.18);
+        }
+
+        .gallery-thankyou-box::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(circle at 20% 20%, rgba(209,145,31,0.22), transparent 28%),
+            radial-gradient(circle at 80% 80%, rgba(255,255,255,0.07), transparent 28%);
+          pointer-events: none;
+        }
+
+        .gallery-thankyou-inner {
+          position: relative;
+          z-index: 2;
+          max-width: 780px;
+          margin: 0 auto;
+        }
+
+        .gallery-thankyou-title {
+          margin: 14px 0 12px;
+          color: #fff;
+          font-size: clamp(42px, 5vw, 70px);
+          line-height: 0.98;
+          font-weight: 700;
+        }
+
+        .gallery-thankyou-title em {
+          color: #d89a2d;
+          font-style: italic;
+        }
+
+        .gallery-thankyou-text {
+          margin: 0 auto;
+          max-width: 650px;
+          color: rgba(255,255,255,0.84);
+          font-size: 16px;
+          line-height: 1.85;
+        }
+
+        .gallery-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 2000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 22px;
+          background: rgba(12,8,5,0.78);
+          backdrop-filter: blur(10px);
+        }
+
+        .gallery-modal {
+          width: min(1120px, 100%);
+          max-height: min(88vh, 820px);
+          overflow: hidden;
+          border-radius: 30px;
+          background: #fbf8f4;
+          box-shadow: 0 28px 70px rgba(0,0,0,0.36);
+          animation: galleryModal 0.3s ease both;
+        }
+
+        .gallery-modal-header {
+          display: flex;
+          justify-content: space-between;
+          gap: 18px;
+          align-items: flex-start;
+          padding: 24px 26px;
+          border-bottom: 1px solid #eadfce;
+          background: #fffaf4;
+        }
+
+        .gallery-modal-title {
+          margin: 0 0 8px;
+          color: #1a120b;
+          font-size: 36px;
+          line-height: 1;
+          font-weight: 700;
+        }
+
+        .gallery-modal-desc {
+          margin: 0;
+          max-width: 720px;
+          color: #74685b;
+          font-size: 14px;
+          line-height: 1.7;
+        }
+
+        .gallery-modal-close {
+          width: 44px;
+          height: 44px;
+          border-radius: 50%;
+          border: none;
+          background: #1a120b;
+          color: #fff;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.25s ease, transform 0.25s ease;
+        }
+
+        .gallery-modal-close:hover {
+          background: #c8841a;
+          transform: rotate(90deg);
+        }
+
+        .gallery-photo-grid {
+          max-height: calc(88vh - 150px);
+          overflow: auto;
+          padding: 22px;
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: 14px;
+        }
+
+        .gallery-photo-btn {
+          position: relative;
+          overflow: hidden;
+          height: 190px;
+          border: none;
+          border-radius: 20px;
+          padding: 0;
+          cursor: pointer;
+          background: #eadfce;
+          box-shadow: 0 8px 20px rgba(26,18,11,0.08);
+        }
+
+        .gallery-photo-btn img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.45s ease, filter 0.45s ease;
+        }
+
+        .gallery-photo-btn:hover img {
+          transform: scale(1.08);
+          filter: brightness(0.88);
+        }
+
+        .gallery-photo-number {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(26,18,11,0.72);
+          color: #fff;
+          font-size: 12px;
+          font-weight: 900;
+        }
+
+        .gallery-photo-viewer {
+          position: fixed;
+          inset: 0;
+          z-index: 3000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 22px;
+          background: rgba(8,5,3,0.88);
+        }
+
+        .gallery-photo-viewer img {
+          max-width: min(96vw, 1100px);
+          max-height: 88vh;
+          object-fit: contain;
+          border-radius: 22px;
+          box-shadow: 0 26px 70px rgba(0,0,0,0.4);
+        }
+
+        .gallery-photo-close {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          z-index: 3100;
+          width: 46px;
+          height: 46px;
+          border-radius: 50%;
+          border: none;
+          background: #c8841a;
+          color: #fff;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .gallery-scroll {
+          position: fixed;
+          right: 20px;
+          bottom: 24px;
+          z-index: 999;
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          border: none;
+          background: #c8841a;
+          color: #fff;
+          cursor: pointer;
+          box-shadow: 0 10px 26px rgba(200,132,26,0.35);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transform: translateY(14px);
+          pointer-events: none;
+          transition: all 0.28s ease;
+        }
+
+        .gallery-scroll.visible {
+          opacity: 1;
+          transform: translateY(0);
+          pointer-events: auto;
+        }
+
+        @media (max-width: 1180px) {
+          .gallery-hero-layout {
+            grid-template-columns: 1fr;
+          }
+
+          .gallery-hero-illustration {
+            min-height: 420px;
+            padding-bottom: 42px;
+          }
+
+          .gallery-card,
+          .gallery-card:nth-child(1),
+          .gallery-card:nth-child(2),
+          .gallery-card:nth-child(3),
+          .gallery-card:nth-child(4),
+          .gallery-card:nth-child(5),
+          .gallery-card:nth-child(6),
+          .gallery-card:nth-child(7),
+          .gallery-card:nth-child(8),
+          .gallery-card:nth-child(9) {
+            grid-column: span 6;
+            min-height: 440px;
+          }
+
+          .gallery-photo-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 767px) {
+          .gallery-wrap {
+            padding: 0 18px;
+          }
+
+          .gallery-hero {
+            min-height: auto;
+          }
+
+          .gallery-hero-layout {
+            grid-template-columns: 1fr;
+          }
+
+          .gallery-hero-content {
+            padding: 72px 0 24px;
+          }
+
+          .gallery-hero-title {
+            font-size: 56px;
+          }
+
+          .gallery-hero-text {
+            font-size: 15px;
+          }
+
+          .gallery-hero-actions {
+            flex-direction: column;
+          }
+
+          .gallery-hero-actions a {
+            width: 100%;
+          }
+
+          .gallery-hero-illustration {
+            min-height: 360px;
+            padding-bottom: 24px;
+          }
+
+          .gallery-camera-wrap {
+            width: 100%;
+            max-width: 360px;
+            height: 320px;
+          }
+
+          .gallery-camera-body {
+            width: 240px;
+            height: 170px;
+          }
+
+          .gallery-camera-top {
+            width: 105px;
+            height: 42px;
+            top: -22px;
+            left: 28px;
+          }
+
+          .gallery-camera-lens-ring {
+            width: 104px;
+            height: 104px;
+          }
+
+          .gallery-camera-lens-core {
+            width: 52px;
+            height: 52px;
+          }
+
+          .gallery-camera-card.back {
+            width: 180px;
+            height: 112px;
+            top: 28px;
+            right: 18px;
+          }
+
+          .gallery-camera-card.front {
+            width: 185px;
+            height: 116px;
+            bottom: 30px;
+            left: 10px;
+          }
+
+          .gallery-floating-badge.one {
+            top: 18px;
+            left: 0;
+          }
+
+          .gallery-floating-badge.two {
+            right: 0;
+            bottom: 18px;
+          }
+
+          .gallery-marquee-item {
+            padding: 0 18px;
+            font-size: 11px;
+            letter-spacing: 0.14em;
+          }
+
+          .gallery-stats-section {
+            margin-top: -26px;
+          }
+
+          .gallery-stats {
+            grid-template-columns: 1fr;
+          }
+
+          .gallery-stat {
+            border-left: none;
+            border-top: 1px solid #f1e7d9;
+          }
+
+          .gallery-stat:first-child {
+            border-top: none;
+          }
+
+          .gallery-grid {
+            grid-template-columns: 1fr;
+            gap: 18px;
+          }
+
+          .gallery-card,
+          .gallery-card:nth-child(1),
+          .gallery-card:nth-child(2),
+          .gallery-card:nth-child(3),
+          .gallery-card:nth-child(4),
+          .gallery-card:nth-child(5),
+          .gallery-card:nth-child(6),
+          .gallery-card:nth-child(7),
+          .gallery-card:nth-child(8),
+          .gallery-card:nth-child(9) {
+            grid-column: span 1;
+            min-height: auto;
+            border-radius: 24px;
+          }
+
+          .gallery-card-visual {
+            min-height: 205px;
+          }
+
+          .gallery-album-stack {
+            width: 190px;
+            height: 126px;
+          }
+
+          .gallery-card-title {
+            font-size: 34px;
+          }
+
+          .gallery-note-box {
+            grid-template-columns: 1fr;
+            padding: 24px 20px;
+          }
+
+          .gallery-socials {
+            width: 100%;
+          }
+
+          .gallery-social-link {
+            flex: 1;
+          }
+
+          .gallery-thankyou-box {
+            padding: 42px 22px;
+            border-radius: 24px;
+          }
+
+          .gallery-modal-backdrop {
+            padding: 12px;
+            align-items: flex-start;
+          }
+
+          .gallery-modal {
+            max-height: 94vh;
+            border-radius: 24px;
+          }
+
+          .gallery-modal-header {
+            padding: 20px;
+          }
+
+          .gallery-modal-title {
+            font-size: 30px;
+          }
+
+          .gallery-photo-grid {
+            max-height: calc(94vh - 150px);
+            grid-template-columns: 1fr;
+            padding: 16px;
+          }
+
+          .gallery-photo-btn {
+            height: 280px;
+          }
         }
       `}</style>
 
-      <div className="gp">
+      <div className="gallery-page">
+        <section className="gallery-hero">
+          <div className="gallery-hero-bg" />
 
-        {/* ── HERO ─────────────────────────────────────────────────────── */}
-        <div style={{ background: 'linear-gradient(135deg,#1a120b 0%,#2c1a0a 55%,#1a120b 100%)', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'repeating-linear-gradient(45deg,rgba(200,132,26,.035) 0,rgba(200,132,26,.035) 1px,transparent 1px,transparent 56px)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle,rgba(200,132,26,.15) 0%,transparent 65%)', pointerEvents: 'none' }} />
+          <div className="gallery-wrap">
+            <div className="gallery-hero-layout">
+              <div className="gallery-hero-content">
+                <div className="gallery-kicker">
+                  <GoldIcon name="camera" />
+                  Galeria e eventeve
+                </div>
 
-          <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '60px 22px 54px' : '84px 44px 76px', position: 'relative', zIndex: 1, textAlign: 'center' }}>
-            <div className="gp-a1" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(200,132,26,.12)', border: '1px solid rgba(200,132,26,.3)', borderRadius: 99, padding: '8px 20px', marginBottom: 28 }}>
-              <span style={{ fontSize: 15 }}>📷</span>
-              <span style={{ color: '#e8b56a', fontSize: 12, fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase' }}>Our Portfolio</span>
+                <h1 className="gallery-serif gallery-hero-title">
+                  Albumet tona
+                  <br />
+                  plot <em>jetë</em>
+                </h1>
+
+                <p className="gallery-hero-text">
+                  Këtu mund t’i shihni disa nga momentet, dekorimet, personazhet dhe
+                  detajet që kemi realizuar në evente të ndryshme. Çdo album përmban
+                  vetëm një pjesë të punës sonë, sepse çdo event ka historinë e vet.
+                </p>
+
+                <div className="gallery-hero-actions">
+                  <a href="#albumet" className="gallery-btn-gold">
+                    Shiko albumet
+                    <GoldIcon name="arrow" />
+                  </a>
+
+                  <a
+                    href="https://www.instagram.com/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="gallery-btn-light"
+                  >
+                    <GoldIcon name="instagram" />
+                    Na ndiqni në Instagram
+                  </a>
+                </div>
+              </div>
+
+              <div className="gallery-hero-illustration">
+                <div className="gallery-camera-wrap">
+                  <div className="gallery-camera-glow" />
+
+                  <div className="gallery-camera-card back" />
+                  <div className="gallery-camera-card front" />
+
+                  <div className="gallery-floating-badge one">
+                    <span className="dot" />
+                    Albume kreative
+                  </div>
+
+                  <div className="gallery-floating-badge two">
+                    <span className="dot" />
+                    Foto & kujtime
+                  </div>
+
+                  <div className="gallery-camera-body">
+                    <div className="gallery-camera-top" />
+                    <div className="gallery-camera-button" />
+                    <div className="gallery-camera-small-circle" />
+                    <div className="gallery-camera-flash" />
+
+                    <div className="gallery-camera-lens-ring">
+                      <div className="gallery-camera-lens-core" />
+                    </div>
+
+                    <div className="gallery-camera-label">MD Creative</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="gallery-marquee">
+          <div className="gallery-marquee-track">
+            {[...Array(2)].map((_, repeatIndex) => (
+              <div key={repeatIndex} className="gallery-marquee-group">
+                {tickerItems.map((item) => (
+                  <div key={`${repeatIndex}-${item}`} className="gallery-marquee-item">
+                    <span>{item}</span>
+                    <span className="gallery-marquee-dot" />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <section className="gallery-stats-section">
+          <div className="gallery-wrap">
+            <div className="gallery-stats">
+              <div className="gallery-stat">
+                <div className="gallery-stat-icon">
+                  <GoldIcon name="grid" />
+                </div>
+                <span className="gallery-serif gallery-stat-number">{albums.length}</span>
+                <span className="gallery-stat-label">Albume të organizuara</span>
+              </div>
+
+              <div className="gallery-stat">
+                <div className="gallery-stat-icon">
+                  <GoldIcon name="camera" />
+                </div>
+                <span className="gallery-serif gallery-stat-number">{totalPhotos}+</span>
+                <span className="gallery-stat-label">Foto të përzgjedhura</span>
+              </div>
+
+              <div className="gallery-stat">
+                <div className="gallery-stat-icon">
+                  <GoldIcon name="sparkles" />
+                </div>
+                <span className="gallery-serif gallery-stat-number">100%</span>
+                <span className="gallery-stat-label">Detaje të kuruara</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="gallery-intro">
+          <div className="gallery-wrap">
+            <div className="gallery-kicker">
+              <GoldIcon name="sparkles" />
+              Zgjidh albumin
             </div>
 
-            <h1 className="gp-serif gp-a2" style={{ margin: '0 0 18px', color: '#fff', fontSize: isMobile ? '52px' : isTablet ? '68px' : '86px', lineHeight: 1.0, fontWeight: 700 }}>
-              Event{' '}
-              <em style={{ fontStyle: 'italic', color: '#c8841a' }}>Gallery</em>
-            </h1>
+            <h2 className="gallery-serif gallery-section-title">
+              Çdo kategori ka
+              <br />
+              atmosferën e vet <em>speciale</em>
+            </h2>
 
-            <p className="gp-a3" style={{ margin: '0 auto', color: 'rgba(255,255,255,.65)', fontSize: isMobile ? '16px' : '18px', lineHeight: 1.85, maxWidth: 580 }}>
-              Browse photos from our past events — decorations, mascot appearances, activities, and beautiful celebrations we've brought to life.
+            <p className="gallery-section-text">
+              Klikoni në një album për t’i parë fotot brenda tij. Kartat janë menduar
+              si kopertina albumesh, ndërsa fotot reale hapen brenda secilit album.
             </p>
           </div>
+        </section>
 
-          {/* ticker */}
-          <div style={{ borderTop: '1px solid rgba(200,132,26,.18)', padding: '13px 0', overflow: 'hidden' }}>
-            <div className="gp-ticker">
-              {[...Array(2)].map((_, ri) => (
-                <span key={ri} style={{ display: 'inline-flex' }}>
-                  {['Decorations', 'Mascots', 'Activities', 'Photo Booth', 'Packages', 'Weddings', 'Birthdays', 'Engagements'].map((t) => (
-                    <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 16, paddingRight: 40 }}>
-                      <span style={{ color: '#c8841a', fontSize: 13 }}>✦</span>
-                      <span style={{ color: 'rgba(255,255,255,.45)', fontSize: 12, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase' }}>{t}</span>
-                    </span>
-                  ))}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
+        <section id="albumet" className="gallery-albums">
+          <div className="gallery-wrap">
+            <div className="gallery-grid">
+              {albums.map((album, index) => (
+                <button
+                  key={album.id}
+                  type="button"
+                  className={`gallery-card tone-${album.tone}`}
+                  style={{ animationDelay: `${index * 0.06}s` }}
+                  onClick={() => setSelectedAlbum(album)}
+                >
+                  <div className={`gallery-card-visual tone-${album.tone}`}>
+                    <div className="gallery-card-top">
+                      <span className="gallery-card-badge">
+                        <GoldIcon name="camera" />
+                        {album.badge}
+                      </span>
 
-        {/* ── STATS ────────────────────────────────────────────────────── */}
-        <div style={{ padding: '0 22px', marginTop: isMobile ? '-36px' : '-48px', position: 'relative', zIndex: 2 }}>
-          <div className="gp-stats-grid" style={{ maxWidth: 860, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', background: '#fff', borderRadius: 22, boxShadow: '0 18px 48px rgba(26,18,11,.09)', overflow: 'hidden' }}>
-            <StatCount target={250} suffix="+" label="Captured Moments" isMobile={isMobile} />
-            <div style={{ borderLeft: '1px solid #f0e9dd' }}>
-              <StatCount target={800} suffix="+" label="Events Styled" isMobile={isMobile} />
-            </div>
-            <div style={{ borderLeft: '1px solid #f0e9dd' }}>
-              <StatCount target={6} suffix="" label="Service Categories" isMobile={isMobile} />
-            </div>
-          </div>
-        </div>
+                      <span className="gallery-card-count">{album.countLabel}</span>
+                    </div>
 
-        {/* ── GALLERY ──────────────────────────────────────────────────── */}
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '52px 22px 72px' : '72px 44px 96px' }}>
+                    <div className="gallery-album-center">
+                      <div className="gallery-album-stack">
+                        <div className="gallery-album-sheet gallery-album-sheet-back" />
+                        <div className="gallery-album-sheet gallery-album-sheet-middle" />
+                        <div className="gallery-album-sheet gallery-album-sheet-front">
+                          <div className="gallery-album-icon">
+                            <GoldIcon name="grid" />
+                          </div>
 
-          {/* heading */}
-          <div style={{ textAlign: 'center', marginBottom: 36 }}>
-            <p style={{ margin: '0 0 8px', color: '#c8841a', fontSize: 12, fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase' }}>Explore Moments</p>
-            <h2 className="gp-serif" style={{ margin: 0, fontSize: isMobile ? '32px' : '48px', fontWeight: 700, color: '#1a120b', lineHeight: 1.08 }}>
-              See our celebration <em style={{ fontStyle: 'italic', color: '#c8841a' }}>highlights.</em>
-            </h2>
-          </div>
-
-          {/* filters */}
-          <div className="gp-filter-row" style={{ display: 'flex', justifyContent: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 36 }}>
-            {filters.map((f) => {
-              const active = f === activeFilter;
-              return (
-                <button key={f} type="button" className={`gp-filter${active ? ' active' : ''}`}
-                  onClick={() => setActiveFilter(f)}
-                  style={{
-                    padding: '9px 20px', borderRadius: 99, fontSize: 13, fontWeight: 700,
-                    cursor: 'pointer', fontFamily: 'inherit',
-                    border: active ? 'none' : '1.5px solid #e6d9c4',
-                    background: active ? '#c8841a' : '#fff',
-                    color: active ? '#fff' : '#6b5a45',
-                    boxShadow: active ? '0 4px 16px rgba(200,132,26,.3)' : '0 2px 8px rgba(26,18,11,.04)',
-                  }}>
-                  {f}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* grid */}
-          <div className="gp-gallery-grid" style={{ display: 'grid', gap: 18 }}>
-            {filtered.map((item) => (
-                <article key={item.id} className="gp-card"
-                  onClick={() => setSelected(item)}
-                  style={{ position: 'relative', height: 340, borderRadius: 22, overflow: 'hidden', boxShadow: '0 6px 24px rgba(26,18,11,.09)' }}>
-
-                  <img src={item.image} alt={item.title} className="gp-card-img" />
-
-                  {/* gradient overlay always visible */}
-                  <div className="gp-overlay" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(20,10,2,.08) 0%,rgba(20,10,2,.78) 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '16px' }}>
-                    {/* category tag — always top left */}
-                    <span style={{ alignSelf: 'flex-start', background: '#c8841a', color: '#fff', borderRadius: 99, padding: '5px 13px', fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase' }}>
-                      {item.category}
-                    </span>
-
-                    {/* text bottom */}
-                    <div>
-                      <h3 className="gp-serif" style={{ margin: '0 0 6px', color: '#fff', fontSize: '22px', fontWeight: 700, lineHeight: 1.1 }}>{item.title}</h3>
-                      <p style={{ margin: '0 0 12px', color: 'rgba(255,255,255,.75)', fontSize: 13, lineHeight: 1.65 }}>{item.description}</p>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#f0c060', fontSize: 13, fontWeight: 700 }}>
-                        View
-                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M8 3l3.5 3.5L8 10" stroke="#f0c060" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          <span className="gallery-album-mini-title">{album.title}</span>
+                          <span className="gallery-album-mini-subtitle">
+                            {album.subtitle}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </article>
-              ))}
-          </div>
 
-          {/* bottom note */}
-          <div style={{ marginTop: 44, background: '#fff', border: '1.5px solid #e6d9c4', borderRadius: 22, padding: isMobile ? '28px 22px' : '36px 44px', textAlign: 'center', boxShadow: '0 4px 20px rgba(26,18,11,.05)' }}>
-            <div style={{ fontSize: 32, marginBottom: 14 }}>🎉</div>
-            <h3 className="gp-serif" style={{ margin: '0 0 10px', fontSize: isMobile ? '24px' : '34px', fontWeight: 700, color: '#1a120b' }}>
-              Want your event featured here next?
-            </h3>
-            <p style={{ margin: '0 auto 28px', maxWidth: 560, color: '#7a6a52', fontSize: 15, lineHeight: 1.8 }}>
-              We create stylish, joyful, and memorable celebrations with decorations, mascots, activities, and custom event experiences.
-            </p>
-            <div className="gp-cta-btns" style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Link to="/booking" className="gp-cta-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none', background: '#c8841a', color: '#fff', padding: '13px 26px', borderRadius: 99, fontWeight: 700, fontSize: 15, boxShadow: '0 6px 20px rgba(200,132,26,.3)' }}>
-                Book Your Event
-                <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M2.5 7.5h10M9 4l3.5 3.5L9 11" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </Link>
-              <Link to="/packages" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none', background: 'transparent', color: '#1a120b', padding: '13px 26px', borderRadius: 99, fontWeight: 700, fontSize: 15, border: '1.5px solid #d8cfc3' }}>
-                View Packages
-              </Link>
+                  <div className="gallery-card-body">
+                    <span className="gallery-card-subtitle">{album.subtitle}</span>
+
+                    <h3 className="gallery-serif gallery-card-title">{album.title}</h3>
+
+                    <p className="gallery-card-desc">{album.description}</p>
+
+                    <span className="gallery-card-action">
+                      Hap albumin
+                      <GoldIcon name="arrow" />
+                    </span>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
+
+        <section className="gallery-note">
+          <div className="gallery-wrap">
+            <div className="gallery-note-box">
+              <div>
+                <h3 className="gallery-note-title">
+                  Këto janë vetëm disa nga momentet tona
+                </h3>
+
+                <p className="gallery-note-text">
+                  Në çdo event krijojmë përmbajtje të reja — foto, video, prapaskena
+                  dhe detaje nga realizimi. Për më shumë momente të përditshme, na
+                  ndiqni në Instagram dhe TikTok, ku publikojmë event pas eventi punën
+                  tonë.
+                </p>
+              </div>
+
+              <div className="gallery-socials">
+                <a
+                  href="https://www.instagram.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="gallery-social-link"
+                >
+                  <GoldIcon name="instagram" />
+                  Instagram
+                </a>
+
+                <a
+                  href="https://www.tiktok.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="gallery-social-link"
+                >
+                  <GoldIcon name="tiktok" />
+                  TikTok
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="gallery-thankyou">
+          <div className="gallery-wrap">
+            <div className="gallery-thankyou-box">
+              <div className="gallery-thankyou-inner">
+                <div className="gallery-kicker">
+                  <GoldIcon name="heart" />
+                  Nga MD Creative
+                </div>
+
+                <h2 className="gallery-serif gallery-thankyou-title">
+                  Faleminderit që çdo moment
+                  <br />
+                  e bëni më <em>të bukur</em>
+                </h2>
+
+                <p className="gallery-thankyou-text">
+                  Çdo festë, çdo buzëqeshje dhe çdo detaj na jep më shumë arsye të
+                  krijojmë me dashuri. Galeria jonë rritet me ju, event pas eventi.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
 
-      {/* ── MODAL ────────────────────────────────────────────────────── */}
-      {selected && (
-        <div className="gp-modal-overlay"
-          onClick={() => setSelected(null)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(10,6,2,.82)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '16px' : '32px', zIndex: 9999 }}>
-
-          <div className="gp-modal-card"
-            onClick={(e) => e.stopPropagation()}
-            style={{ width: '100%', maxWidth: 960, background: '#fff', borderRadius: 24, overflow: 'hidden', position: 'relative', boxShadow: '0 24px 64px rgba(0,0,0,.35)', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
-
-            {/* close */}
-            <button className="gp-close"
-              onClick={() => setSelected(null)}
-              style={{ position: 'absolute', top: 14, right: 14, width: 38, height: 38, borderRadius: '50%', border: 'none', background: 'rgba(26,18,11,.7)', color: '#fff', fontSize: 20, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2, transition: 'background .2s' }}>
-              ✕
-            </button>
-
-            <div className="gp-modal-inner" style={{ display: 'flex', flex: 1, overflow: 'auto' }}>
-              {/* image */}
-              <div className="gp-modal-img" style={{ width: isMobile ? '100%' : '60%', flexShrink: 0, height: isMobile ? 260 : 'auto', minHeight: isMobile ? 0 : 480 }}>
-                <img src={selected.image} alt={selected.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+      {selectedAlbum ? (
+        <div
+          className="gallery-modal-backdrop"
+          onClick={() => setSelectedAlbum(null)}
+          role="presentation"
+        >
+          <div className="gallery-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="gallery-modal-header">
+              <div>
+                <h2 className="gallery-serif gallery-modal-title">{selectedAlbum.title}</h2>
+                <p className="gallery-modal-desc">{selectedAlbum.description}</p>
               </div>
 
-              {/* content */}
-              <div style={{ padding: isMobile ? '22px' : '36px', display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1 }}>
-                <span style={{ display: 'inline-block', background: '#fef3d0', color: '#92640e', borderRadius: 99, padding: '5px 14px', fontSize: 12, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 16, alignSelf: 'flex-start' }}>
-                  {selected.category}
-                </span>
-                <h3 className="gp-serif" style={{ margin: '0 0 14px', fontSize: isMobile ? '26px' : '36px', fontWeight: 700, color: '#1a120b', lineHeight: 1.1 }}>{selected.title}</h3>
-                <p style={{ margin: '0 0 28px', color: '#7a6a52', fontSize: 15, lineHeight: 1.8 }}>{selected.description}</p>
-                <Link to="/booking" onClick={() => setSelected(null)} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, alignSelf: 'flex-start', textDecoration: 'none', background: '#c8841a', color: '#fff', padding: '12px 24px', borderRadius: 99, fontWeight: 700, fontSize: 14, boxShadow: '0 4px 16px rgba(200,132,26,.3)' }}>
-                  Book This Style
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3.5l3.5 3.5L8 10.5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </Link>
-              </div>
+              <button
+                type="button"
+                className="gallery-modal-close"
+                aria-label="Mbyll albumin"
+                onClick={() => setSelectedAlbum(null)}
+              >
+                <GoldIcon name="close" />
+              </button>
+            </div>
+
+            <div className="gallery-photo-grid">
+              {selectedAlbum.photos.map((photo, index) => (
+                <button
+                  key={photo}
+                  type="button"
+                  className="gallery-photo-btn"
+                  onClick={() => setSelectedPhoto(photo)}
+                >
+                  <img src={photo} alt={`${selectedAlbum.title} ${index + 1}`} />
+                  <span className="gallery-photo-number">
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
-      )}
+      ) : null}
+
+      {selectedPhoto ? (
+        <div className="gallery-photo-viewer" onClick={() => setSelectedPhoto(null)}>
+          <button
+            type="button"
+            className="gallery-photo-close"
+            aria-label="Mbyll foton"
+            onClick={() => setSelectedPhoto(null)}
+          >
+            <GoldIcon name="close" />
+          </button>
+
+          <img
+            src={selectedPhoto}
+            alt="Foto nga galeria"
+            onClick={(event) => event.stopPropagation()}
+          />
+        </div>
+      ) : null}
 
       <ScrollToTop />
     </>

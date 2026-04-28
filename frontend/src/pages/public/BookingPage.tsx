@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { FormEvent, ReactNode } from 'react';
 import { createPublicBooking } from '../../services/bookingApi';
 import { getPublicPackages } from '../../services/packageApi';
 import type { PackageItem } from '../../services/packageApi';
@@ -35,469 +36,931 @@ const initialForm: BookingFormState = {
   package_id: '',
 };
 
+const eventTypes = [
+  'Ditëlindje',
+  'Dasmë',
+  'Fejesë',
+  'Baby Shower',
+  'Kanagjegj / Bride to Be',
+  'Syneti',
+  'Event familjar',
+  'Event biznesi',
+  'Event shkollor',
+  'Tjetër',
+];
+
 function useWindowWidth() {
-  const [w, setW] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
   useEffect(() => {
-    const fn = () => setW(window.innerWidth);
-    window.addEventListener('resize', fn);
-    return () => window.removeEventListener('resize', fn);
+    const handleResize = () => setWidth(window.innerWidth);
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
-  return w;
+
+  return width;
 }
 
-function ScrollToTop() {
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const fn = () => setVisible(window.scrollY > 400);
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
-  }, []);
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Scroll to top"
-      style={{
-        position: 'fixed', bottom: 28, right: 24, zIndex: 999,
-        width: 50, height: 50, borderRadius: '50%',
-        background: '#c8841a', border: 'none', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 6px 24px rgba(200,132,26,0.45)',
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0) scale(1)' : 'translateY(16px) scale(0.8)',
-        transition: 'opacity 0.3s, transform 0.3s',
-        pointerEvents: visible ? 'auto' : 'none',
-      }}>
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path d="M10 15V5M10 5L5 10M10 5L15 10" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </button>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <label style={{ fontSize: 12, fontWeight: 700, color: '#7a6a52', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
-        {label}
-      </label>
+    <div className="booking-field">
+      <label className="booking-label">{label}</label>
       {children}
     </div>
   );
 }
 
-function SuccessScreen({ name, onReset }: { name: string; onReset: () => void }) {
-  const firstName = name.split(' ')[0] || 'there';
+function CardTitle({ icon, title }: { icon: string; title: string }) {
   return (
-    <div style={{ minHeight: '100vh', background: '#faf6f0', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
-      <style>{`
-        @keyframes popIn { 0%{opacity:0;transform:scale(0.6) rotate(-10deg)} 70%{transform:scale(1.1) rotate(2deg)} 100%{opacity:1;transform:scale(1) rotate(0)} }
-        @keyframes fadeSlideUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes floatBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-        @keyframes sparkPop { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)} 50%{opacity:1;transform:scale(1) rotate(20deg)} }
-        .s-icon  { animation: popIn 0.7s cubic-bezier(.34,1.56,.64,1) both; }
-        .s-float { animation: floatBob 3.2s ease-in-out infinite; }
-        .s-t1 { animation: fadeSlideUp 0.5s ease both 0.35s; }
-        .s-t2 { animation: fadeSlideUp 0.5s ease both 0.5s; }
-        .s-t3 { animation: fadeSlideUp 0.5s ease both 0.65s; }
-        .s-t4 { animation: fadeSlideUp 0.5s ease both 0.8s; }
-        .sp { animation: sparkPop 2s ease-in-out infinite; }
-        .s-btn:hover { transform: translateY(-3px) !important; box-shadow: 0 14px 36px rgba(200,132,26,0.45) !important; }
-      `}</style>
-      <div style={{ maxWidth: 580, width: '100%', textAlign: 'center' }}>
-        {/* icon */}
-        <div style={{ position: 'relative', display: 'inline-block', marginBottom: 36 }}>
-          {[{ t: -12, l: -14, d: '0s' }, { t: -16, r: -10, d: '0.5s' }, { b: 2, l: -20, d: '0.9s' }, { b: -4, r: -18, d: '1.3s' }].map((s, i) => (
-            <div key={i} className="sp" style={{ position: 'absolute', ...(s.t !== undefined ? { top: s.t } : { bottom: s.b }), ...(s.l !== undefined ? { left: s.l } : { right: s.r }), animationDelay: s.d }}>
-              <svg viewBox="0 0 12 12" width="12" height="12" fill="none">
-                <path d="M6 0L7.2 4.8L12 6L7.2 7.2L6 12L4.8 7.2L0 6L4.8 4.8Z" fill="#c8841a" />
-              </svg>
-            </div>
-          ))}
-          <div className="s-icon s-float" style={{ width: 120, height: 120, borderRadius: '50%', background: 'linear-gradient(135deg,#fef3d0,#fde09a)', border: '4px solid #c8841a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 56, boxShadow: '0 16px 48px rgba(200,132,26,0.28)' }}>
-            🎉
+    <div className="booking-card-title">
+      <div className="booking-card-icon">{icon}</div>
+      <h3>{title}</h3>
+    </div>
+  );
+}
+
+function SuccessScreen({ username, onReset }: { username: string; onReset: () => void }) {
+  const displayName = username.trim() || 'klient';
+
+  return (
+    <main className="booking-success-page">
+      <section className="booking-success-card">
+        <div className="booking-success-icon">🎉</div>
+
+        <p className="booking-success-kicker">Rezervimi u dërgua</p>
+
+        <h1>Faleminderit, {displayName}!</h1>
+
+        <p>
+          Kërkesa juaj u pranua me sukses. Ekipi i MD Creative do t’ju kontaktojë brenda 24 orëve.
+        </p>
+
+        <div className="booking-success-steps">
+          <div>
+            <strong>📞 Kontakt</strong>
+            <span>Konfirmojmë detajet kryesore.</span>
+          </div>
+
+          <div>
+            <strong>🎨 Propozim</strong>
+            <span>Përgatisim ofertën sipas eventit.</span>
+          </div>
+
+          <div>
+            <strong>🎊 Realizim</strong>
+            <span>Kujdesemi për festën tuaj.</span>
           </div>
         </div>
 
-        <h1 className="s-t1" style={{ margin: '0 0 8px', fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(34px,6vw,54px)', fontWeight: 700, lineHeight: 1.08, color: '#1a120b' }}>
-          Thank you, {firstName}!
-        </h1>
-        <h2 className="s-t1" style={{ margin: '0 0 22px', fontFamily: "'Cormorant Garamond',serif", fontSize: 'clamp(24px,4vw,36px)', fontWeight: 600, fontStyle: 'italic', color: '#c8841a', lineHeight: 1.1 }}>
-          You chose the best for your celebration.
-        </h2>
-
-        <p className="s-t2" style={{ margin: '0 0 36px', fontSize: 17, lineHeight: 1.9, color: '#6b5a45', maxWidth: 460, marginLeft: 'auto', marginRight: 'auto' }}>
-          We are truly honored to be part of your special moment. Our team will personally review your request and reach out within <strong style={{ color: '#1a120b' }}>24 hours</strong> to start bringing your vision to life. ✨
-        </p>
-
-        <div className="s-t3" style={{ background: '#fff', borderRadius: 22, border: '1.5px solid #eddec4', padding: '26px 28px', marginBottom: 28, textAlign: 'left', boxShadow: '0 6px 24px rgba(200,132,26,0.09)' }}>
-          <p style={{ margin: '0 0 18px', fontSize: 11, fontWeight: 700, color: '#c8841a', letterSpacing: '0.14em', textTransform: 'uppercase' }}>What happens next</p>
-          {[
-            { icon: '📞', title: 'Personal call', text: 'We contact you to confirm every detail and understand your vision' },
-            { icon: '🎨', title: 'Custom proposal', text: 'Our team prepares a tailored setup made exactly for your event' },
-            { icon: '🎊', title: 'Your magic day', text: 'We arrive, transform the space, and make every moment unforgettable' },
-          ].map((s, i) => (
-            <div key={i} style={{ display: 'flex', gap: 16, marginBottom: i < 2 ? 18 : 0, alignItems: 'flex-start' }}>
-              <span style={{ fontSize: 26, flexShrink: 0 }}>{s.icon}</span>
-              <div>
-                <p style={{ margin: '0 0 3px', fontWeight: 700, fontSize: 15, color: '#1a120b' }}>{s.title}</p>
-                <p style={{ margin: 0, fontSize: 14, color: '#7a6a52', lineHeight: 1.6 }}>{s.text}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <button className="s-t4 s-btn" onClick={onReset} style={{ height: 54, borderRadius: 14, border: 'none', background: '#c8841a', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', padding: '0 36px', fontFamily: 'inherit', transition: 'transform 0.2s, box-shadow 0.2s', boxShadow: '0 6px 20px rgba(200,132,26,0.32)' }}>
-          Submit Another Booking
+        <button type="button" onClick={onReset}>
+          Dërgo një rezervim tjetër
         </button>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
 
 export default function BookingPage() {
   const [form, setForm] = useState<BookingFormState>(initialForm);
+  const [packages, setPackages] = useState<PackageItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [submittedName, setSubmittedName] = useState('');
+  const [submittedUsername, setSubmittedUsername] = useState('');
   const [error, setError] = useState('');
-  const [packages, setPackages] = useState<PackageItem[]>([]);
+
   const width = useWindowWidth();
-  const isMobile = width < 640;
-  const isTablet = width < 1024;
+  const isMobile = width < 720;
 
   useEffect(() => {
-    getPublicPackages().then((d) => setPackages(d.filter((i) => i.is_active))).catch(() => setPackages([]));
+    getPublicPackages()
+      .then((data) => setPackages(data.filter((item) => item.is_active)))
+      .catch(() => setPackages([]));
   }, []);
 
-  const handleChange = (key: keyof BookingFormState, value: string | number) =>
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const handleChange = (key: keyof BookingFormState, value: string | number) => {
+    setForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
     try {
-      setSubmitting(true); setError('');
+      setSubmitting(true);
+      setError('');
+
       await createPublicBooking(form);
-      setSubmittedName(form.full_name);
+
+      setSubmittedUsername(form.full_name);
       setSubmitted(true);
       setForm(initialForm);
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to submit booking');
+      setError(err instanceof Error ? err.message : 'Rezervimi nuk mund të dërgohet.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const quotes = [
-    'Every great celebration starts with a single decision.',
-    'Your story deserves to be told in the most beautiful way.',
-    'The moments you plan today become memories for a lifetime.',
-    'Great events don\'t happen — they\'re crafted with love.',
-  ];
-  const quote = quotes[Math.floor(Date.now() / 86400000) % quotes.length];
-
   if (submitted) {
     return (
       <>
-        <style>{`@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,700;1,600&family=DM+Sans:wght@400;500;700&display=swap');`}</style>
-        <SuccessScreen name={submittedName} onReset={() => { setSubmitted(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
-        <ScrollToTop />
+        <BookingStyles />
+        <SuccessScreen
+          username={submittedUsername}
+          onReset={() => {
+            setSubmitted(false);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
       </>
     );
   }
 
-  const inp: React.CSSProperties = {
-    height: 50, borderRadius: 12,
-    border: '1.5px solid #e6d9c4',
-    padding: '0 16px', fontSize: 15,
-    outline: 'none', background: '#fffcf7',
-    color: '#1a120b', width: '100%',
-    boxSizing: 'border-box' as const,
-    fontFamily: 'inherit',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
-  };
-
-  const twoCol: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-    gap: 16,
-  };
-
-  const sectionIcon = (emoji: string) => (
-    <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#fef3d0', border: '1.5px solid #c8841a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
-      {emoji}
-    </div>
-  );
-
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@400;500;700&display=swap');
-        .bp { font-family: 'DM Sans', sans-serif; background: #faf6f0; }
-        .bp-serif { font-family: 'Cormorant Garamond', serif; }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-        @keyframes bp-spin { to{transform:rotate(360deg)} }
-        .a1{animation:fadeUp .5s ease both .05s} .a2{animation:fadeUp .5s ease both .18s}
-        .a3{animation:fadeUp .5s ease both .3s}  .a4{animation:fadeUp .5s ease both .42s}
-        .bp-inp:focus { border-color:#c8841a !important; background:#fffdf5 !important; box-shadow:0 0 0 3px rgba(200,132,26,.14) !important; }
-        .bp-pkg { transition: border-color .2s, transform .2s, box-shadow .2s; cursor: pointer; }
-        .bp-pkg:hover { border-color:#c8841a !important; transform:translateY(-3px); box-shadow:0 10px 28px rgba(200,132,26,.18) !important; }
-        .bp-pkg-sel { border-color:#c8841a !important; background:#fffbf2 !important; box-shadow:0 6px 24px rgba(200,132,26,.2) !important; }
-        .bp-sub { transition: transform .2s, box-shadow .2s; }
-        .bp-sub:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 16px 40px rgba(200,132,26,.45) !important; }
-        .bp-sub:disabled { opacity:.65; cursor:not-allowed; }
-        .ticker { display:inline-flex; animation:marquee 24s linear infinite; }
-        @media(max-width:639px) {
-          .bp-hgrid { grid-template-columns:1fr !important; }
-          .bp-himg  { display:none !important; }
-          .bp-pgrid { grid-template-columns:1fr !important; }
-        }
-        @media(min-width:640px) and (max-width:1023px) {
-          .bp-pgrid { grid-template-columns:repeat(2,1fr) !important; }
-        }
-      `}</style>
+      <BookingStyles />
 
-      <div className="bp">
+      <main className="booking-page">
+        <section className="booking-hero">
+          <div className="booking-hero-text">
+            <p className="booking-kicker">Rezervo datën</p>
 
-        {/* ── HERO ─────────────────────────────────────────────────────── */}
-        <div style={{ background: 'linear-gradient(135deg,#1a120b 0%,#2c1a0a 55%,#1a120b 100%)', position: 'relative', overflow: 'hidden' }}>
-          {/* diagonal pattern */}
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'repeating-linear-gradient(45deg,rgba(200,132,26,.035) 0,rgba(200,132,26,.035) 1px,transparent 1px,transparent 56px)', pointerEvents: 'none' }} />
-          {/* glow */}
-          <div style={{ position: 'absolute', top: '50%', left: '55%', transform: 'translate(-50%,-50%)', width: 700, height: 700, borderRadius: '50%', background: 'radial-gradient(circle,rgba(200,132,26,.14) 0%,transparent 65%)', pointerEvents: 'none' }} />
+            <h1>
+              Eventi juaj <span>fillon këtu.</span>
+            </h1>
 
-          <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '60px 22px 54px' : '84px 44px 76px', position: 'relative', zIndex: 1 }}>
-            <div className="bp-hgrid" style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 400px', gap: isMobile ? 28 : 56, alignItems: 'center' }}>
+            <p>Plotësoni detajet kryesore dhe ne kujdesemi për pjesën tjetër.</p>
 
-              <div>
-                <div className="a1" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(200,132,26,.12)', border: '1px solid rgba(200,132,26,.3)', borderRadius: 99, padding: '8px 18px', marginBottom: 26 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#c8841a' }} />
-                  <span style={{ color: '#e8b56a', fontSize: 12, fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase' }}>Reserve Your Date</span>
-                </div>
+            <div className="booking-badges">
+              <span>5k+ klientë</span>
+              <span>800+ evente</span>
+              <span>MD Creative</span>
+            </div>
+          </div>
 
-                <h1 className="bp-serif a2" style={{ margin: '0 0 6px', color: '#fff', fontSize: isMobile ? '42px' : isTablet ? '58px' : '72px', lineHeight: 1.02, fontWeight: 700 }}>
-                  Your dream event
-                </h1>
-                <h1 className="bp-serif a2" style={{ margin: '0 0 26px', fontStyle: 'italic', color: '#c8841a', fontSize: isMobile ? '42px' : isTablet ? '58px' : '72px', lineHeight: 1.02, fontWeight: 600 }}>
-                  starts right here.
-                </h1>
+          {!isMobile && (
+            <div className="booking-hero-image">
+              <img
+                src="/images/gallery/decoration-girl2.png"
+                alt="Dekor eventesh MD Creative"
+                onError={(event) => {
+                  event.currentTarget.src = '/images/gallery/baby-shower2.png';
+                }}
+              />
 
-                <p className="a3" style={{ margin: '0 0 32px', color: 'rgba(255,255,255,.68)', fontSize: isMobile ? '16px' : '18px', lineHeight: 1.9, maxWidth: 540 }}>
-                  You deserve a celebration that feels like a dream. Fill in the details below — our team takes care of everything, from the first balloon to the last sparkle.
-                </p>
-
-                {/* quote */}
-                <div className="a3" style={{ borderLeft: '3px solid #c8841a', paddingLeft: 20, marginBottom: 34 }}>
-                  <p className="bp-serif" style={{ margin: 0, color: 'rgba(255,255,255,.78)', fontSize: isMobile ? '17px' : '20px', fontStyle: 'italic', lineHeight: 1.55 }}>
-                    "{quote}"
-                  </p>
-                </div>
-
-                {/* trust pills */}
-                <div className="a4" style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                  {['5,000+ Happy Clients', '800+ Events', 'Kosovo #1 Choice'].map((b) => (
-                    <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 99, padding: '7px 16px' }}>
-                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                        <path d="M6.5 1L7.9 5.1H12.2L8.7 7.6L9.9 11.7L6.5 9.2L3.1 11.7L4.3 7.6L0.8 5.1H5.1Z" fill="#c8841a" />
-                      </svg>
-                      <span style={{ color: 'rgba(255,255,255,.78)', fontSize: 13, fontWeight: 500 }}>{b}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="booking-hero-image-text">
+                <small>Evente me stil</small>
+                <strong>Detaje që mbahen mend ✨</strong>
               </div>
-
-              {/* hero image */}
-              {!isTablet && (
-                <div className="bp-himg" style={{ height: 480, borderRadius: 24, backgroundImage: 'linear-gradient(rgba(26,18,11,.18),rgba(26,18,11,.18)),url("https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80")', backgroundSize: 'cover', backgroundPosition: 'center', border: '1px solid rgba(200,132,26,.22)', boxShadow: '0 28px 64px rgba(0,0,0,.4)', position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', bottom: 20, left: 20, right: 20, background: 'rgba(26,18,11,.88)', borderRadius: 16, padding: '16px 18px', border: '1px solid rgba(200,132,26,.2)' }}>
-                    <p style={{ margin: '0 0 4px', color: '#c8841a', fontSize: 11, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase' }}>Premium Event Planning</p>
-                    <p style={{ margin: 0, color: '#fff', fontSize: 15, fontWeight: 600 }}>Let's make your moment unforgettable ✨</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* scrolling ticker */}
-          <div style={{ borderTop: '1px solid rgba(200,132,26,.18)', padding: '14px 0', overflow: 'hidden' }}>
-            <div className="ticker">
-              {[...Array(2)].map((_, ri) => (
-                <span key={ri} style={{ display: 'inline-flex' }}>
-                  {['Weddings', 'Birthdays', 'Engagements', 'Baby Showers', 'Anniversaries', 'Grand Openings', 'Corporate Events', 'Graduations'].map((t) => (
-                    <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 16, paddingRight: 40 }}>
-                      <span style={{ color: '#c8841a', fontSize: 13 }}>✦</span>
-                      <span style={{ color: 'rgba(255,255,255,.48)', fontSize: 12, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase' }}>{t}</span>
-                    </span>
-                  ))}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── PACKAGE PICKER ─────────────────────────────────────────── */}
-        {packages.length > 0 && (
-          <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '48px 22px 0' : '64px 44px 0' }}>
-            <p style={{ margin: '0 0 6px', color: '#c8841a', fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase' }}>Step 1 of 2</p>
-            <h2 className="bp-serif" style={{ margin: '0 0 6px', fontSize: isMobile ? '30px' : '40px', fontWeight: 700, color: '#1a120b', lineHeight: 1.1 }}>Choose your package</h2>
-            <p style={{ margin: '0 0 26px', color: '#7a6a52', fontSize: 15 }}>Pick the one that fits your celebration — customizable later.</p>
-
-            <div className="bp-pgrid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
-              {packages.map((pkg) => {
-                const sel = form.package_id === pkg.id;
-                return (
-                  <div key={pkg.id} className={`bp-pkg${sel ? ' bp-pkg-sel' : ''}`}
-                    onClick={() => handleChange('package_id', sel ? '' : pkg.id)}
-                    style={{ background: '#fff', borderRadius: 20, border: `1.5px solid ${sel ? '#c8841a' : '#e6d9c4'}`, padding: '22px', position: 'relative', boxShadow: sel ? '0 6px 24px rgba(200,132,26,.2)' : '0 2px 8px rgba(26,18,11,.04)' }}>
-                    {sel && (
-                      <div style={{ position: 'absolute', top: 14, right: 14, width: 24, height: 24, borderRadius: '50%', background: '#c8841a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-                          <path d="M2 6.5l3.5 3.5L11 3" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </div>
-                    )}
-                    <h3 style={{ margin: '0 0 8px', fontSize: 17, fontWeight: 800, color: '#1a120b', paddingRight: sel ? 32 : 0 }}>{pkg.title}</h3>
-                    <p style={{ margin: '0 0 16px', fontSize: 13, color: '#7a6a52', lineHeight: 1.7 }}>
-                      {pkg.description ? pkg.description.slice(0, 85) + (pkg.description.length > 85 ? '…' : '') : 'Premium event package'}
-                    </p>
-                    <p style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#c8841a' }}>€{pkg.base_price}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ── FORM ──────────────────────────────────────────────────── */}
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '44px 22px 80px' : '56px 44px 96px' }}>
-          <p style={{ margin: '0 0 6px', color: '#c8841a', fontSize: 12, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase' }}>
-            {packages.length > 0 ? 'Step 2 of 2' : 'Let\'s get started'}
-          </p>
-          <h2 className="bp-serif" style={{ margin: '0 0 6px', fontSize: isMobile ? '30px' : '40px', fontWeight: 700, color: '#1a120b', lineHeight: 1.1 }}>Tell us about your event</h2>
-          <p style={{ margin: '0 0 30px', color: '#7a6a52', fontSize: 15 }}>Every detail helps us craft the perfect experience for you.</p>
-
-          {error && (
-            <div style={{ background: '#fff1f1', color: '#991b1b', border: '1.5px solid #fecaca', borderRadius: 16, padding: '16px 20px', fontSize: 15, fontWeight: 600, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ flexShrink: 0 }}>
-                <circle cx="10" cy="10" r="9" fill="#ef4444" />
-                <path d="M10 6v4M10 14h.01" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-              {error}
             </div>
           )}
+        </section>
 
-          <form onSubmit={handleSubmit}>
-            <div style={{ background: '#fff', borderRadius: 26, border: '1.5px solid #e6d9c4', padding: isMobile ? '26px 18px' : '44px', boxShadow: '0 8px 48px rgba(26,18,11,.07)', display: 'flex', flexDirection: 'column', gap: 30 }}>
+        <section className="booking-form-wrapper">
+          {error && <div className="booking-error">{error}</div>}
 
-              {/* Personal */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
-                  {sectionIcon('👤')}
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#1a120b' }}>Your Details</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div style={twoCol}>
-                    <Field label="Full Name"><input className="bp-inp" style={inp} type="text" value={form.full_name} onChange={(e) => handleChange('full_name', e.target.value)} placeholder="Jane Doe" required /></Field>
-                    <Field label="Email Address"><input className="bp-inp" style={inp} type="email" value={form.email} onChange={(e) => handleChange('email', e.target.value)} placeholder="jane@email.com" required /></Field>
-                  </div>
-                  <div style={twoCol}>
-                    <Field label="Phone Number"><input className="bp-inp" style={inp} type="text" value={form.phone} onChange={(e) => handleChange('phone', e.target.value)} placeholder="+383 44 000 000" /></Field>
-                    <Field label="Number of Guests"><input className="bp-inp" style={inp} type="number" value={form.guest_count} onChange={(e) => handleChange('guest_count', Number(e.target.value))} min={1} placeholder="50" /></Field>
-                  </div>
-                </div>
-              </div>
+          <form onSubmit={handleSubmit} className="booking-form">
+            <div className="booking-card">
+              <CardTitle icon="👤" title="Të dhënat tuaja" />
 
-              <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,#e6d9c4 30%,#e6d9c4 70%,transparent)' }} />
+              <div className="booking-two-grid">
+                <Field label="Username">
+                  <input
+                    className="booking-input"
+                    type="text"
+                    value={form.full_name}
+                    onChange={(event) => handleChange('full_name', event.target.value)}
+                    placeholder="Zgjidhni username"
+                    required
+                  />
+                </Field>
 
-              {/* Event */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
-                  {sectionIcon('🎊')}
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#1a120b' }}>Event Information</span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div style={twoCol}>
-                    <Field label="Event Title"><input className="bp-inp" style={inp} type="text" value={form.event_title} onChange={(e) => handleChange('event_title', e.target.value)} placeholder="Emma's 5th Birthday" /></Field>
-                    <Field label="Event Type"><input className="bp-inp" style={inp} type="text" value={form.event_type} onChange={(e) => handleChange('event_type', e.target.value)} placeholder="Birthday, Wedding, Engagement…" /></Field>
-                  </div>
-                  <div style={twoCol}>
-                    <Field label="Event Date"><input className="bp-inp" style={inp} type="date" value={form.event_date} onChange={(e) => handleChange('event_date', e.target.value)} required /></Field>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                      <Field label="Start Time"><input className="bp-inp" style={inp} type="time" value={form.start_time} onChange={(e) => handleChange('start_time', e.target.value)} /></Field>
-                      <Field label="End Time"><input className="bp-inp" style={inp} type="time" value={form.end_time} onChange={(e) => handleChange('end_time', e.target.value)} /></Field>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                <Field label="Email">
+                  <input
+                    className="booking-input"
+                    type="email"
+                    value={form.email}
+                    onChange={(event) => handleChange('email', event.target.value)}
+                    placeholder="email@example.com"
+                    required
+                  />
+                </Field>
 
-              <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,#e6d9c4 30%,#e6d9c4 70%,transparent)' }} />
+                <Field label="Telefoni">
+                  <input
+                    className="booking-input"
+                    type="text"
+                    value={form.phone}
+                    onChange={(event) => handleChange('phone', event.target.value)}
+                    placeholder="+383 44 000 000"
+                  />
+                </Field>
 
-              {/* Venue */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
-                  {sectionIcon('📍')}
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#1a120b' }}>Venue</span>
-                </div>
-                <div style={twoCol}>
-                  <Field label="Venue Name"><input className="bp-inp" style={inp} type="text" value={form.venue_name} onChange={(e) => handleChange('venue_name', e.target.value)} placeholder="Grand Ballroom" /></Field>
-                  <Field label="Venue Address"><input className="bp-inp" style={inp} type="text" value={form.venue_address} onChange={(e) => handleChange('venue_address', e.target.value)} placeholder="Street, City" /></Field>
-                </div>
-              </div>
-
-              <div style={{ height: 1, background: 'linear-gradient(90deg,transparent,#e6d9c4 30%,#e6d9c4 70%,transparent)' }} />
-
-              {/* Vision */}
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
-                  {sectionIcon('✨')}
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#1a120b' }}>Your Vision</span>
-                </div>
-                <Field label="Special Requests & Notes">
-                  <textarea className="bp-inp" style={{ ...inp, height: 'auto', minHeight: 120, padding: '14px 16px', resize: 'vertical' }}
-                    value={form.special_requests}
-                    onChange={(e) => handleChange('special_requests', e.target.value)}
-                    placeholder="Tell us your dream — colors, theme, atmosphere, special moments you want captured…" />
+                <Field label="Mysafirë">
+                  <input
+                    className="booking-input"
+                    type="number"
+                    value={form.guest_count}
+                    onChange={(event) => handleChange('guest_count', Number(event.target.value))}
+                    min={1}
+                    placeholder="50"
+                  />
                 </Field>
               </div>
+            </div>
 
-              {/* Submit */}
-              <div>
-                <button type="submit" className="bp-sub" disabled={submitting} style={{
-                  width: '100%', height: 60, border: 'none', borderRadius: 16,
-                  background: 'linear-gradient(135deg,#d4911e 0%,#b87318 100%)',
-                  color: '#fff', fontSize: 17, fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                  boxShadow: '0 8px 28px rgba(200,132,26,.35)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-                }}>
-                  {submitting ? (
-                    <>
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ animation: 'bp-spin .9s linear infinite' }}>
-                        <circle cx="10" cy="10" r="8" stroke="rgba(255,255,255,.3)" strokeWidth="2.5" />
-                        <path d="M10 2a8 8 0 0 1 8 8" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" />
-                      </svg>
-                      Submitting your request…
-                    </>
-                  ) : (
-                    <>
-                      Send My Booking Request
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M4 10h12M11 5l5 5-5 5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </>
-                  )}
-                </button>
-                <p style={{ margin: '12px 0 0', textAlign: 'center', color: '#a89070', fontSize: 13 }}>
-                  🔒 Your information is private. We respond within 24 hours.
-                </p>
+            <div className="booking-card">
+              <CardTitle icon="🎊" title="Informata për eventin" />
+
+              <div className="booking-two-grid">
+                <Field label="Titulli">
+                  <input
+                    className="booking-input"
+                    type="text"
+                    value={form.event_title}
+                    onChange={(event) => handleChange('event_title', event.target.value)}
+                    placeholder="Ditëlindja e fëmijës"
+                  />
+                </Field>
+
+                <Field label="Lloji">
+                  <select
+                    className="booking-input"
+                    value={form.event_type}
+                    onChange={(event) => handleChange('event_type', event.target.value)}
+                  >
+                    <option value="">Zgjidh llojin</option>
+                    {eventTypes.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="Data">
+                  <input
+                    className="booking-input"
+                    type="date"
+                    value={form.event_date}
+                    onChange={(event) => handleChange('event_date', event.target.value)}
+                    required
+                  />
+                </Field>
+
+                <div className="booking-time-grid">
+                  <Field label="Fillimi">
+                    <input
+                      className="booking-input"
+                      type="time"
+                      value={form.start_time}
+                      onChange={(event) => handleChange('start_time', event.target.value)}
+                    />
+                  </Field>
+
+                  <Field label="Fundi">
+                    <input
+                      className="booking-input"
+                      type="time"
+                      value={form.end_time}
+                      onChange={(event) => handleChange('end_time', event.target.value)}
+                    />
+                  </Field>
+                </div>
               </div>
             </div>
-          </form>
-        </div>
-      </div>
 
-      <ScrollToTop />
+            <div className="booking-card">
+              <CardTitle icon="📍" title="Lokacioni" />
+
+              <div className="booking-location-grid">
+                <Field label="Emri i lokacionit">
+                  <input
+                    className="booking-input"
+                    type="text"
+                    value={form.venue_name}
+                    onChange={(event) => handleChange('venue_name', event.target.value)}
+                    placeholder="Emri i sallës ose vendit"
+                  />
+                </Field>
+
+                <Field label="Adresa">
+                  <input
+                    className="booking-input"
+                    type="text"
+                    value={form.venue_address}
+                    onChange={(event) => handleChange('venue_address', event.target.value)}
+                    placeholder="Rruga, qyteti"
+                  />
+                </Field>
+
+                <Field label="Paketa">
+                  <select
+                    className="booking-input"
+                    value={form.package_id}
+                    onChange={(event) =>
+                      handleChange(
+                        'package_id',
+                        event.target.value ? Number(event.target.value) : '',
+                      )
+                    }
+                  >
+                    <option value="">Zgjidh paketën</option>
+
+                    {packages.map((pkg) => (
+                      <option key={pkg.id} value={pkg.id}>
+                        {pkg.title} {pkg.base_price ? `- €${pkg.base_price}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+            </div>
+
+            <div className="booking-card">
+              <CardTitle icon="✨" title="Kërkesat tuaja" />
+
+              <Field label="Shënime speciale">
+                <textarea
+                  className="booking-input booking-textarea"
+                  value={form.special_requests}
+                  onChange={(event) => handleChange('special_requests', event.target.value)}
+                  placeholder="Ngjyra, tema, dekorime, maskota..."
+                />
+              </Field>
+            </div>
+
+            <button type="submit" className="booking-submit" disabled={submitting}>
+              {submitting ? 'Duke dërguar...' : 'Dërgo kërkesën për rezervim'}
+              {!submitting && <span>→</span>}
+            </button>
+          </form>
+        </section>
+      </main>
     </>
   );
+}
 
-  
+function BookingStyles() {
+  return (
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
+
+      * {
+        box-sizing: border-box;
+      }
+
+      .booking-page {
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 10% 10%, rgba(212,145,30,.12), transparent 30%),
+          linear-gradient(135deg, #fffaf2 0%, #ffffff 48%, #f7efe3 100%);
+        font-family: 'DM Sans', system-ui, sans-serif;
+        color: #1a120b;
+        padding: 14px 22px 24px;
+      }
+
+      .booking-hero {
+        width: min(100%, 1100px);
+        margin: 0 auto 12px;
+        min-height: 132px;
+        display: grid;
+        grid-template-columns: 1fr 240px;
+        gap: 18px;
+        align-items: center;
+        border-radius: 24px;
+        border: 1px solid #eadfce;
+        background:
+          radial-gradient(circle at 10% 16%, rgba(212,145,30,.25), transparent 30%),
+          linear-gradient(135deg, #1a120b 0%, #2b1a0d 58%, #120d07 100%);
+        padding: 16px 20px;
+        overflow: hidden;
+        box-shadow: 0 14px 38px rgba(26,18,11,.14);
+        position: relative;
+      }
+
+      .booking-hero::after {
+        content: "MD";
+        position: absolute;
+        right: 220px;
+        bottom: -42px;
+        font-size: 128px;
+        line-height: 1;
+        font-weight: 950;
+        color: rgba(212,145,30,.055);
+        pointer-events: none;
+      }
+
+      .booking-hero-text {
+        position: relative;
+        z-index: 1;
+      }
+
+      .booking-kicker {
+        margin: 0 0 5px;
+        color: #d4911e;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+      }
+
+      .booking-hero h1 {
+        margin: 0;
+        color: #ffffff;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(32px, 4vw, 46px);
+        line-height: .96;
+        font-weight: 700;
+        max-width: 620px;
+      }
+
+      .booking-hero h1 span {
+        color: #d4911e;
+        font-style: italic;
+      }
+
+      .booking-hero-text > p {
+        margin: 7px 0 0;
+        max-width: 560px;
+        color: rgba(255,255,255,.70);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .booking-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 10px;
+      }
+
+      .booking-badges span {
+        min-height: 23px;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 4px 10px;
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.1);
+        color: rgba(255,255,255,.78);
+        font-size: 10.5px;
+        font-weight: 700;
+      }
+
+      .booking-hero-image {
+        height: 102px;
+        border-radius: 17px;
+        overflow: hidden;
+        border: 1px solid rgba(212,145,30,.3);
+        box-shadow: 0 12px 30px rgba(0,0,0,.28);
+        position: relative;
+      }
+
+      .booking-hero-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .booking-hero-image-text {
+        position: absolute;
+        left: 9px;
+        right: 9px;
+        bottom: 9px;
+        border-radius: 12px;
+        background: rgba(26,18,11,.87);
+        border: 1px solid rgba(212,145,30,.22);
+        padding: 7px 9px;
+      }
+
+      .booking-hero-image-text small {
+        display: block;
+        margin-bottom: 2px;
+        color: #d4911e;
+        font-size: 8px;
+        font-weight: 900;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+      }
+
+      .booking-hero-image-text strong {
+        display: block;
+        color: #ffffff;
+        font-size: 10.5px;
+        line-height: 1.2;
+      }
+
+      .booking-form-wrapper {
+        width: min(100%, 1100px);
+        margin: 0 auto;
+      }
+
+      .booking-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding: 14px;
+        border-radius: 24px;
+        background: rgba(255,255,255,.95);
+        border: 1px solid #eadfce;
+        box-shadow: 0 14px 40px rgba(26,18,11,.08);
+      }
+
+      .booking-card {
+        border-radius: 18px;
+        background: #fffdf8;
+        border: 1px solid #eadfce;
+        padding: 14px;
+        min-width: 0;
+      }
+
+      .booking-card-title {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-bottom: 11px;
+      }
+
+      .booking-card-title h3 {
+        margin: 0;
+        color: #1a120b;
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .booking-card-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff3d8;
+        border: 1.5px solid #d4911e;
+        font-size: 13px;
+        flex-shrink: 0;
+      }
+
+      .booking-two-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .booking-time-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .booking-location-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .booking-field {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        min-width: 0;
+      }
+
+      .booking-label {
+        color: #7a6a52;
+        font-size: 9.5px;
+        font-weight: 900;
+        letter-spacing: .10em;
+        text-transform: uppercase;
+      }
+
+      .booking-input {
+        width: 100%;
+        height: 35px;
+        border-radius: 10px;
+        border: 1.5px solid #eadfce;
+        background: #ffffff;
+        color: #1a120b;
+        padding: 0 11px;
+        font-size: 12.5px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+      }
+
+      .booking-input::placeholder {
+        color: #b8a48e;
+      }
+
+      .booking-input:focus {
+        border-color: #c8841a;
+        box-shadow: 0 0 0 3px rgba(200,132,26,.12);
+        background: #fffdf8;
+      }
+
+      .booking-textarea {
+        height: 104px;
+        min-height: 104px;
+        padding: 11px;
+        resize: vertical;
+        line-height: 1.45;
+      }
+
+      .booking-submit {
+        grid-column: 1 / -1;
+        height: 43px;
+        border: none;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #d4911e, #b87318);
+        color: #ffffff;
+        font-size: 13.5px;
+        font-weight: 950;
+        cursor: pointer;
+        font-family: inherit;
+        box-shadow: 0 9px 24px rgba(200,132,26,.28);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+      }
+
+      .booking-submit:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 32px rgba(200,132,26,.38);
+      }
+
+      .booking-submit:disabled {
+        opacity: .68;
+        cursor: not-allowed;
+      }
+
+      .booking-error {
+        margin-bottom: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      .booking-success-page {
+        min-height: 100vh;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+          radial-gradient(circle at 12% 18%, rgba(212,145,30,.18), transparent 30%),
+          linear-gradient(135deg, #fffaf2 0%, #ffffff 48%, #f7efe3 100%);
+        font-family: 'DM Sans', system-ui, sans-serif;
+      }
+
+      .booking-success-card {
+        width: min(100%, 590px);
+        text-align: center;
+        border-radius: 26px;
+        border: 1px solid #eadfce;
+        background: rgba(255,255,255,.96);
+        padding: 30px;
+        box-shadow: 0 22px 60px rgba(26,18,11,.14);
+      }
+
+      .booking-success-icon {
+        width: 76px;
+        height: 76px;
+        margin: 0 auto 16px;
+        border-radius: 50%;
+        background: #fff3d8;
+        border: 3px solid #d4911e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 34px;
+      }
+
+      .booking-success-kicker {
+        margin: 0 0 8px;
+        color: #d4911e;
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: .16em;
+        text-transform: uppercase;
+      }
+
+      .booking-success-card h1 {
+        margin: 0;
+        font-family: 'Cormorant Garamond', serif;
+        font-size: clamp(34px, 5vw, 50px);
+        color: #1a120b;
+        line-height: 1;
+      }
+
+      .booking-success-card > p:not(.booking-success-kicker) {
+        margin: 14px auto 20px;
+        color: #6b5a45;
+        font-size: 14px;
+        line-height: 1.65;
+        max-width: 490px;
+      }
+
+      .booking-success-steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 9px;
+        margin-bottom: 22px;
+      }
+
+      .booking-success-steps div {
+        border-radius: 15px;
+        border: 1px solid #eadfce;
+        background: #fffaf2;
+        padding: 12px;
+        text-align: left;
+      }
+
+      .booking-success-steps strong {
+        display: block;
+        color: #1a120b;
+        font-size: 12.5px;
+        margin-bottom: 5px;
+      }
+
+      .booking-success-steps span {
+        display: block;
+        color: #7a6a52;
+        font-size: 11.5px;
+        line-height: 1.4;
+      }
+
+      .booking-success-card button {
+        height: 44px;
+        border: none;
+        border-radius: 13px;
+        background: linear-gradient(135deg, #d4911e, #b87318);
+        color: #ffffff;
+        padding: 0 22px;
+        font-size: 13.5px;
+        font-weight: 900;
+        cursor: pointer;
+        font-family: inherit;
+        box-shadow: 0 10px 26px rgba(200,132,26,.28);
+      }
+
+      @media (max-width: 1020px) {
+        .booking-page {
+          padding: 18px 14px 26px;
+        }
+
+        .booking-hero {
+          grid-template-columns: 1fr;
+        }
+
+        .booking-hero::after {
+          right: -20px;
+          bottom: -30px;
+          font-size: 120px;
+        }
+
+        .booking-form {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .booking-page {
+          padding: 14px 10px 22px;
+        }
+
+        .booking-hero {
+          padding: 18px;
+          border-radius: 22px;
+          min-height: auto;
+        }
+
+        .booking-hero h1 {
+          font-size: 34px;
+        }
+
+        .booking-hero-text > p {
+          font-size: 12px;
+        }
+
+        .booking-badges {
+          gap: 6px;
+        }
+
+        .booking-badges span {
+          font-size: 10.5px;
+        }
+
+        .booking-form {
+          padding: 11px;
+          border-radius: 22px;
+        }
+
+        .booking-card {
+          padding: 14px;
+          border-radius: 16px;
+        }
+
+        .booking-two-grid,
+        .booking-time-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .booking-input {
+          height: 38px;
+        }
+
+        .booking-textarea {
+          height: 88px;
+          min-height: 88px;
+        }
+
+        .booking-submit {
+          height: 45px;
+        }
+
+        .booking-success-card {
+          padding: 24px 17px;
+        }
+
+        .booking-success-steps {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-height: 760px) and (min-width: 1021px) {
+        .booking-page {
+          padding-top: 10px;
+          padding-bottom: 14px;
+        }
+
+        .booking-hero {
+          min-height: 118px;
+          padding: 13px 18px;
+          margin-bottom: 10px;
+        }
+
+        .booking-hero h1 {
+          font-size: 36px;
+        }
+
+        .booking-hero-text > p {
+          font-size: 11.5px;
+          line-height: 1.32;
+        }
+
+        .booking-badges {
+          margin-top: 7px;
+        }
+
+        .booking-badges span {
+          min-height: 21px;
+          font-size: 10px;
+          padding: 4px 8px;
+        }
+
+        .booking-hero-image {
+          height: 88px;
+        }
+
+        .booking-form {
+          padding: 12px;
+          gap: 10px;
+        }
+
+        .booking-card {
+          padding: 12px;
+        }
+
+        .booking-card-title {
+          margin-bottom: 9px;
+        }
+
+        .booking-input {
+          height: 32px;
+        }
+
+        .booking-textarea {
+          height: 88px;
+          min-height: 88px;
+        }
+
+        .booking-submit {
+          height: 40px;
+        }
+      }
+    `}</style>
+  );
 }

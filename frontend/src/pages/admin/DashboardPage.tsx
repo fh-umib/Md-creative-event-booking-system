@@ -1,65 +1,124 @@
-import React, { useState } from 'react';
-
-// ── tiny inline Chart components (no external deps) ──────────────────────────
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 function LineChart() {
   const revenue = [3200, 4100, 5200, 4800, 5600, 7800, 7200, 6400, 5600, 8200, 9100, 9800];
   const bookings = [8, 12, 15, 11, 14, 20, 18, 16, 21, 24, 28, 30];
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const W = 620, H = 220, pad = { t: 20, r: 20, b: 40, l: 50 };
-  const gW = W - pad.l - pad.r, gH = H - pad.t - pad.b;
-  const maxRev = Math.max(...revenue);
-  const toX = (i: number) => pad.l + (i / (revenue.length - 1)) * gW;
-  const toY = (v: number, max: number) => pad.t + gH - (v / max) * gH;
-  const revPath = revenue.map((v, i) => `${i === 0 ? 'M' : 'L'}${toX(i)},${toY(v, maxRev)}`).join(' ');
-  const revFill = `${revPath} L${toX(revenue.length-1)},${pad.t+gH} L${pad.l},${pad.t+gH} Z`;
-  const [hover, setHover] = useState<number|null>(null);
+  const months = ['Jan', 'Shk', 'Mar', 'Pri', 'Maj', 'Qer', 'Kor', 'Gus', 'Sht', 'Tet', 'Nën', 'Dhj'];
+
+  const width = 620;
+  const height = 220;
+  const padding = { top: 20, right: 20, bottom: 40, left: 54 };
+  const graphWidth = width - padding.left - padding.right;
+  const graphHeight = height - padding.top - padding.bottom;
+  const maxRevenue = Math.max(...revenue, 10000);
+
+  const toX = (index: number) => padding.left + (index / (revenue.length - 1)) * graphWidth;
+  const toY = (value: number) => padding.top + graphHeight - (value / maxRevenue) * graphHeight;
+
+  const revenuePath = revenue
+    .map((value, index) => `${index === 0 ? 'M' : 'L'}${toX(index)},${toY(value)}`)
+    .join(' ');
+
+  const fillPath = `${revenuePath} L${toX(revenue.length - 1)},${padding.top + graphHeight} L${padding.left},${
+    padding.top + graphHeight
+  } Z`;
+
+  const [hover, setHover] = useState<number | null>(null);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto' }}>
+    <svg viewBox={`0 0 ${width} ${height}`} className="dash-line-chart">
       <defs>
-        <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#f97316" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#f97316" stopOpacity="0.02" />
+        <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#d4911e" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#d4911e" stopOpacity="0.02" />
         </linearGradient>
       </defs>
-      {[0, 2500, 5000, 7500, 10000].map(v => (
-        <g key={v}>
-          <line x1={pad.l} x2={pad.l+gW} y1={toY(v, maxRev)} y2={toY(v, maxRev)} stroke="#f1f5f9" strokeWidth="1" />
-          <text x={pad.l - 8} y={toY(v, maxRev) + 4} textAnchor="end" fontSize="10" fill="#94a3b8">
-            €{v >= 1000 ? v/1000+'k' : v}
+
+      {[0, 2500, 5000, 7500, 10000].map((value) => (
+        <g key={value}>
+          <line
+            x1={padding.left}
+            x2={padding.left + graphWidth}
+            y1={toY(value)}
+            y2={toY(value)}
+            stroke="#efe2cf"
+            strokeWidth="1"
+          />
+          <text x={padding.left - 10} y={toY(value) + 4} textAnchor="end" fontSize="10" fill="#9a8878">
+            €{value >= 1000 ? `${value / 1000}k` : value}
           </text>
         </g>
       ))}
-      <path d={revFill} fill="url(#revGrad)" />
-      <path d={revPath} fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinejoin="round" />
-      {months.map((m, i) => (
-        <text key={m} x={toX(i)} y={H - 8} textAnchor="middle" fontSize="10" fill="#94a3b8">{m}</text>
+
+      <path d={fillPath} fill="url(#revenueGradient)" />
+      <path d={revenuePath} fill="none" stroke="#c8841a" strokeWidth="3" strokeLinejoin="round" />
+
+      {months.map((month, index) => (
+        <text key={month} x={toX(index)} y={height - 10} textAnchor="middle" fontSize="10" fill="#9a8878">
+          {month}
+        </text>
       ))}
-      {revenue.map((v, i) => (
+
+      {revenue.map((value, index) => (
         <circle
-          key={i}
-          cx={toX(i)} cy={toY(v, maxRev)} r="4"
-          fill={hover === i ? '#f97316' : 'transparent'}
-          stroke={hover === i ? '#f97316' : 'transparent'}
+          key={index}
+          cx={toX(index)}
+          cy={toY(value)}
+          r={hover === index ? 6 : 4}
+          fill={hover === index ? '#c8841a' : '#ffffff'}
+          stroke="#c8841a"
           strokeWidth="2"
-          style={{ cursor: 'pointer' }}
-          onMouseEnter={() => setHover(i)}
+          className="dash-chart-dot"
+          onMouseEnter={() => setHover(index)}
           onMouseLeave={() => setHover(null)}
         />
       ))}
+
       {hover !== null && (
         <g>
           <rect
-            x={toX(hover) + (hover > 8 ? -120 : 10)}
-            y={toY(revenue[hover], maxRev) - 30}
-            width="110" height="52" rx="8"
-            fill="white" stroke="#e2e8f0" strokeWidth="1"
-            style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.08))' }}
+            x={toX(hover) + (hover > 8 ? -130 : 12)}
+            y={toY(revenue[hover]) - 34}
+            width="118"
+            height="58"
+            rx="10"
+            fill="#ffffff"
+            stroke="#eadfce"
+            strokeWidth="1"
           />
-          <text x={toX(hover) + (hover > 8 ? -65 : 65)} y={toY(revenue[hover], maxRev) - 12} textAnchor="middle" fontSize="11" fontWeight="600" fill="#0f172a">{months[hover]}</text>
-          <text x={toX(hover) + (hover > 8 ? -65 : 65)} y={toY(revenue[hover], maxRev) + 4} textAnchor="middle" fontSize="10" fill="#f97316">revenue: €{revenue[hover].toLocaleString()}</text>
-          <text x={toX(hover) + (hover > 8 ? -65 : 65)} y={toY(revenue[hover], maxRev) + 18} textAnchor="middle" fontSize="10" fill="#f43f5e">bookings: {bookings[hover]}</text>
+
+          <text
+            x={toX(hover) + (hover > 8 ? -71 : 71)}
+            y={toY(revenue[hover]) - 15}
+            textAnchor="middle"
+            fontSize="11"
+            fontWeight="800"
+            fill="#1a120b"
+          >
+            {months[hover]}
+          </text>
+
+          <text
+            x={toX(hover) + (hover > 8 ? -71 : 71)}
+            y={toY(revenue[hover]) + 2}
+            textAnchor="middle"
+            fontSize="10"
+            fontWeight="700"
+            fill="#9a5d0a"
+          >
+            €{revenue[hover].toLocaleString('de-DE')}
+          </text>
+
+          <text
+            x={toX(hover) + (hover > 8 ? -71 : 71)}
+            y={toY(revenue[hover]) + 17}
+            textAnchor="middle"
+            fontSize="10"
+            fill="#7a6a52"
+          >
+            {bookings[hover]} rezervime
+          </text>
         </g>
       )}
     </svg>
@@ -68,42 +127,69 @@ function LineChart() {
 
 function DonutChart() {
   const data = [
-    { label: 'Full Celebration', count: 34, color: '#f97316' },
-    { label: 'Premium Party', count: 28, color: '#f43f5e' },
-    { label: 'Mascot Show', count: 22, color: '#a855f7' },
-    { label: 'Basic Party', count: 15, color: '#3b82f6' },
-    { label: 'Decoration Only', count: 12, color: '#22c55e' },
+    { label: 'Full Celebration', count: 34, color: '#c8841a' },
+    { label: 'Premium Party', count: 28, color: '#a66b13' },
+    { label: 'Mascot Show', count: 22, color: '#8b5a12' },
+    { label: 'Basic Party', count: 15, color: '#d9a441' },
+    { label: 'Decoration Only', count: 12, color: '#e6c275' },
   ];
-  const total = data.reduce((s, d) => s + d.count, 0);
-  let angle = -Math.PI / 2;
-  const cx = 80, cy = 80, r = 65, inner = 40;
 
-  const slices = data.map(d => {
-    const sweep = (d.count / total) * 2 * Math.PI;
-    const x1 = cx + r * Math.cos(angle), y1 = cy + r * Math.sin(angle);
+  const total = data.reduce((sum, item) => sum + item.count, 0);
+  let angle = -Math.PI / 2;
+
+  const centerX = 80;
+  const centerY = 80;
+  const radius = 65;
+  const innerRadius = 40;
+
+  const slices = data.map((item) => {
+    const sweep = (item.count / total) * 2 * Math.PI;
+
+    const x1 = centerX + radius * Math.cos(angle);
+    const y1 = centerY + radius * Math.sin(angle);
+
     angle += sweep;
-    const x2 = cx + r * Math.cos(angle), y2 = cy + r * Math.sin(angle);
-    const ix1 = cx + inner * Math.cos(angle - sweep), iy1 = cy + inner * Math.sin(angle - sweep);
-    const ix2 = cx + inner * Math.cos(angle), iy2 = cy + inner * Math.sin(angle);
-    const large = sweep > Math.PI ? 1 : 0;
-    return { ...d, path: `M${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} L${ix2},${iy2} A${inner},${inner} 0 ${large} 0 ${ix1},${iy1} Z` };
+
+    const x2 = centerX + radius * Math.cos(angle);
+    const y2 = centerY + radius * Math.sin(angle);
+
+    const innerX1 = centerX + innerRadius * Math.cos(angle - sweep);
+    const innerY1 = centerY + innerRadius * Math.sin(angle - sweep);
+    const innerX2 = centerX + innerRadius * Math.cos(angle);
+    const innerY2 = centerY + innerRadius * Math.sin(angle);
+
+    const largeArc = sweep > Math.PI ? 1 : 0;
+
+    return {
+      ...item,
+      path: `M${x1},${y1} A${radius},${radius} 0 ${largeArc} 1 ${x2},${y2} L${innerX2},${innerY2} A${innerRadius},${innerRadius} 0 ${largeArc} 0 ${innerX1},${innerY1} Z`,
+    };
   });
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-      <svg viewBox="0 0 160 160" style={{ width: '160px', flexShrink: 0 }}>
-        {slices.map((s, i) => (
-          <path key={i} d={s.path} fill={s.color} stroke="white" strokeWidth="2" />
+    <div className="dash-donut-wrap">
+      <svg viewBox="0 0 160 160" className="dash-donut">
+        {slices.map((slice) => (
+          <path key={slice.label} d={slice.path} fill={slice.color} stroke="#ffffff" strokeWidth="2" />
         ))}
+
+        <circle cx="80" cy="80" r="31" fill="#fffdf8" />
+        <text x="80" y="77" textAnchor="middle" fontSize="18" fontWeight="950" fill="#1a120b">
+          {total}
+        </text>
+        <text x="80" y="94" textAnchor="middle" fontSize="9" fontWeight="800" fill="#8a7558">
+          total
+        </text>
       </svg>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
-        {data.map((d, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: d.color, flexShrink: 0 }} />
-              <span style={{ fontSize: '13px', color: '#475569' }}>{d.label}</span>
-            </div>
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{d.count}</span>
+
+      <div className="dash-donut-list">
+        {data.map((item) => (
+          <div key={item.label} className="dash-donut-item">
+            <span className="dash-donut-left">
+              <span className="dash-donut-dot" style={{ background: item.color }} />
+              {item.label}
+            </span>
+            <strong>{item.count}</strong>
           </div>
         ))}
       </div>
@@ -112,261 +198,849 @@ function DonutChart() {
 }
 
 function BarChart() {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const days = ['Hën', 'Mar', 'Mër', 'Enj', 'Pre', 'Sht', 'Die'];
   const values = [3, 6, 4, 7, 12, 18, 14];
   const max = Math.max(...values);
+
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', height: '160px', padding: '0 8px' }}>
-      {days.map((d, i) => (
-        <div key={d} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', height: '100%', justifyContent: 'flex-end' }}>
-          <div style={{ width: '100%', background: 'linear-gradient(180deg, #fb923c, #f97316)', borderRadius: '6px 6px 0 0', height: `${(values[i] / max) * 130}px`, transition: 'height 0.3s' }} />
-          <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 500 }}>{d}</span>
+    <div className="dash-week-bars">
+      {days.map((day, index) => (
+        <div key={day} className="dash-week-bar-item">
+          <div className="dash-week-bar-track">
+            <div className="dash-week-bar-fill" style={{ height: `${Math.max(10, (values[index] / max) * 100)}%` }} />
+          </div>
+          <span>{day}</span>
         </div>
       ))}
     </div>
   );
 }
 
-// ── main dashboard ────────────────────────────────────────────────────────────
-
 export default function DashboardPage() {
   const stats = [
-    { label: 'Total Bookings', value: '156', change: '+12% from last month', icon: '📅', positive: true },
-    { label: 'Revenue', value: '€44,250', change: '+8.2% from last month', icon: '💰', positive: true },
-    { label: 'Active Packages', value: '12', change: '2 new this month', icon: '📦', positive: true },
-    { label: 'Customers', value: '89', change: '+15 new customers', icon: '👥', positive: true },
+    {
+      label: 'Rezervime totale',
+      value: '156',
+      change: '+12% nga muaji i kaluar',
+      note: 'Kërkesa dhe evente',
+    },
+    {
+      label: 'Të ardhura',
+      value: '€44.250',
+      change: '+8.2% nga muaji i kaluar',
+      note: 'Pagesa të regjistruara',
+    },
+    {
+      label: 'Paketa aktive',
+      value: '12',
+      change: '2 paketa të reja',
+      note: 'Oferta për klientë',
+    },
+    {
+      label: 'Klientë',
+      value: '89',
+      change: '+15 klientë të rinj',
+      note: 'Kontakte të ruajtura',
+    },
   ];
 
   const upcomingEvents = [
-    { name: 'Princess Birthday Party', client: 'Sara K.', guests: 25, mascots: 2, date: 'Apr 12', time: '14:00' },
-    { name: 'Superhero Bash', client: 'Arben G.', guests: 35, mascots: 3, date: 'Apr 14', time: '11:00' },
-    { name: 'Unicorn Magic', client: 'Lena M.', guests: 15, mascots: 1, date: 'Apr 16', time: '15:00' },
+    { name: 'Ditëlindje Princess', client: 'Sara K.', guests: 25, mascots: 2, date: '12 Pri', time: '14:00' },
+    { name: 'Superhero Bash', client: 'Arben G.', guests: 35, mascots: 3, date: '14 Pri', time: '11:00' },
+    { name: 'Unicorn Magic', client: 'Lena M.', guests: 15, mascots: 1, date: '16 Pri', time: '15:00' },
   ];
 
   const recentBookings = [
-    { id: '#MD-1024', customer: 'Sara K.', package: 'Premium Party', date: 'Apr 12, 2026', status: 'Confirmed', amount: '€450' },
-    { id: '#MD-1023', customer: 'Lena M.', package: 'Mascot Show', date: 'Apr 10, 2026', status: 'Pending', amount: '€280' },
-    { id: '#MD-1022', customer: 'Arta B.', package: 'Full Celebration', date: 'Apr 8, 2026', status: 'Confirmed', amount: '€680' },
-    { id: '#MD-1021', customer: 'Dren H.', package: 'Basic Party', date: 'Apr 5, 2026', status: 'Cancelled', amount: '€150' },
-    { id: '#MD-1020', customer: 'Maja R.', package: 'Decoration Only', date: 'Apr 3, 2026', status: 'Completed', amount: '€220' },
+    { id: 'MD-1024', customer: 'Sara K.', package: 'Premium Party', date: '12 Pri 2026', status: 'Approved', amount: '€450' },
+    { id: 'MD-1023', customer: 'Lena M.', package: 'Mascot Show', date: '10 Pri 2026', status: 'Pending', amount: '€280' },
+    { id: 'MD-1022', customer: 'Arta B.', package: 'Full Celebration', date: '08 Pri 2026', status: 'Approved', amount: '€680' },
+    { id: 'MD-1021', customer: 'Dren H.', package: 'Basic Party', date: '05 Pri 2026', status: 'Cancelled', amount: '€150' },
+    { id: 'MD-1020', customer: 'Maja R.', package: 'Decoration Only', date: '03 Pri 2026', status: 'Completed', amount: '€220' },
   ];
 
   const popularPackages = [
-    { rank: 1, name: 'Full Celebration', bookings: 34, revenue: '€23,120', pct: 100, color: '#f97316' },
-    { rank: 2, name: 'Premium Party', bookings: 28, revenue: '€12,600', pct: 82, color: '#f97316' },
-    { rank: 3, name: 'Mascot Show', bookings: 22, revenue: '€6,160', pct: 65, color: '#f43f5e' },
-    { rank: 4, name: 'Basic Party', bookings: 15, revenue: '€2,250', pct: 44, color: '#f43f5e' },
+    { rank: 1, name: 'Full Celebration', bookings: 34, revenue: '€23.120', pct: 100 },
+    { rank: 2, name: 'Premium Party', bookings: 28, revenue: '€12.600', pct: 82 },
+    { rank: 3, name: 'Mascot Show', bookings: 22, revenue: '€6.160', pct: 65 },
+    { rank: 4, name: 'Basic Party', bookings: 15, revenue: '€2.250', pct: 44 },
   ];
-
-  const statusStyle = (s: string): React.CSSProperties => {
-    const map: Record<string, { bg: string; color: string }> = {
-      Confirmed: { bg: '#fff7ed', color: '#f97316' },
-      Pending: { bg: '#fdf2f8', color: '#f43f5e' },
-      Cancelled: { bg: '#fee2e2', color: '#ef4444' },
-      Completed: { bg: '#f0fdf4', color: '#22c55e' },
-    };
-    const c = map[s] || { bg: '#f8fafc', color: '#64748b' };
-    return { display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 600, background: c.bg, color: c.color };
-  };
 
   const quickActions = [
-    { label: 'New Booking', icon: '📅', bg: 'linear-gradient(135deg,#fb923c,#f97316)' },
-    { label: 'Add Package', icon: '📦', bg: 'linear-gradient(135deg,#60a5fa,#3b82f6)' },
-    { label: 'Add Mascot', icon: '🎭', bg: 'linear-gradient(135deg,#4ade80,#22c55e)' },
-    { label: 'View Reports', icon: '📊', bg: 'linear-gradient(135deg,#f472b6,#ec4899)' },
+    { label: 'Shiko rezervimet', path: '/admin/bookings' },
+    { label: 'Menaxho paketat', path: '/admin/packages' },
+    { label: 'Menaxho maskotat', path: '/admin/mascots' },
+    { label: 'Shiko analitikën', path: '/admin/analytics' },
   ];
 
+  const statusLabel: Record<string, string> = {
+    Approved: 'E aprovuar',
+    Pending: 'Në pritje',
+    Cancelled: 'E anuluar',
+    Completed: 'E përfunduar',
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <>
+      <style>{`
+        .dash-page {
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+          min-width: 0;
+        }
 
-      {/* ── Welcome Banner ── */}
-      <div style={{
-        borderRadius: '16px',
-        background: 'linear-gradient(135deg, #fb923c 0%, #f97316 30%, #f43f5e 70%, #e11d48 100%)',
-        padding: '32px 36px',
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden',
-      }}>
-        <div style={{ position: 'absolute', top: '-40px', right: '-40px', width: '200px', height: '200px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
-        <div style={{ position: 'absolute', bottom: '-60px', right: '80px', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,255,255,0.06)' }} />
-        <p style={{ margin: '0 0 6px', fontSize: '14px', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '6px' }}>
-          ✨ Welcome back, Admin
-        </p>
-        <h1 style={{ margin: '0 0 12px', fontSize: '28px', fontWeight: 800, letterSpacing: '-0.5px' }}>MD Creative Dashboard</h1>
-        <p style={{ margin: 0, fontSize: '14px', opacity: 0.9, lineHeight: 1.6 }}>
-          Here's what's happening with your event business today. You have{' '}
-          <strong>3 upcoming events</strong> and <strong>5 pending bookings</strong>.
-        </p>
-      </div>
+        .dash-hero {
+          position: relative;
+          overflow: hidden;
+          border-radius: 26px;
+          border: 1px solid #eadfce;
+          background:
+            radial-gradient(circle at 12% 20%, rgba(212,145,30,.26), transparent 32%),
+            linear-gradient(135deg, #1a120b 0%, #2b1a0d 58%, #120d07 100%);
+          padding: 28px;
+          color: #ffffff;
+          box-shadow: 0 14px 38px rgba(26,18,11,.16);
+        }
 
-      {/* ── Stat Cards ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-        {stats.map((s, i) => (
-          <div key={i} style={{ background: 'white', borderRadius: '14px', padding: '20px', border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <p style={{ margin: 0, fontSize: '13px', color: '#64748b', fontWeight: 500 }}>{s.label}</p>
-              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg,#fb923c,#f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>
-                {s.icon}
+        .dash-hero::after {
+          content: "MD";
+          position: absolute;
+          right: 28px;
+          bottom: -36px;
+          font-size: clamp(120px, 17vw, 220px);
+          line-height: 1;
+          font-weight: 950;
+          color: rgba(212,145,30,.08);
+          pointer-events: none;
+        }
+
+        .dash-hero-content {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          justify-content: space-between;
+          gap: 24px;
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+
+        .dash-kicker {
+          margin: 0 0 9px;
+          color: #d4911e;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+        }
+
+        .dash-title {
+          margin: 0;
+          font-size: clamp(28px, 3.6vw, 46px);
+          line-height: 1.04;
+          font-weight: 950;
+        }
+
+        .dash-title span {
+          color: #d4911e;
+          font-style: italic;
+        }
+
+        .dash-subtitle {
+          margin: 12px 0 0;
+          max-width: 760px;
+          color: rgba(255,255,255,.68);
+          font-size: 14px;
+          line-height: 1.75;
+        }
+
+        .dash-hero-card {
+          min-width: 250px;
+          border-radius: 22px;
+          border: 1px solid rgba(212,145,30,.28);
+          background: rgba(255,255,255,.07);
+          padding: 16px;
+          backdrop-filter: blur(12px);
+        }
+
+        .dash-hero-card strong {
+          display: block;
+          color: #ffffff;
+          font-size: 30px;
+          font-weight: 950;
+          line-height: 1;
+          margin-bottom: 7px;
+        }
+
+        .dash-hero-card span {
+          color: rgba(255,255,255,.62);
+          font-size: 13px;
+          line-height: 1.45;
+        }
+
+        .dash-stats {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(160px, 1fr));
+          gap: 14px;
+        }
+
+        .dash-stat-card {
+          background: rgba(255,255,255,.94);
+          border: 1px solid #eadfce;
+          border-radius: 20px;
+          padding: 18px;
+          box-shadow: 0 8px 24px rgba(26,18,11,.06);
+          overflow: hidden;
+          position: relative;
+        }
+
+        .dash-stat-card::after {
+          content: "";
+          position: absolute;
+          right: -24px;
+          top: -24px;
+          width: 78px;
+          height: 78px;
+          border-radius: 50%;
+          background: rgba(212,145,30,.08);
+        }
+
+        .dash-stat-label {
+          margin: 0;
+          color: #7a6a52;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .dash-stat-value {
+          margin: 12px 0 7px;
+          color: #1a120b;
+          font-size: 28px;
+          font-weight: 950;
+          line-height: 1;
+        }
+
+        .dash-stat-change {
+          margin: 0;
+          color: #047857;
+          font-size: 12px;
+          font-weight: 850;
+        }
+
+        .dash-stat-note {
+          margin: 7px 0 0;
+          color: #9a8878;
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        .dash-grid-two {
+          display: grid;
+          grid-template-columns: minmax(0, 1.35fr) minmax(320px, .8fr);
+          gap: 16px;
+        }
+
+        .dash-grid-equal {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 16px;
+        }
+
+        .dash-panel {
+          background: rgba(255,255,255,.94);
+          border: 1px solid #eadfce;
+          border-radius: 22px;
+          padding: 20px;
+          box-shadow: 0 8px 24px rgba(26,18,11,.06);
+          min-width: 0;
+        }
+
+        .dash-panel-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 12px;
+          margin-bottom: 16px;
+          flex-wrap: wrap;
+        }
+
+        .dash-panel-title {
+          margin: 0;
+          color: #1a120b;
+          font-size: 18px;
+          font-weight: 950;
+        }
+
+        .dash-panel-text {
+          margin: 5px 0 0;
+          color: #7a6a52;
+          font-size: 12.5px;
+          line-height: 1.5;
+        }
+
+        .dash-panel-link {
+          color: #9a5d0a;
+          text-decoration: none;
+          font-size: 12px;
+          font-weight: 900;
+          white-space: nowrap;
+        }
+
+        .dash-line-chart {
+          width: 100%;
+          height: auto;
+          display: block;
+        }
+
+        .dash-chart-dot {
+          cursor: pointer;
+          transition: r .2s ease;
+        }
+
+        .dash-donut-wrap {
+          display: flex;
+          align-items: center;
+          gap: 22px;
+        }
+
+        .dash-donut {
+          width: 160px;
+          flex-shrink: 0;
+        }
+
+        .dash-donut-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .dash-donut-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          color: #6b5a45;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .dash-donut-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+        }
+
+        .dash-donut-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          flex-shrink: 0;
+        }
+
+        .dash-week-bars {
+          height: 165px;
+          display: flex;
+          align-items: end;
+          gap: 10px;
+          padding: 8px 4px 0;
+        }
+
+        .dash-week-bar-item {
+          flex: 1;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          justify-content: end;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+        }
+
+        .dash-week-bar-track {
+          width: 100%;
+          height: 130px;
+          display: flex;
+          align-items: end;
+          border-radius: 999px;
+          background: #fff7e8;
+          overflow: hidden;
+          border: 1px solid #f1dfc5;
+        }
+
+        .dash-week-bar-fill {
+          width: 100%;
+          border-radius: 999px 999px 0 0;
+          background: linear-gradient(180deg, #d4911e, #b87318);
+        }
+
+        .dash-week-bar-item span {
+          color: #8a7558;
+          font-size: 11px;
+          font-weight: 850;
+        }
+
+        .dash-event-list {
+          display: flex;
+          flex-direction: column;
+          gap: 11px;
+        }
+
+        .dash-event-card {
+          display: grid;
+          grid-template-columns: 42px minmax(0, 1fr) auto;
+          gap: 12px;
+          align-items: center;
+          padding: 12px;
+          border-radius: 16px;
+          background: #fffaf2;
+          border: 1px solid #f3eadc;
+        }
+
+        .dash-event-date {
+          width: 42px;
+          height: 42px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #d4911e, #b87318);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          font-weight: 950;
+          text-align: center;
+          line-height: 1.1;
+        }
+
+        .dash-event-name {
+          margin: 0;
+          color: #1a120b;
+          font-size: 13px;
+          font-weight: 950;
+        }
+
+        .dash-event-meta {
+          margin: 3px 0 0;
+          color: #8a7558;
+          font-size: 11px;
+          font-weight: 750;
+        }
+
+        .dash-event-time {
+          color: #1a120b;
+          font-size: 12px;
+          font-weight: 950;
+          white-space: nowrap;
+        }
+
+        .dash-table-wrap {
+          overflow-x: auto;
+        }
+
+        .dash-table {
+          width: 100%;
+          border-collapse: collapse;
+          min-width: 660px;
+        }
+
+        .dash-table th {
+          text-align: left;
+          color: #8a7558;
+          font-size: 10px;
+          font-weight: 950;
+          letter-spacing: .08em;
+          text-transform: uppercase;
+          padding: 0 10px 11px;
+          border-bottom: 1px solid #f0e4d2;
+        }
+
+        .dash-table td {
+          padding: 12px 10px;
+          border-bottom: 1px solid #f7efe3;
+          color: #6b5a45;
+          font-size: 12px;
+          font-weight: 750;
+        }
+
+        .dash-table td strong {
+          color: #1a120b;
+          font-weight: 950;
+        }
+
+        .dash-status {
+          display: inline-flex;
+          align-items: center;
+          padding: 6px 10px;
+          border-radius: 999px;
+          font-size: 10px;
+          font-weight: 950;
+          white-space: nowrap;
+        }
+
+        .dash-status-approved {
+          background: #ecfdf5;
+          color: #047857;
+        }
+
+        .dash-status-pending {
+          background: #fff7e8;
+          color: #9a5d0a;
+        }
+
+        .dash-status-cancelled {
+          background: #fef2f2;
+          color: #991b1b;
+        }
+
+        .dash-status-completed {
+          background: #eef2ff;
+          color: #3730a3;
+        }
+
+        .dash-package-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .dash-package-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 8px;
+        }
+
+        .dash-package-left {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          min-width: 0;
+        }
+
+        .dash-package-rank {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: #fff7e8;
+          border: 1px solid #f1d5a3;
+          color: #9a5d0a;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          font-weight: 950;
+          flex-shrink: 0;
+        }
+
+        .dash-package-name {
+          color: #1a120b;
+          font-size: 13px;
+          font-weight: 950;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .dash-package-bookings {
+          color: #8a7558;
+          font-size: 11px;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+
+        .dash-package-track {
+          height: 8px;
+          background: #f1dfc5;
+          border-radius: 999px;
+          overflow: hidden;
+        }
+
+        .dash-package-fill {
+          height: 100%;
+          background: linear-gradient(135deg, #d4911e, #b87318);
+          border-radius: 999px;
+        }
+
+        .dash-package-revenue {
+          margin: 6px 0 0;
+          color: #9a5d0a;
+          font-size: 12px;
+          font-weight: 950;
+        }
+
+        .dash-actions {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(160px, 1fr));
+          gap: 14px;
+        }
+
+        .dash-action-card {
+          text-decoration: none;
+          background: rgba(255,255,255,.94);
+          border: 1px solid #eadfce;
+          border-radius: 18px;
+          padding: 17px;
+          box-shadow: 0 7px 22px rgba(26,18,11,.05);
+          color: #1a120b;
+          font-size: 14px;
+          font-weight: 950;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .dash-action-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 14px 30px rgba(26,18,11,.1);
+        }
+
+        .dash-action-arrow {
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          background: #fff7e8;
+          color: #9a5d0a;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        @media (max-width: 1180px) {
+          .dash-stats,
+          .dash-actions {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+
+          .dash-grid-two,
+          .dash-grid-equal {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 720px) {
+          .dash-hero {
+            padding: 22px;
+            border-radius: 22px;
+          }
+
+          .dash-stats,
+          .dash-actions {
+            grid-template-columns: 1fr;
+          }
+
+          .dash-panel {
+            padding: 16px;
+          }
+
+          .dash-donut-wrap {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .dash-event-card {
+            grid-template-columns: 42px minmax(0, 1fr);
+          }
+
+          .dash-event-time {
+            grid-column: 2;
+          }
+        }
+      `}</style>
+
+      <section className="dash-page">
+        <div className="dash-hero">
+          <div className="dash-hero-content">
+            <div>
+              <p className="dash-kicker">Paneli kryesor</p>
+              <h1 className="dash-title">
+                Mirë se erdhe në <span>MD Creative Admin</span>
+              </h1>
+              <p className="dash-subtitle">
+                Këtu e sheh gjendjen kryesore të biznesit: rezervimet, të ardhurat, paketat aktive,
+                eventet e ardhshme dhe shërbimet që po kërkohen më së shumti nga klientët.
+              </p>
+            </div>
+
+            <div className="dash-hero-card">
+              <strong>3 evente</strong>
+              <span>të planifikuara së shpejti dhe 5 kërkesa që presin kontrollim nga admini.</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="dash-stats">
+          {stats.map((item) => (
+            <div key={item.label} className="dash-stat-card">
+              <p className="dash-stat-label">{item.label}</p>
+              <p className="dash-stat-value">{item.value}</p>
+              <p className="dash-stat-change">↑ {item.change}</p>
+              <p className="dash-stat-note">{item.note}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="dash-grid-two">
+          <div className="dash-panel">
+            <div className="dash-panel-head">
+              <div>
+                <h2 className="dash-panel-title">Të ardhurat gjatë vitit</h2>
+                <p className="dash-panel-text">Trendi mujor i të ardhurave dhe rezervimeve.</p>
               </div>
             </div>
-            <p style={{ margin: '10px 0 6px', fontSize: '26px', fontWeight: 800, color: '#0f172a' }}>{s.value}</p>
-            <p style={{ margin: 0, fontSize: '12px', color: '#22c55e', fontWeight: 500 }}>↑ {s.change}</p>
-          </div>
-        ))}
-      </div>
 
-      {/* ── Charts Row ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '16px' }}>
-        {/* Revenue Overview */}
-        <div style={{ background: 'white', borderRadius: '14px', padding: '24px', border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>Revenue Overview</h3>
-              <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#94a3b8' }}>Monthly revenue & bookings trend</p>
-            </div>
-            <div style={{ display: 'flex', gap: '14px', fontSize: '12px' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#64748b' }}>
-                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f97316', display: 'inline-block' }} /> Revenue
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#64748b' }}>
-                <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#f43f5e', display: 'inline-block' }} /> Bookings
-              </span>
-            </div>
+            <LineChart />
           </div>
-          <LineChart />
-        </div>
 
-        {/* Booking Categories */}
-        <div style={{ background: 'white', borderRadius: '14px', padding: '24px', border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-          <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>Booking Categories</h3>
-          <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#94a3b8' }}>Distribution by package type</p>
-          <DonutChart />
-        </div>
-      </div>
-
-      {/* ── Weekly Bookings + Upcoming Events ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-        {/* Weekly */}
-        <div style={{ background: 'white', borderRadius: '14px', padding: '24px', border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>Weekly Bookings</h3>
-              <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#94a3b8' }}>This week's booking activity</p>
-            </div>
-            <button style={{ padding: '6px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', fontSize: '12px', fontWeight: 600, color: '#475569', cursor: 'pointer' }}>This Week</button>
-          </div>
-          <BarChart />
-        </div>
-
-        {/* Upcoming Events */}
-        <div style={{ background: 'white', borderRadius: '14px', padding: '24px', border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>Upcoming Events</h3>
-              <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#94a3b8' }}>Next scheduled celebrations</p>
-            </div>
-            <a href="#" style={{ fontSize: '13px', color: '#f97316', fontWeight: 600, textDecoration: 'none' }}>View All →</a>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {upcomingEvents.map((e, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '10px', background: '#fafafa', border: '1px solid #f1f5f9' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'linear-gradient(135deg,#fb923c,#f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>📅</div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>{e.name}</p>
-                  <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#94a3b8' }}>{e.client} · {e.guests} guests · {e.mascots} mascots</p>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>{e.date}</p>
-                  <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#94a3b8' }}>{e.time}</p>
-                </div>
+          <div className="dash-panel">
+            <div className="dash-panel-head">
+              <div>
+                <h2 className="dash-panel-title">Kategoritë e rezervimeve</h2>
+                <p className="dash-panel-text">Shpërndarja sipas paketave më të zgjedhura.</p>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Recent Bookings + Popular Packages ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '16px' }}>
-        {/* Recent Bookings */}
-        <div style={{ background: 'white', borderRadius: '14px', padding: '24px', border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>Recent Bookings</h3>
-              <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#94a3b8' }}>Latest booking requests</p>
             </div>
-            <a href="#" style={{ fontSize: '13px', color: '#f97316', fontWeight: 600, textDecoration: 'none' }}>View All →</a>
+
+            <DonutChart />
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                {['ID', 'Customer', 'Package', 'Date', 'Status', 'Amount'].map(h => (
-                  <th key={h} style={{ textAlign: 'left', fontSize: '11px', color: '#94a3b8', fontWeight: 600, paddingBottom: '10px', borderBottom: '1px solid #f1f5f9', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {recentBookings.map((b, i) => (
-                <tr key={i} style={{ borderBottom: i < recentBookings.length - 1 ? '1px solid #f8fafc' : 'none' }}>
-                  <td style={{ padding: '12px 0', fontSize: '13px', color: '#64748b', fontWeight: 500 }}>{b.id}</td>
-                  <td style={{ padding: '12px 0', fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{b.customer}</td>
-                  <td style={{ padding: '12px 0', fontSize: '13px', color: '#475569' }}>{b.package}</td>
-                  <td style={{ padding: '12px 0', fontSize: '13px', color: '#64748b' }}>{b.date}</td>
-                  <td style={{ padding: '12px 0' }}>
-                    <span style={statusStyle(b.status)}>
-                      {b.status === 'Confirmed' && '●'} {b.status === 'Pending' && '●'} {b.status === 'Cancelled' && '●'} {b.status === 'Completed' && '○'} {b.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '12px 0', fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>{b.amount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
 
-        {/* Popular Packages */}
-        <div style={{ background: 'white', borderRadius: '14px', padding: '24px', border: '1px solid #f1f5f9', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-          <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>Popular Packages</h3>
-          <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#94a3b8' }}>Top performing services</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            {popularPackages.map((p, i) => (
-              <div key={i}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ width: '20px', height: '20px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: '#475569', flexShrink: 0 }}>{p.rank}</span>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{p.name}</span>
+        <div className="dash-grid-equal">
+          <div className="dash-panel">
+            <div className="dash-panel-head">
+              <div>
+                <h2 className="dash-panel-title">Rezervimet javore</h2>
+                <p className="dash-panel-text">Aktiviteti i rezervimeve gjatë javës.</p>
+              </div>
+            </div>
+
+            <BarChart />
+          </div>
+
+          <div className="dash-panel">
+            <div className="dash-panel-head">
+              <div>
+                <h2 className="dash-panel-title">Eventet e radhës</h2>
+                <p className="dash-panel-text">Festat që janë planifikuar për ditët në vijim.</p>
+              </div>
+
+              <Link to="/admin/bookings" className="dash-panel-link">
+                Shiko të gjitha →
+              </Link>
+            </div>
+
+            <div className="dash-event-list">
+              {upcomingEvents.map((event) => (
+                <div key={`${event.name}-${event.date}`} className="dash-event-card">
+                  <div className="dash-event-date">{event.date}</div>
+
+                  <div>
+                    <p className="dash-event-name">{event.name}</p>
+                    <p className="dash-event-meta">
+                      {event.client} · {event.guests} mysafirë · {event.mascots} maskota
+                    </p>
                   </div>
-                  <span style={{ fontSize: '12px', color: '#94a3b8' }}>{p.bookings} bookings</span>
+
+                  <div className="dash-event-time">{event.time}</div>
                 </div>
-                <div style={{ height: '6px', background: '#f1f5f9', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${p.pct}%`, background: p.color, borderRadius: '3px' }} />
-                </div>
-                <p style={{ margin: '4px 0 0', fontSize: '12px', color: p.color, fontWeight: 600 }}>{p.revenue}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ── Quick Actions ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
-        {quickActions.map((a, i) => (
-          <button key={i} style={{
-            display: 'flex', alignItems: 'center', gap: '12px',
-            padding: '18px 20px', borderRadius: '14px',
-            border: '1px solid #f1f5f9', background: 'white',
-            cursor: 'pointer', boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            transition: 'transform 0.15s, box-shadow 0.15s',
-          }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(0,0,0,0.08)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = ''; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'; }}
-          >
-            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: a.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>{a.icon}</div>
-            <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>{a.label}</span>
-          </button>
-        ))}
-      </div>
+        <div className="dash-grid-two">
+          <div className="dash-panel">
+            <div className="dash-panel-head">
+              <div>
+                <h2 className="dash-panel-title">Rezervimet e fundit</h2>
+                <p className="dash-panel-text">Kërkesat më të reja që janë regjistruar në sistem.</p>
+              </div>
 
-    </div>
+              <Link to="/admin/bookings" className="dash-panel-link">
+                Menaxho →
+              </Link>
+            </div>
+
+            <div className="dash-table-wrap">
+              <table className="dash-table">
+                <thead>
+                  <tr>
+                    <th>Kodi</th>
+                    <th>Klienti</th>
+                    <th>Paketa</th>
+                    <th>Data</th>
+                    <th>Statusi</th>
+                    <th>Shuma</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {recentBookings.map((booking) => (
+                    <tr key={booking.id}>
+                      <td>
+                        <strong>{booking.id}</strong>
+                      </td>
+                      <td>{booking.customer}</td>
+                      <td>{booking.package}</td>
+                      <td>{booking.date}</td>
+                      <td>
+                        <span className={`dash-status dash-status-${booking.status.toLowerCase()}`}>
+                          {statusLabel[booking.status]}
+                        </span>
+                      </td>
+                      <td>
+                        <strong>{booking.amount}</strong>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="dash-panel">
+            <div className="dash-panel-head">
+              <div>
+                <h2 className="dash-panel-title">Paketat më të kërkuara</h2>
+                <p className="dash-panel-text">Shërbimet që performojnë më së miri.</p>
+              </div>
+            </div>
+
+            <div className="dash-package-list">
+              {popularPackages.map((item) => (
+                <div key={item.name}>
+                  <div className="dash-package-top">
+                    <div className="dash-package-left">
+                      <span className="dash-package-rank">{item.rank}</span>
+                      <span className="dash-package-name">{item.name}</span>
+                    </div>
+
+                    <span className="dash-package-bookings">{item.bookings} rezervime</span>
+                  </div>
+
+                  <div className="dash-package-track">
+                    <div className="dash-package-fill" style={{ width: `${item.pct}%` }} />
+                  </div>
+
+                  <p className="dash-package-revenue">{item.revenue}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="dash-actions">
+          {quickActions.map((action) => (
+            <Link key={action.label} to={action.path} className="dash-action-card">
+              <span>{action.label}</span>
+              <span className="dash-action-arrow">↗</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+    </>
   );
 }

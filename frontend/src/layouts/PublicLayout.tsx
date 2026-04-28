@@ -1,582 +1,1167 @@
-import  { useEffect, useRef, useState } from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-// ── Nav items ─────────────────────────────────────────────────────────────
+
 const navItems = [
-  { label: 'Home',        path: '/' },
-  { label: 'Decorations', path: '/decorations' },
-  { label: 'Mascots',     path: '/mascots' },
-  { label: 'Activities',  path: '/activities' },
+  { label: 'Ballina', path: '/' },
+  { label: 'Dekorime', path: '/decorations' },
+  { label: 'Maskota', path: '/mascots' },
+  { label: 'Aktivitete', path: '/activities' },
   { label: 'Photo Booth', path: '/photo-booth' },
-  { label: 'Packages',    path: '/packages' },
-  { label: 'Gallery',     path: '/gallery' },
-  { label: 'Our Team',    path: '/our-team' },
-  { label: 'Reviews',     path: '/reviews' },
+  { label: 'Paketat', path: '/packages' },
+  { label: 'Galeria', path: '/gallery' },
+  { label: 'Ekipi Ynë', path: '/our-team' },
+  { label: 'Vlerësimet', path: '/reviews' },
+   { label: 'Admin', path: '/admin/login' },
 ];
+
+const EMAIL = 'mdcreative.bookin@gmail.com';
+const PHONE_DISPLAY = '+383 44 378 786';
+const PHONE_LINK = '+38344378786';
 
 export default function PublicLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // header shadow on scroll
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // close menu on outside click
   useEffect(() => {
-    if (!menuOpen) return;
-    const fn = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
         setMenuOpen(false);
       }
     };
-    window.addEventListener('mousedown', fn);
-    return () => window.removeEventListener('mousedown', fn);
+
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleEscape);
+    };
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('mousedown', handleClickOutside);
+
+    return () => window.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
+
+  const goToBooking = () => {
+    navigate('/booking');
+    setMenuOpen(false);
+  };
+
+  const goToSignIn = () => {
+    navigate('/signin');
+    setMenuOpen(false);
+  };
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@400;500;600;700;800&display=swap');
 
-        *, *::before, *::after { box-sizing: border-box; }
+        *,
+        *::before,
+        *::after {
+          box-sizing: border-box;
+        }
 
-        body { margin: 0; background: #faf7f2; }
+        html,
+        body,
+        #root {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
+        }
 
-        .pl-root { font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; background: #faf7f2; }
-        .pl-serif { font-family: 'Cormorant Garamond', serif; }
+        body {
+          margin: 0;
+          background: #faf7f2;
+        }
 
-        /* ── HEADER ── */
+        .pl-root {
+          width: 100%;
+          max-width: 100%;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          background: #faf7f2;
+          font-family: 'DM Sans', sans-serif;
+          overflow-x: hidden;
+        }
+
         .pl-header {
-          position: sticky; top: 0; z-index: 1000;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+          width: 100%;
+          max-width: 100%;
           height: 76px;
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 0 32px;
-          background: rgba(250,247,242,0.92);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(250, 247, 242, 0.94);
           backdrop-filter: blur(18px);
           -webkit-backdrop-filter: blur(18px);
           border-bottom: 1px solid transparent;
-          transition: border-color .3s, box-shadow .3s;
+          transition: border-color .3s ease, box-shadow .3s ease;
+          overflow: hidden;
         }
+
         .pl-header.scrolled {
           border-color: #e8ddd0;
-          box-shadow: 0 4px 24px rgba(26,18,11,.07);
+          box-shadow: 0 4px 24px rgba(26, 18, 11, .07);
         }
 
-        /* brand */
-        .pl-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; flex-shrink: 0; }
+        .pl-header-inner {
+          width: 100%;
+          max-width: 1440px;
+          height: 100%;
+          margin: 0 auto;
+          padding: 0 32px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 18px;
+          min-width: 0;
+        }
+
+        .pl-brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          text-decoration: none;
+          flex-shrink: 0;
+          min-width: 0;
+        }
+
         .pl-logo {
-          width: 50px; height: 50px; border-radius: 16px;
+          width: 50px;
+          height: 50px;
+          border-radius: 16px;
           background: linear-gradient(135deg, #d4911e 0%, #b87318 100%);
-          color: #fff; font-family: 'Cormorant Garamond', serif;
-          font-size: 20px; font-weight: 700;
-          display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 6px 18px rgba(200,132,26,.35);
+          color: #fff;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 20px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 6px 18px rgba(200, 132, 26, .35);
           letter-spacing: .5px;
-          transition: transform .2s;
+          transition: transform .2s ease;
+          flex-shrink: 0;
         }
-        .pl-brand:hover .pl-logo { transform: rotate(-4deg) scale(1.04); }
-        .pl-brand-text { display: flex; flex-direction: column; line-height: 1; }
-        .pl-brand-name { font-family: 'Cormorant Garamond', serif; font-size: 19px; font-weight: 700; color: #1a120b; letter-spacing: .3px; }
-        .pl-brand-sub  { margin-top: 3px; font-size: 9px; font-weight: 700; color: #c8841a; letter-spacing: .18em; text-transform: uppercase; }
 
-        /* header actions */
-        .pl-actions { display: flex; align-items: center; gap: 10px; position: relative; }
+        .pl-brand:hover .pl-logo {
+          transform: rotate(-4deg) scale(1.04);
+        }
+
+        .pl-brand-text {
+          display: flex;
+          flex-direction: column;
+          line-height: 1;
+          min-width: 0;
+        }
+
+        .pl-brand-name {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 19px;
+          font-weight: 700;
+          color: #1a120b;
+          letter-spacing: .3px;
+          white-space: nowrap;
+        }
+
+        .pl-brand-sub {
+          margin-top: 3px;
+          font-size: 9px;
+          font-weight: 700;
+          color: #c8841a;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+
+        .pl-nav {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 4px;
+          min-width: 0;
+        }
+
+        .pl-nav-link {
+          text-decoration: none;
+          color: #6b5a45;
+          font-size: 13px;
+          font-weight: 800;
+          padding: 9px 10px;
+          border-radius: 999px;
+          transition: background .2s ease, color .2s ease;
+          white-space: nowrap;
+        }
+
+        .pl-nav-link:hover,
+        .pl-nav-link.active {
+          background: #fef3d0;
+          color: #92640e;
+        }
+
+        .pl-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          position: relative;
+          flex-shrink: 0;
+          min-width: 0;
+        }
 
         .pl-btn-book {
-          display: inline-flex; align-items: center; gap: 7px;
-          padding: 11px 22px; border: none; border-radius: 99px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          padding: 11px 22px;
+          border: none;
+          border-radius: 99px;
           background: linear-gradient(135deg, #d4911e 0%, #c8841a 100%);
-          color: #fff; font-family: 'DM Sans', sans-serif;
-          font-size: 14px; font-weight: 700; cursor: pointer;
-          box-shadow: 0 4px 16px rgba(200,132,26,.35);
-          transition: transform .2s, box-shadow .2s;
+          color: #fff;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 14px;
+          font-weight: 800;
+          cursor: pointer;
+          box-shadow: 0 4px 16px rgba(200, 132, 26, .35);
+          transition: transform .2s ease, box-shadow .2s ease;
           white-space: nowrap;
         }
-        .pl-btn-book:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(200,132,26,.45); }
+
+        .pl-btn-book:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 24px rgba(200, 132, 26, .45);
+        }
 
         .pl-btn-signin {
-          padding: 11px 20px; border: 1.5px solid #d8cfc3;
-          border-radius: 99px; background: transparent;
-          color: #1a120b; font-family: 'DM Sans', sans-serif;
-          font-size: 14px; font-weight: 600; cursor: pointer;
-          transition: border-color .2s, background .2s;
+          padding: 11px 20px;
+          border: 1.5px solid #d8cfc3;
+          border-radius: 99px;
+          background: transparent;
+          color: #1a120b;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: border-color .2s ease, background .2s ease;
           white-space: nowrap;
         }
-        .pl-btn-signin:hover { border-color: #c8841a; background: rgba(200,132,26,.05); }
+
+        .pl-btn-signin:hover {
+          border-color: #c8841a;
+          background: rgba(200, 132, 26, .05);
+        }
 
         .pl-btn-menu {
-          display: flex; align-items: center; gap: 8px;
-          padding: 11px 18px; border: none; border-radius: 14px;
-          background: #1a120b; color: #fff;
-          font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700;
-          cursor: pointer; transition: background .2s;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 11px 18px;
+          border: none;
+          border-radius: 14px;
+          background: #1a120b;
+          color: #fff;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 13px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: background .2s ease;
           white-space: nowrap;
         }
-        .pl-btn-menu:hover { background: #2e1d0e; }
-        .pl-btn-menu svg { transition: transform .3s; }
-        .pl-btn-menu.open svg { transform: rotate(90deg); }
 
-        /* dropdown */
+        .pl-btn-menu:hover {
+          background: #2e1d0e;
+        }
+
+        .pl-menu-icon {
+          width: 18px;
+          height: 18px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 4px;
+          flex-shrink: 0;
+        }
+
+        .pl-menu-icon span {
+          width: 18px;
+          height: 2px;
+          border-radius: 999px;
+          background: currentColor;
+          transition: transform .25s ease, opacity .25s ease;
+        }
+
+        .pl-menu-icon.open span:nth-child(1) {
+          transform: translateY(6px) rotate(45deg);
+        }
+
+        .pl-menu-icon.open span:nth-child(2) {
+          opacity: 0;
+        }
+
+        .pl-menu-icon.open span:nth-child(3) {
+          transform: translateY(-6px) rotate(-45deg);
+        }
+
+        .pl-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 1200;
+          background: rgba(26, 18, 11, .54);
+          backdrop-filter: blur(6px);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity .25s ease;
+        }
+
+        .pl-overlay.open {
+          opacity: 1;
+          pointer-events: auto;
+        }
+
         .pl-dropdown {
-          position: absolute; top: calc(100% + 12px); right: 0;
-          width: 300px;
+          position: fixed;
+          top: 76px;
+          right: 14px;
+          z-index: 1300;
+          width: min(360px, calc(100vw - 28px));
           background: #fff;
           border: 1px solid #e8ddd0;
-          border-radius: 22px;
-          box-shadow: 0 20px 60px rgba(26,18,11,.15);
+          border-radius: 24px;
+          box-shadow: 0 20px 60px rgba(26, 18, 11, .22);
           overflow: hidden;
-          animation: pl-dropIn .22s ease;
+          animation: pl-dropIn .22s ease both;
         }
+
         @keyframes pl-dropIn {
-          from { opacity: 0; transform: translateY(-8px) scale(.97); }
-          to   { opacity: 1; transform: translateY(0) scale(1); }
+          from {
+            opacity: 0;
+            transform: translateY(-8px) scale(.97);
+          }
+
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
         }
 
         .pl-dropdown-head {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 18px 20px 14px;
-          border-bottom: 1px solid #f0e9dd;
-          background: linear-gradient(135deg, #faf7f2 0%, #fff 100%);
+          padding: 18px 18px 14px;
+          background: linear-gradient(135deg, #1a120b 0%, #2c1a0a 100%);
+          color: #fff;
         }
-        .pl-dropdown-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 700; color: #1a120b; }
-        .pl-dropdown-sub   { font-size: 12px; color: #c8841a; font-weight: 600; letter-spacing: .08em; margin-top: 2px; }
-        .pl-dropdown-close {
-          width: 32px; height: 32px; border-radius: 50%;
-          border: 1px solid #e8ddd0; background: #faf7f2;
-          color: #6b5a45; font-size: 14px; cursor: pointer;
-          display: flex; align-items: center; justify-content: center;
-          transition: background .2s;
+
+        .pl-dropdown-kicker {
+          margin: 0 0 7px;
+          color: #c8841a;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: .16em;
+          text-transform: uppercase;
         }
-        .pl-dropdown-close:hover { background: #f0e9dd; }
 
-        .pl-dropdown-nav { padding: 12px; display: flex; flex-direction: column; gap: 2px; }
-
-        .pl-nav-link {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 11px 14px; border-radius: 12px;
-          text-decoration: none; color: #1a120b;
-          font-size: 14px; font-weight: 600;
-          transition: background .18s, color .18s;
+        .pl-dropdown-title {
+          margin: 0;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 26px;
+          line-height: 1.05;
+          font-weight: 700;
         }
-        .pl-nav-link:hover { background: #faf0e0; color: #c8841a; }
-        .pl-nav-link.active { background: linear-gradient(135deg, #d4911e, #c8841a); color: #fff; }
-        .pl-nav-link .arrow { opacity: 0; transform: translateX(-4px); transition: opacity .18s, transform .18s; font-size: 12px; }
-        .pl-nav-link:hover .arrow { opacity: 1; transform: translateX(0); }
-        .pl-nav-link.active .arrow { opacity: 1; }
 
-        /* ── FOOTER ── */
-        .pl-footer { background: #1a120b; margin-top: auto; }
-
-        .pl-footer-top {
-          max-width: 1280px; margin: 0 auto;
-          padding: 64px 44px 48px;
+        .pl-dropdown-nav {
+          padding: 12px;
           display: grid;
-          grid-template-columns: 1.4fr 1fr 1fr 1fr;
-          gap: 48px;
+          gap: 6px;
+          overflow: visible;
         }
 
-        .pl-footer-brand {}
-        .pl-footer-logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-        .pl-footer-logo {
-          width: 48px; height: 48px; border-radius: 14px;
-          background: linear-gradient(135deg, #d4911e, #b87318);
-          color: #fff; font-family: 'Cormorant Garamond', serif;
-          font-size: 19px; font-weight: 700;
-          display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 4px 16px rgba(200,132,26,.4);
+        .pl-dropdown-link {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          text-decoration: none;
+          color: #1a120b;
+          font-size: 14px;
+          font-weight: 800;
+          padding: 10px 13px;
+          border-radius: 14px;
+          background: #fff;
+          border: 1px solid transparent;
+          transition: background .2s ease, border-color .2s ease, color .2s ease;
         }
-        .pl-footer-brand-name { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: #fff; }
-        .pl-footer-brand-sub  { font-size: 10px; font-weight: 700; color: #c8841a; letter-spacing: .16em; text-transform: uppercase; margin-top: 2px; }
 
-        .pl-footer-desc { margin: 0 0 24px; font-size: 14px; line-height: 1.85; color: rgba(255,255,255,.5); max-width: 300px; }
+        .pl-dropdown-link:hover,
+        .pl-dropdown-link.active {
+          background: #fef3d0;
+          border-color: #e8d5a0;
+          color: #92640e;
+        }
 
-        .pl-socials { display: flex; gap: 10px; }
-        .pl-social {
-          width: 40px; height: 40px; border-radius: 50%;
-          border: 1px solid rgba(255,255,255,.12);
-          background: rgba(255,255,255,.05);
-          color: rgba(255,255,255,.6);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 13px; font-weight: 700; cursor: pointer;
-          transition: background .2s, border-color .2s, color .2s;
+        .pl-dropdown-link span:last-child {
+          color: #c8841a;
+        }
+
+        .pl-dropdown-actions {
+          padding: 0 12px 12px;
+          display: grid;
+          gap: 8px;
+        }
+
+        .pl-dropdown-action {
+          height: 42px;
+          border-radius: 14px;
+          border: none;
+          cursor: pointer;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 13px;
+          font-weight: 900;
+        }
+
+        .pl-dropdown-action.book {
+          background: #c8841a;
+          color: #fff;
+        }
+
+        .pl-dropdown-action.signin {
+          background: #f8f5f1;
+          color: #1a120b;
+          border: 1px solid #e8ddd0;
+        }
+
+        .pl-dropdown-contact {
+          padding: 13px 16px 15px;
+          background: #faf7f2;
+          border-top: 1px solid #e8ddd0;
+        }
+
+        .pl-dropdown-contact p {
+          margin: 0 0 6px;
+          color: #7a6a52;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .pl-dropdown-contact a {
+          color: #92640e;
+          font-size: 12px;
+          font-weight: 800;
           text-decoration: none;
         }
-        .pl-social:hover { background: #c8841a; border-color: #c8841a; color: #fff; }
 
-        /* ── FOOTER ── */
-        .pl-footer { background: #120d07; position: relative; overflow: hidden; }
-
-        /* big decorative text behind */
-        .pl-footer-bg-text {
-          position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
-          font-family: 'Cormorant Garamond', serif;
-          font-size: clamp(80px, 12vw, 160px); font-weight: 700;
-          color: rgba(200,132,26,.04); white-space: nowrap;
-          pointer-events: none; user-select: none; letter-spacing: -.02em;
-          line-height: 1;
+        .pl-main {
+          flex: 1 1 auto;
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
         }
 
-        /* top CTA band */
+        .pl-footer {
+          width: 100%;
+          max-width: 100%;
+          background: #120c07;
+          color: rgba(255, 255, 255, .72);
+          overflow: hidden;
+        }
+
         .pl-footer-cta {
-          position: relative; z-index: 1;
-          border-bottom: 1px solid rgba(255,255,255,.06);
-          padding: 56px 44px;
-          display: flex; align-items: center; justify-content: space-between;
-          gap: 32px; flex-wrap: wrap;
-          max-width: 1280px; margin: 0 auto;
+          border-bottom: 1px solid rgba(255, 255, 255, .08);
+          padding: 58px 32px;
         }
-        .pl-footer-cta-left {}
-        .pl-footer-cta-tag { font-size: 11px; font-weight: 700; color: #c8841a; letter-spacing: .2em; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
-        .pl-footer-cta-tag::before { content: ''; display: block; width: 24px; height: 1px; background: #c8841a; }
-        .pl-footer-cta-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(28px, 4vw, 48px); font-weight: 700; color: #fff; line-height: 1.08; margin: 0; }
-        .pl-footer-cta-title em { font-style: italic; color: #c8841a; }
-        .pl-footer-cta-btn {
-          display: inline-flex; align-items: center; gap: 10px;
-          padding: 15px 32px; border-radius: 99px; border: none;
-          background: linear-gradient(135deg, #d4911e, #c8841a);
-          color: #fff; font-family: 'DM Sans', sans-serif;
-          font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none;
-          box-shadow: 0 8px 28px rgba(200,132,26,.4);
-          transition: transform .2s, box-shadow .2s; white-space: nowrap;
+
+        .pl-footer-cta-inner {
+          max-width: 1280px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 28px;
+        }
+
+        .pl-footer-kicker {
+          margin: 0 0 10px;
+          color: #c8841a;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: .16em;
+          text-transform: uppercase;
+        }
+
+        .pl-footer-title {
+          margin: 0;
+          color: #fff;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 46px;
+          line-height: 1.08;
+          font-weight: 700;
+          max-width: 650px;
+        }
+
+        .pl-footer-title em {
+          color: #c8841a;
+          font-style: italic;
+        }
+
+        .pl-footer-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 15px 28px;
+          border-radius: 999px;
+          background: #c8841a;
+          color: #fff;
+          text-decoration: none;
+          font-size: 15px;
+          font-weight: 900;
+          box-shadow: 0 8px 24px rgba(200, 132, 26, .28);
+          white-space: nowrap;
+        }
+
+        .pl-footer-main {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 42px 32px;
+          display: grid;
+          grid-template-columns: 1.2fr .75fr .75fr .75fr;
+          gap: 34px;
+        }
+
+        .pl-footer-brand {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 16px;
+        }
+
+        .pl-footer-brand .pl-brand-name {
+          color: #fff;
+        }
+
+        .pl-footer-text {
+          margin: 0;
+          max-width: 430px;
+          font-size: 14px;
+          line-height: 1.8;
+          color: rgba(255, 255, 255, .62);
+        }
+
+        .pl-socials {
+          margin-top: 20px;
+          display: flex;
+          gap: 10px;
+        }
+
+        .pl-socials a {
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, .08);
+          border: 1px solid rgba(255, 255, 255, .12);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 900;
+        }
+
+        .pl-footer h4 {
+          margin: 0 0 16px;
+          color: #c8841a;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: .16em;
+          text-transform: uppercase;
+        }
+
+        .pl-footer-links {
+          display: grid;
+          gap: 10px;
+        }
+
+        .pl-footer-links a,
+        .pl-footer-links span {
+          color: rgba(255, 255, 255, .66);
+          font-size: 14px;
+          text-decoration: none;
+          line-height: 1.6;
+        }
+
+        .pl-footer-links a:hover {
+          color: #c8841a;
+        }
+
+        .pl-contact-item {
+          display: flex !important;
+          align-items: center;
+          gap: 11px;
+        }
+
+        .pl-contact-icon {
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          background: rgba(200, 132, 26, .12);
+          border: 1px solid rgba(200, 132, 26, .34);
+          color: #c8841a;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           flex-shrink: 0;
         }
-        .pl-footer-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(200,132,26,.5); }
 
-        /* main grid */
-        .pl-footer-top {
-          position: relative; z-index: 1;
-          max-width: 1280px; margin: 0 auto;
-          padding: 52px 44px 44px;
-          display: grid;
-          grid-template-columns: 1.6fr 1fr 1fr 1fr;
-          gap: 48px;
-          border-bottom: 1px solid rgba(255,255,255,.06);
+        .pl-contact-icon svg {
+          width: 16px;
+          height: 16px;
+          stroke: currentColor;
         }
 
-        .pl-footer-brand {}
-        .pl-footer-logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
-        .pl-footer-logo {
-          width: 48px; height: 48px; border-radius: 14px;
-          background: linear-gradient(135deg, #d4911e, #b87318);
-          color: #fff; font-family: 'Cormorant Garamond', serif;
-          font-size: 19px; font-weight: 700;
-          display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 4px 16px rgba(200,132,26,.4);
-        }
-        .pl-footer-brand-name { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: #fff; }
-        .pl-footer-brand-sub  { font-size: 10px; font-weight: 700; color: rgba(200,132,26,.7); letter-spacing: .16em; text-transform: uppercase; margin-top: 2px; }
-
-        .pl-footer-desc { margin: 0 0 28px; font-size: 14px; line-height: 1.9; color: rgba(255,255,255,.4); max-width: 280px; }
-
-        /* stats row in brand col */
-        .pl-footer-stats { display: flex; gap: 0; margin-bottom: 28px; }
-        .pl-footer-stat { flex: 1; padding: 14px 0; border-right: 1px solid rgba(255,255,255,.07); }
-        .pl-footer-stat:last-child { border-right: none; padding-left: 16px; }
-        .pl-footer-stat:first-child { padding-right: 16px; }
-        .pl-footer-stat-num { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 700; color: #c8841a; line-height: 1; margin-bottom: 3px; }
-        .pl-footer-stat-label { font-size: 11px; color: rgba(255,255,255,.35); letter-spacing: .06em; }
-
-        .pl-footer-col {}
-        .pl-footer-heading {
-          font-size: 11px; font-weight: 700; color: rgba(200,132,26,.8);
-          letter-spacing: .18em; text-transform: uppercase;
-          margin: 0 0 22px; padding-bottom: 14px;
-          border-bottom: 1px solid rgba(255,255,255,.06);
-        }
-        .pl-footer-links { display: flex; flex-direction: column; gap: 2px; }
-        .pl-footer-link {
-          text-decoration: none; color: rgba(255,255,255,.45);
-          font-size: 14px; font-weight: 500; padding: 7px 0;
-          transition: color .2s, padding-left .2s;
-          display: block; border-bottom: 1px solid rgba(255,255,255,.04);
-        }
-        .pl-footer-link:last-child { border-bottom: none; }
-        .pl-footer-link:hover { color: #fff; padding-left: 6px; }
-
-        .pl-contact-list { display: flex; flex-direction: column; gap: 2px; }
-        .pl-contact-item {
-          display: flex; align-items: flex-start; gap: 12px;
-          padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.04);
-        }
-        .pl-contact-item:last-child { border-bottom: none; }
-        .pl-contact-icon {
-          width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
-          background: rgba(200,132,26,.12); border: 1px solid rgba(200,132,26,.2);
-          display: flex; align-items: center; justify-content: center;
-          font-size: 13px; margin-top: 1px;
-        }
-        .pl-contact-label { font-size: 11px; color: rgba(255,255,255,.3); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 2px; }
-        .pl-contact-val   { font-size: 13px; color: rgba(255,255,255,.75); font-weight: 600; }
-
-        /* notice bar */
-        .pl-footer-notice {
-          position: relative; z-index: 1;
-          padding: 14px 44px;
-          display: flex; align-items: center; justify-content: center; gap: 10px;
-          color: rgba(200,132,26,.8); font-size: 13px; font-weight: 600; text-align: center;
-          background: rgba(200,132,26,.07);
-          border-bottom: 1px solid rgba(200,132,26,.12);
-        }
-
-        /* bottom bar */
         .pl-footer-bottom {
-          position: relative; z-index: 1;
-          max-width: 1280px; margin: 0 auto;
-          padding: 18px 44px 26px;
-          display: flex; justify-content: space-between; align-items: center;
-          gap: 16px; flex-wrap: wrap;
-          color: rgba(255,255,255,.2); font-size: 12px;
+          border-top: 1px solid rgba(255, 255, 255, .08);
+          padding: 18px 32px;
         }
-        .pl-footer-bottom a { color: rgba(255,255,255,.35); text-decoration: none; transition: color .2s; }
-        .pl-footer-bottom a:hover { color: #c8841a; }
-        .pl-footer-dot { width: 3px; height: 3px; border-radius: 50%; background: rgba(255,255,255,.15); display: inline-block; vertical-align: middle; margin: 0 8px; }
 
-        /* footer responsive */
-        @media (max-width: 767px) {
-          .pl-header { padding: 0 18px; height: 66px; }
-          .pl-btn-signin { display: none; }
-          .pl-brand-sub { display: none; }
-          .pl-footer-top { grid-template-columns: 1fr !important; gap: 32px; padding: 40px 22px 36px; }
-          .pl-footer-notice { padding: 14px 22px; }
-          .pl-footer-bottom { padding: 16px 22px 24px; flex-direction: column; text-align: center; gap: 8px; }
-          .pl-footer-bg-text { display: none; }
-          .pl-footer-stats { display: none; }
+        .pl-footer-bottom-inner {
+          max-width: 1280px;
+          margin: 0 auto;
+          display: flex;
+          justify-content: space-between;
+          gap: 18px;
+          color: rgba(255, 255, 255, .42);
+          font-size: 13px;
         }
-        @media (min-width: 768px) and (max-width: 1023px) {
-          .pl-footer-top { grid-template-columns: 1fr 1fr !important; gap: 32px; padding: 44px 32px 36px; }
-          .pl-footer-cta { padding: 44px 32px; }
-          .pl-footer-notice { padding: 14px 32px; }
-          .pl-footer-bottom { padding: 16px 32px 22px; }
+
+        @media (max-width: 1100px) {
+          .pl-nav {
+            display: none;
+          }
+
+          .pl-btn-menu {
+            display: inline-flex;
+          }
+        }
+
+        @media (max-width: 900px) {
+          .pl-footer-main {
+            grid-template-columns: 1fr 1fr;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .pl-header {
+            height: 68px;
+          }
+
+          .pl-header-inner {
+            padding: 0 14px;
+            gap: 8px;
+          }
+
+          .pl-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            font-size: 16px;
+          }
+
+          .pl-brand {
+            gap: 8px;
+            flex: 1 1 auto;
+            overflow: hidden;
+          }
+
+          .pl-brand-text {
+            overflow: hidden;
+          }
+
+          .pl-brand-name {
+            font-size: 18px;
+            max-width: 96px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .pl-brand-sub {
+            font-size: 7.5px;
+            letter-spacing: .13em;
+            max-width: 110px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .pl-actions {
+            gap: 6px;
+          }
+
+          .pl-btn-book {
+            height: 38px;
+            padding: 0 12px;
+            font-size: 11px;
+            gap: 5px;
+          }
+
+          .pl-btn-book svg {
+            width: 13px;
+            height: 13px;
+          }
+
+          .pl-btn-signin {
+            display: none;
+          }
+
+          .pl-btn-menu {
+            height: 38px;
+            min-width: 42px;
+            padding: 0 12px;
+            font-size: 0;
+            border-radius: 13px;
+          }
+
+          .pl-menu-icon {
+            width: 17px;
+            height: 17px;
+          }
+
+          .pl-menu-icon span {
+            width: 17px;
+          }
+
+          .pl-dropdown {
+            top: 74px;
+            right: 12px;
+            width: calc(100vw - 24px);
+            border-radius: 22px;
+          }
+
+          .pl-dropdown-head {
+            padding: 16px 17px 12px;
+          }
+
+          .pl-dropdown-title {
+            font-size: 24px;
+          }
+
+          .pl-dropdown-nav {
+            padding: 11px;
+            gap: 5px;
+          }
+
+          .pl-dropdown-link {
+            font-size: 13px;
+            padding: 9px 12px;
+            border-radius: 13px;
+          }
+
+          .pl-dropdown-actions {
+            padding: 0 11px 11px;
+            gap: 7px;
+          }
+
+          .pl-dropdown-action {
+            height: 40px;
+            font-size: 12.5px;
+          }
+
+          .pl-dropdown-contact {
+            padding: 11px 15px 13px;
+          }
+
+          .pl-footer-cta {
+            padding: 46px 18px;
+          }
+
+          .pl-footer-cta-inner {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .pl-footer-title {
+            font-size: 34px;
+          }
+
+          .pl-footer-btn {
+            width: 100%;
+          }
+
+          .pl-footer-main {
+            grid-template-columns: 1fr;
+            padding: 38px 18px;
+            gap: 30px;
+          }
+
+          .pl-footer-bottom {
+            padding: 18px;
+          }
+
+          .pl-footer-bottom-inner {
+            flex-direction: column;
+          }
+        }
+
+        @media (max-width: 390px) {
+          .pl-header-inner {
+            padding: 0 10px;
+            gap: 6px;
+          }
+
+          .pl-brand-name {
+            max-width: 82px;
+          }
+
+          .pl-brand-sub {
+            max-width: 92px;
+          }
+
+          .pl-btn-book {
+            padding: 0 10px;
+            font-size: 10px;
+          }
+
+          .pl-btn-menu {
+            min-width: 40px;
+            padding: 0 10px;
+          }
+
+          .pl-dropdown {
+            top: 72px;
+          }
+
+          .pl-dropdown-link {
+            font-size: 12.5px;
+            padding: 8px 11px;
+          }
+
+          .pl-dropdown-action {
+            height: 38px;
+          }
+
+          .pl-dropdown-contact p,
+          .pl-dropdown-contact a {
+            font-size: 11.5px;
+          }
         }
       `}</style>
 
       <div className="pl-root">
+        <header className={`pl-header ${scrolled ? 'scrolled' : ''}`}>
+          <div className="pl-header-inner">
+            <Link to="/" className="pl-brand" aria-label="MD Creative">
+              <div className="pl-logo">MD</div>
 
-        {/* ══ HEADER ══════════════════════════════════════════════════════ */}
-        <header className={`pl-header${scrolled ? ' scrolled' : ''}`}>
-
-          {/* Brand */}
-          <Link to="/" className="pl-brand">
-            <div className="pl-logo">MD</div>
-            <div className="pl-brand-text">
-              <span className="pl-brand-name pl-serif">Creative</span>
-              <span className="pl-brand-sub">Event Services</span>
-            </div>
-          </Link>
-
-          {/* Actions */}
-          <div className="pl-actions" ref={menuRef}>
-            <button className="pl-btn-book" onClick={() => navigate('/booking')}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <rect x="1" y="2" width="12" height="11" rx="2" stroke="#fff" strokeWidth="1.5"/>
-                <path d="M1 6h12M5 1v2M9 1v2" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-              Book Now
-            </button>
-
-            <button className="pl-btn-signin" onClick={() => navigate('/signin')}>
-              Sign In
-            </button>
-
-            <button className={`pl-btn-menu${menuOpen ? ' open' : ''}`} onClick={() => setMenuOpen(p => !p)}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M2 4h12M2 8h12M2 12h12" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
-              </svg>
-              Menu
-            </button>
-
-            {/* Dropdown */}
-            {menuOpen && (
-              <div className="pl-dropdown">
-                <div className="pl-dropdown-head">
-                  <div className="pl-dropdown-sub" style={{ fontSize: 13, letterSpacing: '.06em' }}>MD Creative</div>
-                  <button className="pl-dropdown-close" onClick={() => setMenuOpen(false)}>✕</button>
-                </div>
-
-                <nav className="pl-dropdown-nav">
-                  {navItems.map((item) => (
-                    <NavLink
-                      key={item.path}
-                      to={item.path}
-                      end={item.path === '/'}
-                      onClick={() => setMenuOpen(false)}
-                      className={({ isActive }) => `pl-nav-link${isActive ? ' active' : ''}`}
-                    >
-                      {item.label}
-                      <span className="arrow">→</span>
-                    </NavLink>
-                  ))}
-
-                  {/* Admin link subtle */}
-                  <div style={{ margin: '8px 0 4px', height: 1, background: '#f0e9dd' }} />
-                  <NavLink to="/admin/login" onClick={() => setMenuOpen(false)} className="pl-nav-link" style={{ color: '#9a8878', fontSize: 13 }}>
-                    Admin Panel
-                    <span className="arrow">→</span>
-                  </NavLink>
-                </nav>
+              <div className="pl-brand-text">
+                <span className="pl-brand-name">Creative</span>
+                <span className="pl-brand-sub">Shërbime për evente</span>
               </div>
-            )}
+            </Link>
+
+            <nav className="pl-nav" aria-label="Navigimi kryesor">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={item.path === '/'}
+                  className={({ isActive }) =>
+                    isActive ? 'pl-nav-link active' : 'pl-nav-link'
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+
+            <div className="pl-actions">
+              <button type="button" className="pl-btn-book" onClick={goToBooking}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M5 2v2M11 2v2M3 6h10M4 3.5h8A1.5 1.5 0 0 1 13.5 5v7A1.5 1.5 0 0 1 12 13.5H4A1.5 1.5 0 0 1 2.5 12V5A1.5 1.5 0 0 1 4 3.5Z"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                Rezervo
+              </button>
+
+              <button type="button" className="pl-btn-signin" onClick={goToSignIn}>
+                Hyr
+              </button>
+
+              <button
+                type="button"
+                className="pl-btn-menu"
+                onClick={() => setMenuOpen((prev) => !prev)}
+                aria-label={menuOpen ? 'Mbyll menynë' : 'Hap menynë'}
+                aria-expanded={menuOpen}
+              >
+                <span className={menuOpen ? 'pl-menu-icon open' : 'pl-menu-icon'}>
+                  <span />
+                  <span />
+                  <span />
+                </span>
+                Menyja
+              </button>
+            </div>
           </div>
         </header>
 
-        {/* ══ MAIN ════════════════════════════════════════════════════════ */}
-        <main style={{ flex: 1 }}>
+        <div
+          className={menuOpen ? 'pl-overlay open' : 'pl-overlay'}
+          onClick={() => setMenuOpen(false)}
+        />
+
+        {menuOpen && (
+          <div className="pl-dropdown" ref={menuRef}>
+            <div className="pl-dropdown-head">
+              <p className="pl-dropdown-kicker">Menyja</p>
+              <h2 className="pl-dropdown-title">Eksploro MD Creative</h2>
+            </div>
+
+            <nav className="pl-dropdown-nav" aria-label="Menyja në telefon">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end={item.path === '/'}
+                  className={({ isActive }) =>
+                    isActive ? 'pl-dropdown-link active' : 'pl-dropdown-link'
+                  }
+                >
+                  <span>{item.label}</span>
+                  <span>→</span>
+                </NavLink>
+              ))}
+            </nav>
+
+            <div className="pl-dropdown-actions">
+              <button
+                type="button"
+                className="pl-dropdown-action book"
+                onClick={goToBooking}
+              >
+                Rezervo eventin
+              </button>
+
+              <button
+                type="button"
+                className="pl-dropdown-action signin"
+                onClick={goToSignIn}
+              >
+                Hyr
+              </button>
+            </div>
+
+            <div className="pl-dropdown-contact">
+              <p>Na kontaktoni për rezervime, dekorime, maskota dhe paketa eventesh.</p>
+              <p>
+                <a href={`tel:${PHONE_LINK}`}>{PHONE_DISPLAY}</a>
+              </p>
+              <p>
+                <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
+              </p>
+            </div>
+          </div>
+        )}
+
+        <main className="pl-main">
           <Outlet />
         </main>
 
-        {/* ══ FOOTER ══════════════════════════════════════════════════════ */}
         <footer className="pl-footer">
+          <div className="pl-footer-cta">
+            <div className="pl-footer-cta-inner">
+              <div>
+                <p className="pl-footer-kicker">Gati për festë?</p>
 
-          {/* big decorative ghost text */}
-          <div className="pl-footer-bg-text">MD Creative</div>
-
-          {/* ── TOP CTA BAND ── */}
-          <div style={{ borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-            <div className="pl-footer-cta">
-              <div className="pl-footer-cta-left">
-                <div className="pl-footer-cta-tag">Ready to celebrate?</div>
-                <h2 className="pl-footer-cta-title">
-                  Let's create something<br />
-                  <em>truly unforgettable.</em>
+                <h2 className="pl-footer-title">
+                  Le të krijojmë një event <em>që mbahet mend gjatë.</em>
                 </h2>
               </div>
-              <Link to="/booking" className="pl-footer-cta-btn">
-                Book Your Event
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M3 8h10M9 4l4 4-4 4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+
+              <Link to="/booking" className="pl-footer-btn">
+                Rezervo Eventin
+                <span>→</span>
               </Link>
             </div>
           </div>
 
-          {/* ── MAIN GRID ── */}
-          <div className="pl-footer-top">
+          <div className="pl-footer-main">
+            <div>
+              <div className="pl-footer-brand">
+                <div className="pl-logo">MD</div>
 
-            {/* Brand + stats */}
-            <div className="pl-footer-brand">
-              <div className="pl-footer-logo-row">
-                <div className="pl-footer-logo pl-serif">MD</div>
-                <div>
-                  <div className="pl-footer-brand-name pl-serif">Creative</div>
-                  <div className="pl-footer-brand-sub">Event Services</div>
+                <div className="pl-brand-text">
+                  <span className="pl-brand-name">Creative</span>
+                  <span className="pl-brand-sub">Shërbime për evente</span>
                 </div>
               </div>
 
-              <p className="pl-footer-desc">
-                Premium event services in Kosovo. Elegant decorations, mascot entertainment, activities, and unforgettable celebrations for every special moment.
+              <p className="pl-footer-text">
+                MD Creative sjell dekorime elegante, maskota, aktivitete argëtuese,
+                photo booth, shankerica dhe paketa të veçanta për çdo festë familjare
+                apo event special.
               </p>
 
-              {/* mini stats */}
-              <div className="pl-footer-stats">
-                {[
-                  { num: '5K+', label: 'Happy clients' },
-                  { num: '800+', label: 'Events done' },
-                  { num: '200+', label: '5★ reviews' },
-                ].map((s) => (
-                  <div key={s.label} className="pl-footer-stat">
-                    <div className="pl-footer-stat-num">{s.num}</div>
-                    <div className="pl-footer-stat-label">{s.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* socials */}
               <div className="pl-socials">
-                <a href="https://instagram.com" target="_blank" rel="noreferrer" className="pl-social" title="Instagram">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
-                  </svg>
+                <a href="#" aria-label="Instagram">
+                  IG
                 </a>
-                <a href="https://facebook.com" target="_blank" rel="noreferrer" className="pl-social" title="Facebook">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-                  </svg>
+                <a href="#" aria-label="Facebook">
+                  FB
                 </a>
-                <a href="https://tiktok.com" target="_blank" rel="noreferrer" className="pl-social" title="TikTok" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '-.5px' }}>
+                <a href="#" aria-label="TikTok">
                   TT
                 </a>
               </div>
             </div>
 
-            {/* Services */}
-            <div className="pl-footer-col">
-              <h4 className="pl-footer-heading">Services</h4>
+            <div>
+              <h4>Shërbimet</h4>
+
               <div className="pl-footer-links">
-                {[
-                  { label: 'Decorations',       path: '/decorations' },
-                  { label: 'Mascot Characters', path: '/mascots' },
-                  { label: 'Activities',         path: '/activities' },
-                  { label: 'Photo Experiences',  path: '/photo-booth' },
-                  { label: 'Event Packages',     path: '/packages' },
-                ].map((l) => (
-                  <Link key={l.path} to={l.path} className="pl-footer-link">{l.label}</Link>
-                ))}
+                <Link to="/decorations">Dekorime</Link>
+                <Link to="/mascots">Maskota për fëmijë</Link>
+                <Link to="/activities">Aktivitete për fëmijë</Link>
+                <Link to="/photo-booth">Photo Booth</Link>
+                <Link to="/packages">Paketa eventesh</Link>
               </div>
             </div>
 
-            {/* Company */}
-            <div className="pl-footer-col">
-              <h4 className="pl-footer-heading">Company</h4>
+            <div>
+              <h4>Navigimi</h4>
+
               <div className="pl-footer-links">
-                {[
-                  { label: 'Event Gallery', path: '/gallery' },
-                  { label: 'Our Team',      path: '/our-team' },
-                  { label: 'Reviews',       path: '/reviews' },
-                  { label: 'Book an Event', path: '/booking' },
-                  { label: 'My Account',    path: '/signin' },
-                ].map((l) => (
-                  <Link key={l.path} to={l.path} className="pl-footer-link">{l.label}</Link>
-                ))}
+                <Link to="/">Ballina</Link>
+                <Link to="/gallery">Galeria</Link>
+                <Link to="/our-team">Ekipi ynë</Link>
+                <Link to="/reviews">Vlerësimet</Link>
+                <Link to="/booking">Rezervo eventin</Link>
+                <Link to="/signin">Admin</Link>
               </div>
             </div>
 
-            {/* Contact */}
-            <div className="pl-footer-col">
-              <h4 className="pl-footer-heading">Get in Touch</h4>
-              <div className="pl-contact-list">
-                {[
-                  { icon: '📞', label: 'Phone', val: '+383 44 378 786' },
-                  { icon: '✉',  label: 'Email', val: 'info@mdcreative.com' },
-                  { icon: '📍', label: 'Location', val: 'Prishtina, Kosovo' },
-                ].map((c) => (
-                  <div key={c.label} className="pl-contact-item">
-                    <div className="pl-contact-icon">{c.icon}</div>
-                    <div>
-                      <div className="pl-contact-label">{c.label}</div>
-                      <div className="pl-contact-val">{c.val}</div>
-                    </div>
-                  </div>
-                ))}
+            <div>
+              <h4>Kontakt</h4>
+
+              <div className="pl-footer-links">
+                <a href={`tel:${PHONE_LINK}`} className="pl-contact-item">
+                  <span className="pl-contact-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 11.19 18 19.5 19.5 0 0 1 6 12.81 19.79 19.79 0 0 1 2.08 4.18 2 2 0 0 1 4.06 2h3a2 2 0 0 1 2 1.72c.12.9.33 1.77.63 2.61a2 2 0 0 1-.45 2.11L8 9.69a16 16 0 0 0 6.31 6.31l1.25-1.25a2 2 0 0 1 2.11-.45c.84.3 1.71.51 2.61.63A2 2 0 0 1 22 16.92Z"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span>{PHONE_DISPLAY}</span>
+                </a>
+
+                <a href={`mailto:${EMAIL}`} className="pl-contact-item">
+                  <span className="pl-contact-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="m22 6-10 7L2 6"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span>{EMAIL}</span>
+                </a>
+
+                <span className="pl-contact-item">
+                  <span className="pl-contact-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M21 10c0 7-9 12-9 12S3 17 3 10a9 9 0 1 1 18 0Z"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span>Kosovë</span>
+                </span>
+
+                <span className="pl-contact-item">
+                  <span className="pl-contact-icon">
+                    <svg viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M12 2 15 9l7 3-7 3-3 7-3-7-7-3 7-3 3-7Z"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                  <span>Evente · Dekorime · Maskota</span>
+                </span>
               </div>
             </div>
           </div>
 
-          {/* peak notice */}
-          <div className="pl-footer-notice">
-            <span>📅</span>
-            <span>June – September is peak season — book at least <strong style={{ color: '#c8841a' }}>1 week in advance</strong> to secure your date.</span>
-          </div>
-
-          {/* bottom bar */}
           <div className="pl-footer-bottom">
-            <span>© 2026 MD Creative — All rights reserved.</span>
-            <span>
-              <a href="/decorations">Decorations</a>
-              <span className="pl-footer-dot" />
-              <a href="/mascots">Mascots</a>
-              <span className="pl-footer-dot" />
-              <a href="/booking">Book Now</a>
-            </span>
+            <div className="pl-footer-bottom-inner">
+              <span>
+                © {new Date().getFullYear()} MD Creative. Të gjitha të drejtat e rezervuara.
+              </span>
+              <span>Evente · Dekorime · Maskota · Paketa</span>
+            </div>
           </div>
-
         </footer>
-
       </div>
     </>
   );

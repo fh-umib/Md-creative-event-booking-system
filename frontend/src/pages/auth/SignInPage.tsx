@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export default function SignInPage() {
@@ -19,8 +20,8 @@ export default function SignInPage() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
     setMessage('');
     setErrorMessage('');
@@ -42,20 +43,29 @@ export default function SignInPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed.');
+        throw new Error(data?.message || 'Kyçja dështoi.');
       }
 
-      setMessage('Welcome back. Your account is ready.');
+      const token = data?.data?.token;
+      const user = data?.data?.user;
 
-      localStorage.setItem('token', data.data.token);
-      localStorage.setItem('user', JSON.stringify(data.data.user));
+      if (!token || !user) {
+        throw new Error('Të dhënat e kyçjes nuk janë kthyer si duhet nga serveri.');
+      }
 
-      setTimeout(() => {
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      setMessage('U kyçët me sukses. Mirë se vini përsëri!');
+
+      window.setTimeout(() => {
         navigate('/');
-      }, 1000);
+      }, 900);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : 'Something went wrong.'
+        error instanceof Error
+          ? error.message
+          : 'Diçka shkoi gabim. Ju lutem provoni përsëri.',
       );
     } finally {
       setIsSubmitting(false);
@@ -65,356 +75,495 @@ export default function SignInPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
 
-        @keyframes pageFadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes cardEnter {
+        @keyframes signinFadeIn {
           from {
             opacity: 0;
-            transform: translateY(26px) scale(0.985);
           }
+
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes signinCardEnter {
+          from {
+            opacity: 0;
+            transform: translateY(26px) scale(.98);
+          }
+
           to {
             opacity: 1;
             transform: translateY(0) scale(1);
           }
         }
 
-        @keyframes panelEnterLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
+        .signin-page {
+          min-height: 100vh;
+          padding: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background:
+            radial-gradient(circle at 12% 18%, rgba(212,145,30,.18), transparent 30%),
+            radial-gradient(circle at 88% 82%, rgba(212,145,30,.14), transparent 28%),
+            linear-gradient(135deg, #fffaf2 0%, #ffffff 48%, #f7efe3 100%);
+          font-family: 'DM Sans', system-ui, sans-serif;
+          animation: signinFadeIn .45s ease;
         }
 
-        @keyframes panelEnterRight {
-          from {
-            opacity: 0;
-            transform: translateX(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
+        .signin-card {
+          width: min(100%, 1040px);
+          display: grid;
+          grid-template-columns: 1.08fr .92fr;
+          border-radius: 32px;
+          overflow: hidden;
+          background: rgba(255,255,255,.95);
+          border: 1px solid #eadfce;
+          box-shadow: 0 24px 70px rgba(26,18,11,.15);
+          opacity: 0;
+          animation: signinCardEnter .65s ease;
+          transition: opacity .35s ease, transform .25s ease, box-shadow .25s ease;
         }
 
-        .signin-page-root { animation: pageFadeIn 0.5s ease; }
-        .signin-card { animation: cardEnter 0.65s ease; transition: transform 0.25s ease, box-shadow 0.25s ease; }
-        .signin-card:hover { transform: translateY(-2px); box-shadow: 0 28px 70px rgba(26,18,11,0.14); }
-        .signin-left-panel { animation: panelEnterLeft 0.8s ease; }
-        .signin-right-panel { animation: panelEnterRight 0.8s ease; }
-        .signin-input { transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; }
-        .signin-input:focus { border-color: #c8841a; box-shadow: 0 0 0 4px rgba(200, 132, 26, 0.12); background-color: #fffefd; }
-        .signin-button { transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease; }
-        .signin-button:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(200, 132, 26, 0.28); filter: brightness(1.02); }
-        .signin-link:hover { opacity: 0.75; }
+        .signin-card.visible {
+          opacity: 1;
+        }
+
+        .signin-left {
+          position: relative;
+          overflow: hidden;
+          padding: 44px;
+          color: #ffffff;
+          background:
+            radial-gradient(circle at 18% 18%, rgba(212,145,30,.34), transparent 32%),
+            linear-gradient(135deg, #1a120b 0%, #2b1a0d 58%, #120d07 100%);
+        }
+
+        .signin-left::after {
+          content: "MD";
+          position: absolute;
+          right: -20px;
+          bottom: -38px;
+          font-size: clamp(120px, 18vw, 210px);
+          line-height: 1;
+          font-weight: 950;
+          color: rgba(212,145,30,.09);
+          pointer-events: none;
+        }
+
+        .signin-logo {
+          position: relative;
+          z-index: 1;
+          width: 60px;
+          height: 60px;
+          border-radius: 19px;
+          background: linear-gradient(135deg, #d4911e, #b87318);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 22px;
+          font-weight: 950;
+          box-shadow: 0 16px 34px rgba(212,145,30,.25);
+          margin-bottom: 30px;
+        }
+
+        .signin-kicker {
+          position: relative;
+          z-index: 1;
+          margin: 0 0 10px;
+          color: #d4911e;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+        }
+
+        .signin-title {
+          position: relative;
+          z-index: 1;
+          margin: 0;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(42px, 6vw, 68px);
+          line-height: .95;
+          font-weight: 700;
+        }
+
+        .signin-title span {
+          color: #d4911e;
+          font-style: italic;
+        }
+
+        .signin-subtitle {
+          position: relative;
+          z-index: 1;
+          margin: 18px 0 0;
+          max-width: 470px;
+          color: rgba(255,255,255,.70);
+          font-size: 14px;
+          line-height: 1.8;
+        }
+
+        .signin-info-list {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          gap: 12px;
+          margin-top: 34px;
+        }
+
+        .signin-info-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: rgba(255,255,255,.78);
+          font-size: 13px;
+          font-weight: 750;
+        }
+
+        .signin-dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          background: #d4911e;
+          box-shadow: 0 0 0 5px rgba(212,145,30,.12);
+          flex-shrink: 0;
+        }
+
+        .signin-right {
+          padding: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 0;
+        }
+
+        .signin-form {
+          width: 100%;
+          max-width: 420px;
+          display: grid;
+          gap: 15px;
+        }
+
+        .signin-form-title {
+          margin: 0;
+          color: #1a120b;
+          font-size: clamp(26px, 3vw, 34px);
+          line-height: 1.1;
+          font-weight: 950;
+        }
+
+        .signin-form-text {
+          margin: -5px 0 10px;
+          color: #7a6a52;
+          font-size: 14px;
+          line-height: 1.65;
+        }
+
+        .signin-alert {
+          margin: 0;
+          padding: 12px 14px;
+          border-radius: 14px;
+          font-size: 13px;
+          font-weight: 750;
+          line-height: 1.45;
+        }
+
+        .signin-alert.success {
+          background: #ecfdf5;
+          border: 1px solid #bbf7d0;
+          color: #047857;
+        }
+
+        .signin-alert.error {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #991b1b;
+        }
+
+        .signin-field {
+          display: flex;
+          flex-direction: column;
+          gap: 7px;
+        }
+
+        .signin-label {
+          color: #6b5a45;
+          font-size: 12px;
+          font-weight: 850;
+          letter-spacing: .04em;
+          text-transform: uppercase;
+        }
+
+        .signin-input {
+          width: 100%;
+          height: 46px;
+          border-radius: 14px;
+          border: 1.5px solid #eadfce;
+          background: #fffdf8;
+          color: #1a120b;
+          padding: 0 14px;
+          font-size: 14px;
+          outline: none;
+          transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        .signin-input::placeholder {
+          color: #b8a48e;
+        }
+
+        .signin-input:focus {
+          border-color: #c8841a;
+          box-shadow: 0 0 0 4px rgba(200,132,26,.12);
+          background: #ffffff;
+        }
+
+        .signin-row {
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+          margin-top: -4px;
+        }
+
+        .signin-link {
+          color: #9a5d0a;
+          font-size: 13px;
+          font-weight: 850;
+          text-decoration: none;
+          transition: opacity .2s ease;
+        }
+
+        .signin-link:hover {
+          opacity: .75;
+          text-decoration: underline;
+        }
+
+        .signin-button {
+          height: 48px;
+          border: none;
+          border-radius: 15px;
+          background: linear-gradient(135deg, #d4911e, #b87318);
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 950;
+          cursor: pointer;
+          box-shadow: 0 12px 26px rgba(200,132,26,.26);
+          transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+        }
+
+        .signin-button:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 16px 34px rgba(200,132,26,.34);
+        }
+
+        .signin-button:disabled {
+          opacity: .68;
+          cursor: not-allowed;
+        }
+
+        .signin-footer {
+          margin: 6px 0 0;
+          display: flex;
+          justify-content: center;
+          gap: 6px;
+          flex-wrap: wrap;
+          color: #7a6a52;
+          font-size: 14px;
+          line-height: 1.6;
+        }
+
+        .signin-back {
+          margin-top: 8px;
+          display: flex;
+          justify-content: center;
+        }
+
+        .signin-note {
+          margin: 10px 0 0;
+          padding: 13px 14px;
+          border-radius: 16px;
+          background: #fffaf2;
+          border: 1px solid #f3eadc;
+          color: #8a7558;
+          font-size: 12px;
+          line-height: 1.55;
+          text-align: center;
+        }
 
         @media (max-width: 900px) {
-          .signin-card { flex-direction: column; min-height: auto; max-width: 620px; }
+          .signin-card {
+            grid-template-columns: 1fr;
+            max-width: 640px;
+          }
+
+          .signin-left {
+            padding: 34px;
+          }
+
+          .signin-right {
+            padding: 34px;
+          }
+
+          .signin-info-list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 28px;
+          }
         }
 
-        @media (max-width: 640px) {
-          .signin-page-root { padding: 16px; }
-          .signin-card { border-radius: 22px; }
-          .signin-left-panel { padding: 28px 22px; }
-          .signin-right-panel { padding: 24px 20px; }
-          .signin-title { font-size: 38px !important; }
+        @media (max-width: 560px) {
+          .signin-page {
+            padding: 16px;
+            align-items: flex-start;
+          }
+
+          .signin-card {
+            border-radius: 24px;
+          }
+
+          .signin-left,
+          .signin-right {
+            padding: 24px;
+          }
+
+          .signin-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            font-size: 19px;
+            margin-bottom: 22px;
+          }
+
+          .signin-info-list {
+            grid-template-columns: 1fr;
+          }
+
+          .signin-input,
+          .signin-button {
+            height: 45px;
+          }
+
+          .signin-row {
+            justify-content: flex-start;
+          }
         }
       `}</style>
 
-      <div className="signin-page-root" style={pageStyle}>
-        <div className="signin-card" style={{ ...cardStyle, opacity: isVisible ? 1 : 0 }}>
-          <div className="signin-left-panel" style={leftPanelStyle}>
-            <div style={badgeStyle}>MD Creative</div>
+      <main className="signin-page">
+        <section className={`signin-card ${isVisible ? 'visible' : ''}`}>
+          <div className="signin-left">
+            <div className="signin-logo">MD</div>
 
-            <h1 className="signin-title" style={titleStyle}>
-              Welcome Back
+            <p className="signin-kicker">Mirë se vini</p>
+
+            <h1 className="signin-title">
+              Kyçu në <span>MD Creative</span>
             </h1>
 
-            <p style={subtitleStyle}>
-              Sign in to continue creating unforgettable moments, manage your bookings
-              and keep every celebration beautifully organized.
+            <p className="signin-subtitle">
+              Kyçu për të vazhduar me rezervimet, për të ruajtur detajet e eventit dhe për ta
+              organizuar festën tuaj në mënyrë më të lehtë.
             </p>
 
-            <div style={infoBoxStyle}>
-              <div style={infoItemStyle}>Secure access to your account</div>
-              <div style={infoItemStyle}>Review your bookings anytime</div>
-              <div style={infoItemStyle}>Keep every event detail in one place</div>
+            <div className="signin-info-list">
+              <div className="signin-info-item">
+                <span className="signin-dot" />
+                Qasje e sigurt në llogari
+              </div>
+
+              <div className="signin-info-item">
+                <span className="signin-dot" />
+                Rezervimet në një vend
+              </div>
+
+              <div className="signin-info-item">
+                <span className="signin-dot" />
+                Evente më të organizuara
+              </div>
+
+              <div className="signin-info-item">
+                <span className="signin-dot" />
+                Përvojë më e lehtë për klientë
+              </div>
             </div>
           </div>
 
-          <div className="signin-right-panel" style={rightPanelStyle}>
-            <form style={formStyle} onSubmit={handleSubmit}>
-              <h2 style={formTitleStyle}>Sign In</h2>
+          <div className="signin-right">
+            <form className="signin-form" onSubmit={handleSubmit}>
+              <div>
+                <h2 className="signin-form-title">Kyçja në llogari</h2>
+                <p className="signin-form-text">
+                  Shkruaj emailin dhe fjalëkalimin për të vazhduar.
+                </p>
+              </div>
 
-              {message ? <div style={successBoxStyle}>{message}</div> : null}
-              {errorMessage ? <div style={errorBoxStyle}>{errorMessage}</div> : null}
+              {message && <p className="signin-alert success">{message}</p>}
+              {errorMessage && <p className="signin-alert error">{errorMessage}</p>}
 
-              <div style={fieldStyle}>
-                <label style={labelStyle}>Email Address</label>
+              <div className="signin-field">
+                <label htmlFor="email" className="signin-label">
+                  Email
+                </label>
+
                 <input
-                  className="signin-input"
+                  id="email"
                   type="email"
-                  placeholder="Enter your email"
-                  style={inputStyle}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-
-              <div style={fieldStyle}>
-                <label style={labelStyle}>Password</label>
-                <input
+                  placeholder="Shkruaj emailin"
                   className="signin-input"
-                  type="password"
-                  placeholder="Enter your password"
-                  style={inputStyle}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
                 />
               </div>
 
-              <div style={forgotWrapperStyle}>
-                <Link to="/forgot-password" className="signin-link" style={forgotLinkStyle}>
-                  Forgot your password?
+              <div className="signin-field">
+                <label htmlFor="password" className="signin-label">
+                  Fjalëkalimi
+                </label>
+
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="Shkruaj fjalëkalimin"
+                  className="signin-input"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="signin-row">
+                <Link to="/forgot-password" className="signin-link">
+                  Keni harruar fjalëkalimin?
                 </Link>
               </div>
 
-              <button
-                className="signin-button"
-                type="submit"
-                style={buttonStyle}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Signing In...' : 'Sign In'}
+              <button className="signin-button" type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Duke u kyçur...' : 'Kyçu'}
               </button>
 
-              <div style={footerStyle}>
-                <span style={footerTextStyle}>Don’t have an account?</span>
-                <Link to="/register" className="signin-link" style={footerLinkStyle}>
-                  Create account
+              <div className="signin-footer">
+                <span>Nuk keni llogari?</span>
+                <Link to="/register" className="signin-link">
+                  Krijo llogari
                 </Link>
               </div>
 
-              <div style={backWrapperStyle}>
-                <Link to="/" className="signin-link" style={backLinkStyle}>
-                  Back to Home
+              <div className="signin-back">
+                <Link to="/" className="signin-link">
+                  Kthehu në faqen kryesore
                 </Link>
               </div>
+
+              <p className="signin-note">
+                Pas kyçjes, klienti mund të vazhdojë me rezervimin dhe të menaxhojë më lehtë
+                të dhënat e eventit.
+              </p>
             </form>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </>
   );
 }
-
-const pageStyle: React.CSSProperties = {
-  minHeight: '100vh',
-  background: 'linear-gradient(135deg, #faf7f2 0%, #f6efe5 50%, #fffaf2 100%)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '24px',
-  boxSizing: 'border-box',
-  fontFamily: "'DM Sans', sans-serif",
-};
-
-const cardStyle: React.CSSProperties = {
-  width: '100%',
-  maxWidth: '980px',
-  minHeight: '540px',
-  backgroundColor: '#ffffff',
-  borderRadius: '28px',
-  boxShadow: '0 24px 60px rgba(26,18,11,0.12)',
-  display: 'flex',
-  overflow: 'hidden',
-};
-
-const leftPanelStyle: React.CSSProperties = {
-  flex: 0.95,
-  background: 'linear-gradient(135deg, #1a120b 0%, #2a1a0f 55%, #1d130d 100%)',
-  color: '#ffffff',
-  padding: '40px 32px',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-};
-
-const rightPanelStyle: React.CSSProperties = {
-  flex: 1.15,
-  backgroundColor: '#fffdf9',
-  padding: '32px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const badgeStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignSelf: 'flex-start',
-  padding: '8px 14px',
-  borderRadius: '999px',
-  backgroundColor: 'rgba(200,132,26,0.16)',
-  border: '1px solid rgba(200,132,26,0.28)',
-  color: '#f0c27b',
-  fontSize: '12px',
-  fontWeight: 700,
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  marginBottom: '18px',
-};
-
-const titleStyle: React.CSSProperties = {
-  margin: 0,
-  fontFamily: "'Cormorant Garamond', serif",
-  fontSize: '48px',
-  lineHeight: 1,
-  fontWeight: 700,
-};
-
-const subtitleStyle: React.CSSProperties = {
-  marginTop: '14px',
-  marginBottom: '24px',
-  color: 'rgba(255,255,255,0.76)',
-  fontSize: '15px',
-  lineHeight: 1.8,
-  maxWidth: '360px',
-};
-
-const infoBoxStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '10px',
-};
-
-const infoItemStyle: React.CSSProperties = {
-  backgroundColor: 'rgba(255,255,255,0.08)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: '14px',
-  padding: '12px 14px',
-  fontSize: '14px',
-  fontWeight: 600,
-};
-
-const formStyle: React.CSSProperties = {
-  width: '100%',
-  maxWidth: '460px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '14px',
-};
-
-const formTitleStyle: React.CSSProperties = {
-  margin: 0,
-  color: '#1a120b',
-  fontSize: '28px',
-  fontWeight: 800,
-};
-
-const fieldStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '6px',
-};
-
-const labelStyle: React.CSSProperties = {
-  color: '#3d3024',
-  fontSize: '13px',
-  fontWeight: 700,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  height: '52px',
-  borderRadius: '14px',
-  border: '1px solid #e7d8c4',
-  backgroundColor: '#fffaf4',
-  padding: '0 14px',
-  fontSize: '14px',
-  outline: 'none',
-  boxSizing: 'border-box',
-  color: '#1f1a17',
-};
-
-const forgotWrapperStyle: React.CSSProperties = {
-  textAlign: 'right',
-  marginTop: '-2px',
-};
-
-const forgotLinkStyle: React.CSSProperties = {
-  color: '#9a6a11',
-  textDecoration: 'none',
-  fontSize: '13px',
-  fontWeight: 700,
-};
-
-const buttonStyle: React.CSSProperties = {
-  marginTop: '4px',
-  height: '52px',
-  borderRadius: '14px',
-  border: 'none',
-  background: 'linear-gradient(135deg, #d7a04a 0%, #c8841a 100%)',
-  color: '#ffffff',
-  fontSize: '15px',
-  fontWeight: 800,
-  cursor: 'pointer',
-};
-
-const footerStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'center',
-  gap: '8px',
-  alignItems: 'center',
-  flexWrap: 'wrap',
-  marginTop: '4px',
-  fontSize: '14px',
-};
-
-const footerTextStyle: React.CSSProperties = {
-  color: '#6f6255',
-};
-
-const footerLinkStyle: React.CSSProperties = {
-  color: '#1a120b',
-  textDecoration: 'none',
-  fontWeight: 800,
-};
-
-const backWrapperStyle: React.CSSProperties = {
-  textAlign: 'center',
-  marginTop: '4px',
-};
-
-const backLinkStyle: React.CSSProperties = {
-  color: '#7a6a52',
-  textDecoration: 'none',
-  fontWeight: 600,
-};
-
-const successBoxStyle: React.CSSProperties = {
-  padding: '12px 14px',
-  borderRadius: '14px',
-  backgroundColor: '#eefbf3',
-  border: '1px solid #bbf7d0',
-  color: '#166534',
-  fontSize: '13px',
-  fontWeight: 700,
-};
-
-const errorBoxStyle: React.CSSProperties = {
-  padding: '12px 14px',
-  borderRadius: '14px',
-  backgroundColor: '#fef2f2',
-  border: '1px solid #fecaca',
-  color: '#b91c1c',
-  fontSize: '13px',
-  fontWeight: 700,
-};

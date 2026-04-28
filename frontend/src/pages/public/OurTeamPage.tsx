@@ -1,23 +1,91 @@
-import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getPublicStaff } from '../../services/staffService';
-import type { PublicStaffResponse } from '../../types/staff';
+import { useEffect, useMemo, useState } from 'react';
 
-const emptyData: PublicStaffResponse = {
-  staff: [],
-  stats: {
-    total_members: 0,
-    avg_rating: 0,
-    total_reviews: 0,
-  },
-  reviews: [],
+type TeamMember = {
+  id: number;
+  fullName: string;
+  role: string;
+  imageUrl: string;
+  bio: string;
+  tag: string;
 };
 
+const teamMembers: TeamMember[] = [
+  {
+    id: 1,
+    fullName: 'Rinor Hyseni',
+    role: 'Themelues & Organizator Kryesor',
+    imageUrl: '/images/team/rinor-hyseni.png',
+    tag: 'Themelues',
+    bio: 'Rinori është një nga themeluesit e MD Creative dhe ndihmon në udhëheqjen e organizimit kryesor, planifikimit, përgjegjësive dhe drejtimit të përgjithshëm të kompanisë.',
+  },
+  {
+    id: 2,
+    fullName: 'Elmonda Hyseni',
+    role: 'Bashkëthemeluese & Udhëheqëse e Dekorimeve',
+    imageUrl: '/images/team/elmonda-hyseni.png',
+    tag: 'Dekorime',
+    bio: 'Elmonda është një nga personat kryesorë pas MD Creative dhe udhëheq punën e dekorimeve me kreativitet, kujdes dhe vëmendje ndaj çdo detaji.',
+  },
+  {
+    id: 3,
+    fullName: 'Flutura Hyseni',
+    role: 'Punëtore Kryesore & Editore Kreative e Medias',
+    imageUrl: '/images/team/flutura-hyseni.png',
+    tag: 'Punëtore Kryesore',
+    bio: 'Flutura është një nga punëtoret kyçe të MD Creative, përgjegjëse për shumë detyra gjatë eventeve dhe gjithashtu e përfshirë në editimin e videove dhe përmbajtjen kreative për faqen.',
+  },
+  {
+    id: 4,
+    fullName: 'Tringa Hyseni',
+    role: 'Punëtore Kryesore e Eventeve & Performuese me Maskota',
+    imageUrl: '/images/team/tringa-hyseni.png',
+    tag: 'Maskota',
+    bio: 'Tringa është një nga anëtaret kryesore të ekipit, veçanërisht e përfshirë në performancat me maskota dhe argëtimin e fëmijëve gjatë eventeve të ndryshme.',
+  },
+  {
+    id: 5,
+    fullName: 'Mali Buliqi',
+    role: 'Shofer Kryesor & Punëtor Eventesh',
+    imageUrl: '/images/team/mali-buliqi.png',
+    tag: 'Shofer Kryesor',
+    bio: 'Mali është shoferi kryesor dhe një nga punëtorët kyç të eventeve, duke ndihmuar me transport, montim, organizim dhe mbështetje gjatë eventeve.',
+  },
+  {
+    id: 6,
+    fullName: 'Denis Cej',
+    role: 'Shofer & Punëtor Afatgjatë i Ekipit',
+    imageUrl: '/images/team/denis-cej.png',
+    tag: 'Shofer',
+    bio: 'Denisi është një punëtor afatgjatë i ekipit, i cili ndihmon me transport, përgatitje të eventeve, montim dhe përgjegjësi të ndryshme gjatë festave.',
+  },
+  {
+    id: 7,
+    fullName: 'Elton Shyti',
+    role: 'Punëtor Mbështetës i Eventeve',
+    imageUrl: '/images/team/elton-shyti.png',
+    tag: 'Mbështetje',
+    bio: 'Eltoni është një punëtor i përkushtuar në mbështetjen e eventeve, i cili ndihmon me organizim, përgatitje, montim dhe sigurohet që gjithçka të shkojë siç duhet.',
+  },
+  {
+    id: 8,
+    fullName: 'Altina Krasniqi',
+    role: 'Asistente e Dekorimeve & Punëtore Eventesh',
+    imageUrl: '/images/team/altina-krasniqi.png',
+    tag: 'Dekorime',
+    bio: 'Altina ndihmon Elmonden me dekorimet dhe gjithashtu mbështet ekipin në detyra të ndryshme të eventeve, duke sjellë kujdes dhe përkushtim në punë.',
+  },
+];
+
 const movingHighlights = [
-  'FLUTURA HYSENI',
-  'TRINGA HYSENI',
   'RINOR HYSENI',
   'ELMONDA HYSENI',
+  'FLUTURA HYSENI',
+  'TRINGA HYSENI',
+  'MALI BULIQI',
+  'DENIS CEJ',
+  'ELTON SHYTI',
+  'ALTINA KRASNIQI',
 ];
 
 function useWindowWidth() {
@@ -27,7 +95,9 @@ function useWindowWidth() {
 
   useEffect(() => {
     const handleResize = () => setWidth(window.innerWidth);
+
     window.addEventListener('resize', handleResize);
+
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
@@ -39,14 +109,16 @@ function ScrollToTop() {
 
   useEffect(() => {
     const handleScroll = () => setVisible(window.scrollY > 400);
+
     window.addEventListener('scroll', handleScroll, { passive: true });
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
     <button
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      aria-label="Scroll to top"
+      aria-label="Kthehu lart"
       style={{
         position: 'fixed',
         right: 20,
@@ -83,107 +155,14 @@ function ScrollToTop() {
 }
 
 export default function OurTeamPage() {
-  const [data, setData] = useState<PublicStaffResponse>(emptyData);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const width = useWindowWidth();
 
   const isMobile = width < 640;
   const isTablet = width < 1024;
 
-  useEffect(() => {
-    async function loadStaff() {
-      try {
-        setLoading(true);
-        setError('');
-        const response = await getPublicStaff();
-        setData(response);
-      } catch {
-        setError('Failed to load team data.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadStaff();
-  }, []);
-
-  const totalMembers = useMemo(
-    () => data.stats.total_members || data.staff.length,
-    [data]
-  );
-  const avgRating = useMemo(
-    () => (data.stats.avg_rating > 0 ? Number(data.stats.avg_rating).toFixed(1) : '—'),
-    [data]
-  );
-  const totalReviews = useMemo(() => data.stats.total_reviews || 0, [data]);
-
-  if (loading) {
-    return (
-      <>
-        <style>{`
-          @keyframes team-spin { 
-            to { transform: rotate(360deg); } 
-          }
-        `}</style>
-        <main
-          style={{
-            minHeight: '70vh',
-            background: '#faf7f2',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 24,
-          }}
-        >
-          <div style={{ textAlign: 'center' }}>
-            <div
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                border: '3px solid #eadfce',
-                borderTopColor: '#c8841a',
-                animation: 'team-spin .9s linear infinite',
-                margin: '0 auto 14px',
-              }}
-            />
-            <p style={{ margin: 0, color: '#7a6a52', fontSize: 15 }}>Loading team...</p>
-          </div>
-        </main>
-      </>
-    );
-  }
-
-  if (error) {
-    return (
-      <main
-        style={{
-          minHeight: '70vh',
-          background: '#faf7f2',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 24,
-        }}
-      >
-        <div
-          style={{
-            background: '#fff1f1',
-            color: '#991b1b',
-            border: '1.5px solid #fecaca',
-            borderRadius: 18,
-            padding: '24px 28px',
-            fontSize: 15,
-            maxWidth: 540,
-            textAlign: 'center',
-          }}
-        >
-          {error}
-        </div>
-      </main>
-    );
-  }
+  const totalMembers = useMemo(() => teamMembers.length, []);
+  const mainRoles = useMemo(() => '8+', []);
+  const eventExperience = useMemo(() => '100+', []);
 
   return (
     <>
@@ -200,33 +179,82 @@ export default function OurTeamPage() {
         }
 
         @keyframes team-fadeUp {
-          from { 
-            opacity: 0; 
-            transform: translateY(20px); 
+          from {
+            opacity: 0;
+            transform: translateY(20px);
           }
-          to {   
-            opacity: 1; 
-            transform: translateY(0); 
+
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
         }
 
         @keyframes team-marquee {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
+          from {
+            transform: translateX(0);
+          }
+
+          to {
+            transform: translateX(-50%);
+          }
         }
 
-        .team-a1 { animation: team-fadeUp .55s ease both .05s; }
-        .team-a2 { animation: team-fadeUp .55s ease both .16s; }
-        .team-a3 { animation: team-fadeUp .55s ease both .28s; }
-        .team-a4 { animation: team-fadeUp .55s ease both .40s; }
+        .team-a1 {
+          animation: team-fadeUp .55s ease both .05s;
+        }
+
+        .team-a2 {
+          animation: team-fadeUp .55s ease both .16s;
+        }
+
+        .team-a3 {
+          animation: team-fadeUp .55s ease both .28s;
+        }
 
         .team-card {
-          transition: transform .28s ease, box-shadow .28s ease;
+          transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease;
         }
 
         .team-card:hover {
-          transform: translateY(-6px);
-          box-shadow: 0 22px 48px rgba(26,18,11,.12) !important;
+          transform: translateY(-5px);
+          box-shadow: 0 18px 40px rgba(26,18,11,.11) !important;
+          border-color: rgba(200,132,26,.45) !important;
+        }
+
+        .team-image-wrap {
+          position: relative;
+          overflow: hidden;
+          background: #efe6d8;
+        }
+
+        .team-image-wrap img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center;
+          display: block;
+          transition: transform .35s ease;
+        }
+
+        .team-card:hover .team-image-wrap img {
+          transform: scale(1.04);
+        }
+
+        .team-tag {
+          position: absolute;
+          left: 14px;
+          bottom: 14px;
+          background: rgba(26,18,11,.78);
+          color: #fff;
+          border: 1px solid rgba(255,255,255,.16);
+          border-radius: 999px;
+          padding: 7px 12px;
+          font-size: 10.5px;
+          font-weight: 700;
+          letter-spacing: .08em;
+          text-transform: uppercase;
+          backdrop-filter: blur(8px);
         }
 
         .team-btn-primary,
@@ -250,7 +278,7 @@ export default function OurTeamPage() {
         .team-marquee-track {
           display: flex;
           width: max-content;
-          animation: team-marquee 30s linear infinite;
+          animation: team-marquee 34s linear infinite;
         }
 
         .team-marquee-item {
@@ -299,7 +327,7 @@ export default function OurTeamPage() {
           }
 
           .team-marquee-track {
-            animation-duration: 22s;
+            animation-duration: 24s;
           }
         }
 
@@ -315,7 +343,8 @@ export default function OurTeamPage() {
           style={{
             position: 'relative',
             overflow: 'hidden',
-            background: 'linear-gradient(135deg, #1a120b 0%, #2c1a0a 55%, #1a120b 100%)',
+            background:
+              'linear-gradient(135deg, #1a120b 0%, #2c1a0a 55%, #1a120b 100%)',
           }}
         >
           <div
@@ -327,6 +356,7 @@ export default function OurTeamPage() {
               pointerEvents: 'none',
             }}
           />
+
           <div
             style={{
               position: 'absolute',
@@ -336,7 +366,8 @@ export default function OurTeamPage() {
               width: isMobile ? 320 : 620,
               height: isMobile ? 320 : 620,
               borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(200,132,26,.16) 0%, transparent 68%)',
+              background:
+                'radial-gradient(circle, rgba(200,132,26,.16) 0%, transparent 68%)',
               pointerEvents: 'none',
             }}
           />
@@ -345,7 +376,11 @@ export default function OurTeamPage() {
             style={{
               maxWidth: 1280,
               margin: '0 auto',
-              padding: isMobile ? '64px 20px 86px' : isTablet ? '84px 32px 100px' : '92px 44px 110px',
+              padding: isMobile
+                ? '64px 20px 78px'
+                : isTablet
+                  ? '82px 32px 92px'
+                  : '90px 44px 102px',
               position: 'relative',
               zIndex: 1,
               textAlign: 'center',
@@ -361,10 +396,11 @@ export default function OurTeamPage() {
                 border: '1px solid rgba(200,132,26,.30)',
                 borderRadius: 999,
                 padding: '8px 18px',
-                marginBottom: 26,
+                marginBottom: 24,
               }}
             >
               <span style={{ fontSize: 16 }}>✨</span>
+
               <span
                 style={{
                   color: '#e8b56a',
@@ -374,7 +410,7 @@ export default function OurTeamPage() {
                   textTransform: 'uppercase',
                 }}
               >
-                THE PEOPLE BEHIND THE MAGIC
+                NJERËZIT PAS MAGJISË
               </span>
             </div>
 
@@ -388,24 +424,21 @@ export default function OurTeamPage() {
                 fontWeight: 700,
               }}
             >
-              Meet Our{' '}
-              <em style={{ fontStyle: 'italic', color: '#c8841a' }}>Talented</em>
-              <br />
-              Team
+              Njihuni me ekipin tonë{' '}
+              <em style={{ fontStyle: 'italic', color: '#c8841a' }}>të talentuar</em>
             </h1>
 
             <p
               className="team-a3"
               style={{
                 margin: '0 auto',
-                maxWidth: 720,
+                maxWidth: 760,
                 color: 'rgba(255,255,255,.68)',
                 fontSize: isMobile ? 16 : 18,
-                lineHeight: 1.85,
+                lineHeight: 1.8,
               }}
             >
-              Every unforgettable event starts with exceptional people. Meet the professionals
-              who bring energy, creativity, care, and unforgettable moments to every celebration.
+              Çdo event i paharrueshëm fillon me njerëz të jashtëzakonshëm. Njihuni me anëtarët e ekipit që sjellin energji, kreativitet, kujdes, organizim dhe momente të bukura në çdo festë.
             </p>
           </div>
         </section>
@@ -450,9 +483,9 @@ export default function OurTeamPage() {
             }}
           >
             {[
-              { icon: '👥', value: totalMembers, label: 'Team Members' },
-              { icon: '⭐', value: avgRating, label: 'Avg Rating' },
-              { icon: '💬', value: totalReviews, label: 'Total Reviews' },
+              { icon: '👥', value: totalMembers, label: 'Anëtarë Kryesorë të Ekipit' },
+              { icon: '🎈', value: mainRoles, label: 'Role në Evente' },
+              { icon: '✨', value: eventExperience, label: 'Momente të Veçanta' },
             ].map((item) => (
               <div
                 key={item.label}
@@ -460,23 +493,25 @@ export default function OurTeamPage() {
                   background: '#fffaf2',
                   border: '1px solid #f1e6d6',
                   borderRadius: 20,
-                  padding: isMobile ? '18px 14px' : '22px 18px',
+                  padding: isMobile ? '18px 14px' : '20px 18px',
                   textAlign: 'center',
                 }}
               >
                 <div style={{ fontSize: 24, marginBottom: 8 }}>{item.icon}</div>
+
                 <h3
                   className="team-serif"
                   style={{
                     margin: '0 0 4px',
                     color: '#1a120b',
-                    fontSize: isMobile ? 32 : 40,
+                    fontSize: isMobile ? 32 : 38,
                     lineHeight: 1,
                     fontWeight: 700,
                   }}
                 >
                   {item.value}
                 </h3>
+
                 <p
                   style={{
                     margin: 0,
@@ -496,10 +531,10 @@ export default function OurTeamPage() {
           style={{
             maxWidth: 1280,
             margin: '0 auto',
-            padding: isMobile ? '44px 20px 28px' : '62px 32px 34px',
+            padding: isMobile ? '44px 20px 28px' : '58px 32px 34px',
           }}
         >
-          <div style={{ textAlign: 'center', maxWidth: 780, margin: '0 auto 34px' }}>
+          <div style={{ textAlign: 'center', maxWidth: 820, margin: '0 auto 32px' }}>
             <p
               style={{
                 margin: '0 0 10px',
@@ -510,7 +545,7 @@ export default function OurTeamPage() {
                 textTransform: 'uppercase',
               }}
             >
-              OUR PROFESSIONALS
+              PROFESIONISTËT TANË KRYESORË
             </p>
 
             <h2
@@ -523,7 +558,7 @@ export default function OurTeamPage() {
                 fontWeight: 700,
               }}
             >
-              Experts In Every Detail
+              Ekspertë në çdo detaj
             </h2>
 
             <p
@@ -531,176 +566,105 @@ export default function OurTeamPage() {
                 margin: 0,
                 color: '#7a6a52',
                 fontSize: isMobile ? 15 : 17,
-                lineHeight: 1.85,
+                lineHeight: 1.8,
               }}
             >
-              Meet the team members who help make each event elegant, joyful, and memorable.
+              MD Creative ka një ekip edhe më të madh mbështetës, por këta janë disa nga personat kryesorë që udhëheqin, organizojnë, dekorojnë, performojnë, vozisin dhe mbështesin eventet me përkushtim.
             </p>
           </div>
 
-          {data.staff.length === 0 ? (
-            <div
-              style={{
-                maxWidth: 760,
-                margin: '0 auto',
-                textAlign: 'center',
-                padding: isMobile ? '42px 22px' : '56px 26px',
-                background: '#fff',
-                borderRadius: 24,
-                border: '1.5px solid #eadfce',
-                boxShadow: '0 10px 30px rgba(26,18,11,.05)',
-              }}
-            >
-              <div style={{ fontSize: 42, marginBottom: 12 }}>✨</div>
-              <h3
-                className="team-serif"
+          <div
+            className="team-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+              gap: 18,
+              alignItems: 'stretch',
+            }}
+          >
+            {teamMembers.map((member, index) => (
+              <article
+                key={member.id}
+                className="team-card"
                 style={{
-                  margin: '0 0 10px',
-                  color: '#1a120b',
-                  fontSize: 32,
-                  fontWeight: 700,
+                  background: '#fff',
+                  borderRadius: 22,
+                  overflow: 'hidden',
+                  border: '1.5px solid #eadfce',
+                  boxShadow: '0 8px 24px rgba(26,18,11,.06)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  animation: `team-fadeUp .55s ease both ${0.08 * (index + 1)}s`,
                 }}
               >
-                Team Coming Soon
-              </h3>
-              <p
-                style={{
-                  margin: 0,
-                  color: '#7a6a52',
-                  fontSize: 16,
-                  lineHeight: 1.8,
-                }}
-              >
-                Our team profiles are being prepared. Check back soon.
-              </p>
-            </div>
-          ) : (
-            <div
-              className="team-grid"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                gap: 22,
-              }}
-            >
-              {data.staff.map((member, index) => {
-                const fallbackImage =
-                  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=1200&q=80';
+                <div
+                  className="team-image-wrap"
+                  style={{
+                    height: isMobile ? 255 : isTablet ? 275 : 285,
+                  }}
+                >
+                  <img
+                    src={member.imageUrl}
+                    alt={member.fullName}
+                    loading="lazy"
+                    onError={(event) => {
+                      event.currentTarget.src = '/images/team/flutura-hyseni.png';
+                    }}
+                  />
 
-                return (
-                  <article
-                    key={member.id}
-                    className="team-card"
+                  <span className="team-tag">{member.tag}</span>
+                </div>
+
+                <div
+                  style={{
+                    padding: isMobile ? '16px 15px 16px' : '18px 18px 18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flex: 1,
+                  }}
+                >
+                  <h3
+                    className="team-serif"
                     style={{
-                      background: '#fff',
-                      borderRadius: 24,
-                      overflow: 'hidden',
-                      border: '1.5px solid #eadfce',
-                      boxShadow: '0 8px 24px rgba(26,18,11,.06)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      animation: `team-fadeUp .55s ease both ${0.08 * (index + 1)}s`,
+                      margin: '0 0 5px',
+                      color: '#1a120b',
+                      fontSize: isMobile ? 27 : 29,
+                      lineHeight: 1.05,
+                      fontWeight: 700,
                     }}
                   >
-                    <div
-                      style={{
-                        height: isMobile ? 260 : 320,
-                        backgroundImage: `linear-gradient(180deg, rgba(17,24,39,0.05) 0%, rgba(17,24,39,0.18) 100%), url(${member.image_url || fallbackImage})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      }}
-                    />
+                    {member.fullName}
+                  </h3>
 
-                    <div
-                      style={{
-                        padding: isMobile ? '18px 16px 18px' : '22px 20px 22px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        flex: 1,
-                      }}
-                    >
-                      <h3
-                        className="team-serif"
-                        style={{
-                          margin: '0 0 6px',
-                          color: '#1a120b',
-                          fontSize: isMobile ? 28 : 34,
-                          lineHeight: 1.08,
-                          fontWeight: 700,
-                        }}
-                      >
-                        {member.full_name}
-                      </h3>
+                  <p
+                    style={{
+                      margin: '0 0 12px',
+                      color: '#c8841a',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      letterSpacing: '.055em',
+                      textTransform: 'uppercase',
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    {member.role}
+                  </p>
 
-                      <p
-                        style={{
-                          margin: '0 0 14px',
-                          color: '#c8841a',
-                          fontSize: 14,
-                          fontWeight: 700,
-                          letterSpacing: '.06em',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {member.role}
-                      </p>
-
-                      <p
-                        style={{
-                          margin: '0 0 18px',
-                          color: '#7a6a52',
-                          fontSize: 14,
-                          lineHeight: 1.8,
-                          flex: 1,
-                        }}
-                      >
-                        {member.bio ||
-                          'Dedicated to creating memorable events with care, professionalism, and creativity.'}
-                      </p>
-
-                      {(member.email || member.phone) && (
-                        <div
-                          style={{
-                            borderTop: '1px solid #efe6d8',
-                            paddingTop: 14,
-                            display: 'grid',
-                            gap: 6,
-                          }}
-                        >
-                          {member.email && (
-                            <p
-                              style={{
-                                margin: 0,
-                                color: '#5e5140',
-                                fontSize: 13,
-                                wordBreak: 'break-word',
-                                lineHeight: 1.6,
-                              }}
-                            >
-                              {member.email}
-                            </p>
-                          )}
-                          {member.phone && (
-                            <p
-                              style={{
-                                margin: 0,
-                                color: '#5e5140',
-                                fontSize: 13,
-                                wordBreak: 'break-word',
-                                lineHeight: 1.6,
-                              }}
-                            >
-                              {member.phone}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
+                  <p
+                    style={{
+                      margin: 0,
+                      color: '#7a6a52',
+                      fontSize: 13.2,
+                      lineHeight: 1.6,
+                      flex: 1,
+                    }}
+                  >
+                    {member.bio}
+                  </p>
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section style={{ padding: isMobile ? '10px 20px 72px' : '20px 32px 96px' }}>
@@ -724,10 +688,12 @@ export default function OurTeamPage() {
                 width: 280,
                 height: 280,
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(200,132,26,.18) 0%, transparent 70%)',
+                background:
+                  'radial-gradient(circle, rgba(200,132,26,.18) 0%, transparent 70%)',
                 pointerEvents: 'none',
               }}
             />
+
             <div
               style={{
                 position: 'absolute',
@@ -736,7 +702,8 @@ export default function OurTeamPage() {
                 width: 220,
                 height: 220,
                 borderRadius: '50%',
-                background: 'radial-gradient(circle, rgba(200,132,26,.12) 0%, transparent 70%)',
+                background:
+                  'radial-gradient(circle, rgba(200,132,26,.12) 0%, transparent 70%)',
                 pointerEvents: 'none',
               }}
             />
@@ -754,7 +721,7 @@ export default function OurTeamPage() {
                   textTransform: 'uppercase',
                 }}
               >
-                SHARE YOUR EXPERIENCE
+                PUNO ME EKIPIN TONË
               </p>
 
               <h2
@@ -767,20 +734,19 @@ export default function OurTeamPage() {
                   fontWeight: 700,
                 }}
               >
-                Want to Rate Our Team?
+                Gati për ta bërë eventin tuaj të veçantë?
               </h2>
 
               <p
                 style={{
                   margin: '0 auto 28px',
-                  maxWidth: 640,
+                  maxWidth: 680,
                   color: 'rgba(255,255,255,.65)',
                   fontSize: isMobile ? 15 : 16,
                   lineHeight: 1.85,
                 }}
               >
-                Sign in and complete a booking to share your experience and let others know how our
-                team made your event special.
+                Nga dekorimet dhe maskotat, deri te transporti, organizimi dhe mbështetja gjatë eventit, ekipi ynë punon së bashku për të krijuar momente të gëzueshme dhe të paharrueshme.
               </p>
 
               <div
@@ -793,7 +759,7 @@ export default function OurTeamPage() {
                 }}
               >
                 <Link
-                  to="/reviews"
+                  to="/booking"
                   className="team-btn-primary"
                   style={{
                     display: 'inline-flex',
@@ -809,11 +775,11 @@ export default function OurTeamPage() {
                     boxShadow: '0 8px 24px rgba(200,132,26,.35)',
                   }}
                 >
-                  See Reviews
+                  Rezervo një Event
                 </Link>
 
                 <Link
-                  to="/booking"
+                  to="/gallery"
                   className="team-btn-secondary"
                   style={{
                     display: 'inline-flex',
@@ -829,7 +795,7 @@ export default function OurTeamPage() {
                     border: '1px solid rgba(255,255,255,.18)',
                   }}
                 >
-                  Book an Event
+                  Shiko Galerinë
                 </Link>
               </div>
             </div>

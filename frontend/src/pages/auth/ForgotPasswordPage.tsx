@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function ForgotPasswordPage() {
@@ -16,14 +17,14 @@ export default function ForgotPasswordPage() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
     setMessage('');
     setErrorMessage('');
 
     if (!email.trim()) {
-      setErrorMessage('Email address is required.');
+      setErrorMessage('Ju lutem shkruani emailin tuaj.');
       return;
     }
 
@@ -41,19 +42,20 @@ export default function ForgotPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to process password reset request.');
+        throw new Error(data?.message || 'Kërkesa për rikthimin e fjalëkalimit dështoi.');
       }
 
       setMessage(
-        data.message ||
-          'If an account with that email exists, a reset link has been sent.'
+        data?.message ||
+          'Nëse ekziston një llogari me këtë email, linku për ndryshimin e fjalëkalimit është dërguar.',
       );
+
       setEmail('');
     } catch (error) {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : 'Something went wrong. Please try again.'
+          : 'Diçka shkoi gabim. Ju lutem provoni përsëri.',
       );
     } finally {
       setIsSubmitting(false);
@@ -63,379 +65,464 @@ export default function ForgotPasswordPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
 
-        @keyframes pageFadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes cardEnter {
+        @keyframes forgotFadeIn {
           from {
             opacity: 0;
-            transform: translateY(26px) scale(0.985);
           }
+
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes forgotCardEnter {
+          from {
+            opacity: 0;
+            transform: translateY(26px) scale(.98);
+          }
+
           to {
             opacity: 1;
             transform: translateY(0) scale(1);
           }
         }
 
-        @keyframes panelEnterLeft {
-          from {
-            opacity: 0;
-            transform: translateX(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
+        .forgot-page {
+          min-height: 100vh;
+          padding: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background:
+            radial-gradient(circle at 12% 18%, rgba(212,145,30,.18), transparent 30%),
+            radial-gradient(circle at 88% 82%, rgba(212,145,30,.14), transparent 28%),
+            linear-gradient(135deg, #fffaf2 0%, #ffffff 48%, #f7efe3 100%);
+          font-family: 'DM Sans', system-ui, sans-serif;
+          animation: forgotFadeIn .45s ease;
         }
 
-        @keyframes panelEnterRight {
-          from {
-            opacity: 0;
-            transform: translateX(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
+        .forgot-shell {
+          width: min(100%, 1040px);
+          display: grid;
+          grid-template-columns: 1.08fr .92fr;
+          border-radius: 32px;
+          overflow: hidden;
+          background: rgba(255,255,255,.95);
+          border: 1px solid #eadfce;
+          box-shadow: 0 24px 70px rgba(26,18,11,.15);
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity .35s ease, transform .35s ease;
+          animation: forgotCardEnter .65s ease;
         }
 
-        .forgot-page-root {
-          animation: pageFadeIn 0.5s ease;
+        .forgot-shell.visible {
+          opacity: 1;
+          transform: translateY(0);
         }
 
-        .forgot-card {
-          animation: cardEnter 0.65s ease;
-          transition: transform 0.25s ease, box-shadow 0.25s ease;
+        .forgot-left {
+          position: relative;
+          overflow: hidden;
+          padding: 44px;
+          color: #ffffff;
+          background:
+            radial-gradient(circle at 18% 18%, rgba(212,145,30,.34), transparent 32%),
+            linear-gradient(135deg, #1a120b 0%, #2b1a0d 58%, #120d07 100%);
         }
 
-        .forgot-card:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 28px 70px rgba(26,18,11,0.14);
+        .forgot-left::after {
+          content: "MD";
+          position: absolute;
+          right: -20px;
+          bottom: -38px;
+          font-size: clamp(120px, 18vw, 210px);
+          line-height: 1;
+          font-weight: 950;
+          color: rgba(212,145,30,.09);
+          pointer-events: none;
         }
 
-        .forgot-left-panel {
-          animation: panelEnterLeft 0.8s ease;
+        .forgot-logo {
+          position: relative;
+          z-index: 1;
+          width: 60px;
+          height: 60px;
+          border-radius: 19px;
+          background: linear-gradient(135deg, #d4911e, #b87318);
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 22px;
+          font-weight: 950;
+          box-shadow: 0 16px 34px rgba(212,145,30,.25);
+          margin-bottom: 30px;
         }
 
-        .forgot-right-panel {
-          animation: panelEnterRight 0.8s ease;
+        .forgot-kicker {
+          position: relative;
+          z-index: 1;
+          margin: 0 0 10px;
+          color: #d4911e;
+          font-size: 11px;
+          font-weight: 900;
+          letter-spacing: .18em;
+          text-transform: uppercase;
+        }
+
+        .forgot-title {
+          position: relative;
+          z-index: 1;
+          margin: 0;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(42px, 6vw, 68px);
+          line-height: .95;
+          font-weight: 700;
+        }
+
+        .forgot-title span {
+          color: #d4911e;
+          font-style: italic;
+        }
+
+        .forgot-subtitle {
+          position: relative;
+          z-index: 1;
+          margin: 18px 0 0;
+          max-width: 470px;
+          color: rgba(255,255,255,.70);
+          font-size: 14px;
+          line-height: 1.8;
+        }
+
+        .forgot-info-list {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          gap: 12px;
+          margin-top: 34px;
+        }
+
+        .forgot-info-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: rgba(255,255,255,.78);
+          font-size: 13px;
+          font-weight: 750;
+        }
+
+        .forgot-dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          background: #d4911e;
+          box-shadow: 0 0 0 5px rgba(212,145,30,.12);
+          flex-shrink: 0;
+        }
+
+        .forgot-right {
+          padding: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 0;
+        }
+
+        .forgot-form {
+          width: 100%;
+          max-width: 420px;
+          display: grid;
+          gap: 15px;
+        }
+
+        .forgot-form-title {
+          margin: 0;
+          color: #1a120b;
+          font-size: clamp(26px, 3vw, 34px);
+          line-height: 1.1;
+          font-weight: 950;
+        }
+
+        .forgot-form-text {
+          margin: -5px 0 10px;
+          color: #7a6a52;
+          font-size: 14px;
+          line-height: 1.65;
+        }
+
+        .forgot-alert {
+          margin: 0;
+          padding: 12px 14px;
+          border-radius: 14px;
+          font-size: 13px;
+          font-weight: 750;
+          line-height: 1.45;
+        }
+
+        .forgot-alert.success {
+          background: #ecfdf5;
+          border: 1px solid #bbf7d0;
+          color: #047857;
+        }
+
+        .forgot-alert.error {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #991b1b;
+        }
+
+        .forgot-field {
+          display: flex;
+          flex-direction: column;
+          gap: 7px;
+        }
+
+        .forgot-label {
+          color: #6b5a45;
+          font-size: 12px;
+          font-weight: 850;
+          letter-spacing: .04em;
+          text-transform: uppercase;
         }
 
         .forgot-input {
-          transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+          width: 100%;
+          height: 46px;
+          border-radius: 14px;
+          border: 1.5px solid #eadfce;
+          background: #fffdf8;
+          color: #1a120b;
+          padding: 0 14px;
+          font-size: 14px;
+          outline: none;
+          transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        .forgot-input::placeholder {
+          color: #b8a48e;
         }
 
         .forgot-input:focus {
           border-color: #c8841a;
-          box-shadow: 0 0 0 4px rgba(200, 132, 26, 0.12);
-          background-color: #fffefd;
+          box-shadow: 0 0 0 4px rgba(200,132,26,.12);
+          background: #ffffff;
         }
 
         .forgot-button {
-          transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+          height: 48px;
+          border: none;
+          border-radius: 15px;
+          background: linear-gradient(135deg, #d4911e, #b87318);
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 950;
+          cursor: pointer;
+          box-shadow: 0 12px 26px rgba(200,132,26,.26);
+          transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
         }
 
-        .forgot-button:hover {
+        .forgot-button:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 14px 28px rgba(200, 132, 26, 0.28);
-          filter: brightness(1.02);
+          box-shadow: 0 16px 34px rgba(200,132,26,.34);
+        }
+
+        .forgot-button:disabled {
+          opacity: .68;
+          cursor: not-allowed;
+        }
+
+        .forgot-footer {
+          margin: 8px 0 0;
+          display: flex;
+          justify-content: center;
+          gap: 6px;
+          flex-wrap: wrap;
+          color: #7a6a52;
+          font-size: 14px;
+          line-height: 1.6;
+        }
+
+        .forgot-link {
+          color: #9a5d0a;
+          font-size: 14px;
+          font-weight: 850;
+          text-decoration: none;
+          transition: opacity .2s ease;
         }
 
         .forgot-link:hover {
-          opacity: 0.75;
+          opacity: .75;
+          text-decoration: underline;
+        }
+
+        .forgot-back {
+          margin-top: 4px;
+          display: flex;
+          justify-content: center;
+        }
+
+        .forgot-note {
+          margin: 10px 0 0;
+          padding: 13px 14px;
+          border-radius: 16px;
+          background: #fffaf2;
+          border: 1px solid #f3eadc;
+          color: #8a7558;
+          font-size: 12px;
+          line-height: 1.55;
+          text-align: center;
         }
 
         @media (max-width: 900px) {
-          .forgot-card {
-            flex-direction: column;
-            min-height: auto;
-            max-width: 620px;
+          .forgot-shell {
+            grid-template-columns: 1fr;
+            max-width: 640px;
+          }
+
+          .forgot-left {
+            padding: 34px;
+          }
+
+          .forgot-right {
+            padding: 34px;
+          }
+
+          .forgot-info-list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 28px;
           }
         }
 
-        @media (max-width: 640px) {
-          .forgot-page-root {
+        @media (max-width: 560px) {
+          .forgot-page {
             padding: 16px;
+            align-items: flex-start;
           }
 
-          .forgot-card {
-            border-radius: 22px;
+          .forgot-shell {
+            border-radius: 24px;
           }
 
-          .forgot-left-panel {
-            padding: 28px 22px;
+          .forgot-left,
+          .forgot-right {
+            padding: 24px;
           }
 
-          .forgot-right-panel {
-            padding: 24px 20px;
+          .forgot-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            font-size: 19px;
+            margin-bottom: 22px;
           }
 
-          .forgot-title {
-            font-size: 38px !important;
+          .forgot-info-list {
+            grid-template-columns: 1fr;
+          }
+
+          .forgot-input,
+          .forgot-button {
+            height: 45px;
           }
         }
       `}</style>
 
-      <div className="forgot-page-root" style={pageStyle}>
-        <div className="forgot-card" style={{ ...cardStyle, opacity: isVisible ? 1 : 0 }}>
-          <div className="forgot-left-panel" style={leftPanelStyle}>
-            <div style={badgeStyle}>MD Creative</div>
+      <main className="forgot-page">
+        <section className={`forgot-shell ${isVisible ? 'visible' : ''}`}>
+          <div className="forgot-left">
+            <div className="forgot-logo">MD</div>
 
-            <h1 className="forgot-title" style={titleStyle}>
-              Reset Password
+            <p className="forgot-kicker">Rikthimi i llogarisë</p>
+
+            <h1 className="forgot-title">
+              Harruat <span>fjalëkalimin?</span>
             </h1>
 
-            <p style={subtitleStyle}>
-              Enter your email address and we will send you a secure link to reset
-              your password and restore access to your account.
+            <p className="forgot-subtitle">
+              Shkruani emailin tuaj dhe ne do t’ju dërgojmë një link të sigurt për ta ndryshuar
+              fjalëkalimin dhe për t’u kthyer përsëri në llogarinë tuaj.
             </p>
 
-            <div style={infoBoxStyle}>
-              <div style={infoItemStyle}>Secure reset process</div>
-              <div style={infoItemStyle}>Email link for account recovery</div>
-              <div style={infoItemStyle}>Quick access back to your account</div>
+            <div className="forgot-info-list">
+              <div className="forgot-info-item">
+                <span className="forgot-dot" />
+                Proces i sigurt
+              </div>
+
+              <div className="forgot-info-item">
+                <span className="forgot-dot" />
+                Link në email
+              </div>
+
+              <div className="forgot-info-item">
+                <span className="forgot-dot" />
+                Qasje e shpejtë
+              </div>
+
+              <div className="forgot-info-item">
+                <span className="forgot-dot" />
+                Llogari e mbrojtur
+              </div>
             </div>
           </div>
 
-          <div className="forgot-right-panel" style={rightPanelStyle}>
-            <form style={formStyle} onSubmit={handleSubmit}>
-              <h2 style={formTitleStyle}>Forgot Password</h2>
+          <div className="forgot-right">
+            <form className="forgot-form" onSubmit={handleSubmit}>
+              <div>
+                <h2 className="forgot-form-title">Rikthe fjalëkalimin</h2>
+                <p className="forgot-form-text">
+                  Shkruaj emailin që ke përdorur gjatë regjistrimit. Nëse llogaria ekziston,
+                  do të pranosh udhëzimet për ndryshimin e fjalëkalimit.
+                </p>
+              </div>
 
-              {message ? <div style={successBoxStyle}>{message}</div> : null}
-              {errorMessage ? <div style={errorBoxStyle}>{errorMessage}</div> : null}
+              {message && <p className="forgot-alert success">{message}</p>}
+              {errorMessage && <p className="forgot-alert error">{errorMessage}</p>}
 
-              <div style={fieldStyle}>
-                <label style={labelStyle}>Email Address</label>
+              <div className="forgot-field">
+                <label htmlFor="email" className="forgot-label">
+                  Email
+                </label>
+
                 <input
-                  className="forgot-input"
+                  id="email"
                   type="email"
-                  placeholder="Enter your email"
-                  style={inputStyle}
+                  placeholder="Shkruaj emailin"
+                  className="forgot-input"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
                 />
               </div>
 
-              <button
-                className="forgot-button"
-                type="submit"
-                style={buttonStyle}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? 'Sending...' : 'Send Reset Link'}
+              <button type="submit" className="forgot-button" disabled={isSubmitting}>
+                {isSubmitting ? 'Duke u dërguar...' : 'Dërgo linkun'}
               </button>
 
-              <div style={footerStyle}>
-                <span style={footerTextStyle}>Remembered your password?</span>
-                <Link to="/signin" className="forgot-link" style={footerLinkStyle}>
-                  Sign In
+              <div className="forgot-footer">
+                <span>E kujtuat fjalëkalimin?</span>
+                <Link to="/signin" className="forgot-link">
+                  Kyçuni
                 </Link>
               </div>
 
-              <div style={backWrapperStyle}>
-                <Link to="/" className="forgot-link" style={backLinkStyle}>
-                  Back to Home
+              <div className="forgot-back">
+                <Link to="/" className="forgot-link">
+                  Kthehu në faqen kryesore
                 </Link>
               </div>
+
+              <p className="forgot-note">
+                Për siguri, linku i ndryshimit të fjalëkalimit duhet të përdoret vetëm nga pronari i emailit.
+              </p>
             </form>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </>
   );
 }
-
-const pageStyle: React.CSSProperties = {
-  minHeight: '100vh',
-  background: 'linear-gradient(135deg, #faf7f2 0%, #f6efe5 50%, #fffaf2 100%)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '24px',
-  boxSizing: 'border-box',
-  fontFamily: "'DM Sans', sans-serif",
-};
-
-const cardStyle: React.CSSProperties = {
-  width: '100%',
-  maxWidth: '980px',
-  minHeight: '540px',
-  backgroundColor: '#ffffff',
-  borderRadius: '28px',
-  boxShadow: '0 24px 60px rgba(26,18,11,0.12)',
-  display: 'flex',
-  overflow: 'hidden',
-};
-
-const leftPanelStyle: React.CSSProperties = {
-  flex: 0.95,
-  background: 'linear-gradient(135deg, #1a120b 0%, #2a1a0f 55%, #1d130d 100%)',
-  color: '#ffffff',
-  padding: '40px 32px',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-};
-
-const rightPanelStyle: React.CSSProperties = {
-  flex: 1.15,
-  backgroundColor: '#fffdf9',
-  padding: '32px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};
-
-const badgeStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignSelf: 'flex-start',
-  padding: '8px 14px',
-  borderRadius: '999px',
-  backgroundColor: 'rgba(200,132,26,0.16)',
-  border: '1px solid rgba(200,132,26,0.28)',
-  color: '#f0c27b',
-  fontSize: '12px',
-  fontWeight: 700,
-  letterSpacing: '0.08em',
-  textTransform: 'uppercase',
-  marginBottom: '18px',
-};
-
-const titleStyle: React.CSSProperties = {
-  margin: 0,
-  fontFamily: "'Cormorant Garamond', serif",
-  fontSize: '48px',
-  lineHeight: 1,
-  fontWeight: 700,
-};
-
-const subtitleStyle: React.CSSProperties = {
-  marginTop: '14px',
-  marginBottom: '24px',
-  color: 'rgba(255,255,255,0.76)',
-  fontSize: '15px',
-  lineHeight: 1.8,
-  maxWidth: '360px',
-};
-
-const infoBoxStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '10px',
-};
-
-const infoItemStyle: React.CSSProperties = {
-  backgroundColor: 'rgba(255,255,255,0.08)',
-  border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: '14px',
-  padding: '12px 14px',
-  fontSize: '14px',
-  fontWeight: 600,
-};
-
-const formStyle: React.CSSProperties = {
-  width: '100%',
-  maxWidth: '460px',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '14px',
-};
-
-const formTitleStyle: React.CSSProperties = {
-  margin: 0,
-  color: '#1a120b',
-  fontSize: '28px',
-  fontWeight: 800,
-};
-
-const fieldStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '6px',
-};
-
-const labelStyle: React.CSSProperties = {
-  color: '#3d3024',
-  fontSize: '13px',
-  fontWeight: 700,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  height: '52px',
-  borderRadius: '14px',
-  border: '1px solid #e7d8c4',
-  backgroundColor: '#fffaf4',
-  padding: '0 14px',
-  fontSize: '14px',
-  outline: 'none',
-  boxSizing: 'border-box',
-  color: '#1f1a17',
-};
-
-const buttonStyle: React.CSSProperties = {
-  marginTop: '8px',
-  height: '52px',
-  borderRadius: '14px',
-  border: 'none',
-  background: 'linear-gradient(135deg, #d7a04a 0%, #c8841a 100%)',
-  color: '#ffffff',
-  fontSize: '15px',
-  fontWeight: 800,
-  cursor: 'pointer',
-};
-
-const footerStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'center',
-  gap: '8px',
-  alignItems: 'center',
-  flexWrap: 'wrap',
-  marginTop: '4px',
-  fontSize: '14px',
-};
-
-const footerTextStyle: React.CSSProperties = {
-  color: '#6f6255',
-};
-
-const footerLinkStyle: React.CSSProperties = {
-  color: '#1a120b',
-  textDecoration: 'none',
-  fontWeight: 800,
-};
-
-const backWrapperStyle: React.CSSProperties = {
-  textAlign: 'center',
-  marginTop: '4px',
-};
-
-const backLinkStyle: React.CSSProperties = {
-  color: '#7a6a52',
-  textDecoration: 'none',
-  fontWeight: 600,
-};
-
-const successBoxStyle: React.CSSProperties = {
-  padding: '12px 14px',
-  borderRadius: '14px',
-  backgroundColor: '#eefbf3',
-  border: '1px solid #bbf7d0',
-  color: '#166534',
-  fontSize: '13px',
-  fontWeight: 700,
-};
-
-const errorBoxStyle: React.CSSProperties = {
-  padding: '12px 14px',
-  borderRadius: '14px',
-  backgroundColor: '#fef2f2',
-  border: '1px solid #fecaca',
-  color: '#b91c1c',
-  fontSize: '13px',
-  fontWeight: 700,
-};

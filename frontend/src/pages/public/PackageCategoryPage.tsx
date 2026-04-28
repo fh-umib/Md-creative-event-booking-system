@@ -1,272 +1,483 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getPackagesByCategory } from '../../services/packageApi';
 
-type PackageItem = {
-  id: number;
-  title: string;
-  description: string | null;
-  category: string;
-  duration_minutes: number;
-  min_mascots: number;
-  max_mascots: number;
-  base_price: number;
-  is_active: boolean;
-  extras?: string[];
-};
+import DecorationEmptyState from '../../components/public/decorations/DecorationEmptyState';
+import DecorationGalleryCard from '../../components/public/decorations/DecorationGalleryCard';
+import DecorationHero from '../../components/public/decorations/DecorationHero';
+import DecorationSubcategoryCard from '../../components/public/decorations/DecorationSubcategoryCard';
+import { getDecorationCategoryBySlug } from '../../data/decorations';
 
-const categoryTitles: Record<string, string> = {
-  mascot: 'Mascot Packages',
-  'bounce-house': 'Bounce House Packages',
-  'bubble-bounce': 'Bubble & Bounce Packages',
-};
-
-const categoryDescriptions: Record<string, string> = {
-  mascot:
-    'Interactive mascot packages with fun entertainment, music, and celebration moments for children.',
-  'bounce-house':
-    'Energetic bounce house packages designed for fun, movement, and memorable party experiences.',
-  'bubble-bounce':
-    'Premium bubble and bounce packages with elegant styling and luxury event atmosphere.',
-};
-
-export default function PackageCategoryPage() {
-  const { category } = useParams<{ category: string }>();
-  const [packages, setPackages] = useState<PackageItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+function useWindowWidth() {
+  const [width, setWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 1200
+  );
 
   useEffect(() => {
-    if (!category) return;
+    const handleResize = () => setWidth(window.innerWidth);
 
-    const load = async () => {
-      try {
-        setLoading(true);
-        setError('');
-        const data = (await getPackagesByCategory(category)) as PackageItem[];
-        setPackages(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load packages');
-      } finally {
-        setLoading(false);
-      }
-    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-    load();
-  }, [category]);
+  return width;
+}
 
-  const activePackages = useMemo(() => {
-    return packages.filter((item) => item.is_active);
-  }, [packages]);
+function ScrollToTopButton() {
+  const [visible, setVisible] = useState(false);
 
-  const pageTitle = category ? categoryTitles[category] || 'Packages' : 'Packages';
-  const pageDescription = category
-    ? categoryDescriptions[category] || 'Explore available packages in this category.'
-    : 'Explore available packages.';
+  useEffect(() => {
+    const handleScroll = () => setVisible(window.scrollY > 420);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <section style={pageStyle}>
-      <div style={heroStyle}>
-        <p style={eyebrowStyle}>Category Overview</p>
-        <h1 style={heroTitleStyle}>{pageTitle}</h1>
-        <p style={heroTextStyle}>{pageDescription}</p>
-      </div>
-
-      {loading ? (
-        <div style={stateBoxStyle}>Loading packages...</div>
-      ) : error ? (
-        <div style={stateBoxStyle}>{error}</div>
-      ) : activePackages.length === 0 ? (
-        <div style={stateBoxStyle}>No active packages found in this category.</div>
-      ) : (
-        <div style={gridStyle}>
-          {activePackages.map((item) => (
-            <article key={item.id} style={cardStyle}>
-              <div style={cardTopRowStyle}>
-                <span style={badgeStyle}>{item.category}</span>
-                <span style={priceStyle}>€{item.base_price}</span>
-              </div>
-
-              <h2 style={cardTitleStyle}>{item.title}</h2>
-              <p style={cardTextStyle}>
-                {item.description || 'No description available for this package yet.'}
-              </p>
-
-              <div style={metaWrapStyle}>
-                <span style={metaBadgeStyle}>{item.duration_minutes} min</span>
-                <span style={metaBadgeStyle}>
-                  Mascots: {item.min_mascots}-{item.max_mascots}
-                </span>
-              </div>
-
-              <div style={buttonRowStyle}>
-                <Link to={`/packages/details/${item.id}`} style={primaryButtonStyle}>
-                  View Details
-                </Link>
-                <Link to="/packages" style={secondaryButtonStyle}>
-                  Back
-                </Link>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
-    </section>
+    <button
+      type="button"
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      aria-label="Kthehu lart"
+      style={{
+        position: 'fixed',
+        right: 22,
+        bottom: 24,
+        zIndex: 999,
+        width: 46,
+        height: 46,
+        borderRadius: '50%',
+        border: 'none',
+        background: '#d99a1d',
+        color: '#111827',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 12px 28px rgba(217, 154, 29, 0.42)',
+        opacity: visible ? 1 : 0,
+        pointerEvents: visible ? 'auto' : 'none',
+        transform: visible ? 'translateY(0)' : 'translateY(14px)',
+        transition: '0.25s ease',
+      }}
+    >
+      ↑
+    </button>
   );
 }
 
-const pageStyle: React.CSSProperties = {
-  maxWidth: '1280px',
+export default function DecorationCategoryPage() {
+  const { categorySlug } = useParams<{ categorySlug: string }>();
+  const width = useWindowWidth();
+
+  const isMobile = width <= 640;
+  const isTablet = width > 640 && width <= 980;
+
+  const category = categorySlug ? getDecorationCategoryBySlug(categorySlug) : null;
+
+  const responsive = useMemo(() => {
+    const introColumns = isMobile
+      ? '1fr'
+      : isTablet
+        ? 'repeat(2, minmax(0, 1fr))'
+        : 'repeat(3, minmax(0, 1fr))';
+
+    const subcategoryColumns = isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))';
+
+    const galleryColumns = isMobile
+      ? '1fr'
+      : isTablet
+        ? 'repeat(2, minmax(0, 1fr))'
+        : 'repeat(3, minmax(0, 1fr))';
+
+    return {
+      sectionPadding: isMobile ? '38px 18px 56px' : '56px 24px 80px',
+      introPadding: isMobile ? '22px 18px 8px' : '28px 24px 12px',
+      ctaPadding: isMobile ? '0 18px 58px' : '0 24px 84px',
+      introColumns,
+      subcategoryColumns,
+      galleryColumns,
+      titleSize: isMobile ? '30px' : 'clamp(34px, 4vw, 50px)',
+      ctaTitleSize: isMobile ? '28px' : 'clamp(30px, 4vw, 46px)',
+      cardPadding: isMobile ? '18px' : '22px',
+      ctaBoxPadding: isMobile ? '34px 20px' : '42px 24px',
+      buttonWidth: isMobile ? '100%' : 'auto',
+    };
+  }, [isMobile, isTablet]);
+
+  if (!category) {
+    return (
+      <main style={pageStyle}>
+        <section style={{ ...sectionStyle, padding: responsive.sectionPadding }}>
+          <DecorationEmptyState
+            title="Kategoria nuk u gjet"
+            message="Kjo kategori e dekorimit nuk ekziston ose nuk është më e disponueshme."
+          />
+
+          <div style={{ textAlign: 'center', marginTop: 24 }}>
+            <Link to="/decorations" style={secondaryButtonStyle}>
+              Kthehu te dekorimet
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const hasSubcategories = Boolean(category.subcategories?.length);
+  const hasStyles = Boolean(category.styles?.length);
+
+  return (
+    <main style={pageStyle}>
+      <DecorationHero
+        label={category.heroLabel}
+        title={category.heroTitle}
+        text={category.heroText}
+        primaryText="Rezervo këtë dekor"
+        primaryTo="/booking"
+        secondaryText="Shiko më poshtë"
+        secondaryTo="#content"
+      />
+
+      <section style={{ ...introStripStyle, padding: responsive.introPadding }}>
+        <div
+          style={{
+            ...introStripInnerStyle,
+            gridTemplateColumns: responsive.introColumns,
+          }}
+        >
+          <div style={{ ...introCardStyle, padding: responsive.cardPadding }}>
+            <span style={introIconStyle}>🎨</span>
+            <h3 style={introCardTitleStyle}>Ide të personalizuara</h3>
+            <p style={introCardTextStyle}>
+              Çdo dekor përshtatet me temën, ngjyrat, ambientin dhe stilin e
+              eventit tuaj.
+            </p>
+          </div>
+
+          <div style={{ ...introCardStyle, padding: responsive.cardPadding }}>
+            <span style={introIconStyle}>💬</span>
+            <h3 style={introCardTitleStyle}>Konsultim para realizimit</h3>
+            <p style={introCardTextStyle}>
+              Detajet finale dhe çmimi caktohen pas diskutimit të idesë,
+              hapësirës dhe kërkesave tuaja.
+            </p>
+          </div>
+
+          <div style={{ ...introCardStyle, padding: responsive.cardPadding }}>
+            <span style={introIconStyle}>✨</span>
+            <h3 style={introCardTitleStyle}>Pamje elegante në event</h3>
+            <p style={introCardTextStyle}>
+              Dekori planifikohet që hyrja, tavolina dhe këndi fotografik të
+              duken bukur në çdo detaj.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="content"
+        style={{
+          ...sectionStyle,
+          padding: responsive.sectionPadding,
+        }}
+      >
+        {hasSubcategories ? (
+          <>
+            <div style={headingWrapStyle}>
+              <p style={eyebrowStyle}>KATEGORITË E DEKORIT</p>
+              <h2 style={{ ...titleStyle, fontSize: responsive.titleSize }}>
+                Zgjedh drejtimin që i përshtatet eventit
+              </h2>
+              <p style={textStyle}>
+                Shiko llojet e dekorimeve dhe vazhdo te stili që të përshtatet
+                më së miri për festën, dasmën apo eventin tënd.
+              </p>
+            </div>
+
+            <div
+              style={{
+                ...subcategoryGridStyle,
+                gridTemplateColumns: responsive.subcategoryColumns,
+              }}
+            >
+              {category.subcategories!.map((subcategory) => (
+                <DecorationSubcategoryCard
+                  key={subcategory.slug}
+                  title={subcategory.title}
+                  description={subcategory.description}
+                  image={subcategory.coverImage}
+                  to={`/decorations/${category.slug}/${subcategory.slug}`}
+                />
+              ))}
+            </div>
+          </>
+        ) : hasStyles ? (
+          <>
+            <div style={headingWrapStyle}>
+              <p style={eyebrowStyle}>STILET E DEKORIMIT</p>
+              <h2 style={{ ...titleStyle, fontSize: responsive.titleSize }}>
+                Shiko koleksionin e kësaj kategorie
+              </h2>
+              <p style={textStyle}>
+                Këtu mund të shohësh disa drejtime vizuale për këtë dekor dhe
+                të zgjedhësh stilin që përshtatet më bukur me eventin.
+              </p>
+            </div>
+
+            <div
+              style={{
+                ...galleryGridStyle,
+                gridTemplateColumns: responsive.galleryColumns,
+              }}
+            >
+              {category.styles!.map((style) => (
+                <Link
+                  key={style.slug}
+                  to={`/decorations/${category.slug}/${style.slug}`}
+                  style={galleryLinkStyle}
+                >
+                  <DecorationGalleryCard
+                    title={style.title}
+                    image={style.heroImage}
+                    description={style.shortDescription}
+                  />
+                </Link>
+              ))}
+            </div>
+          </>
+        ) : (
+          <DecorationEmptyState
+            title="Nuk ka stile për momentin"
+            message="Kjo kategori është duke u përgatitur. Mund të na kontaktoni për ide dhe dekorime të personalizuara."
+          />
+        )}
+      </section>
+
+      <section style={{ ...ctaSectionStyle, padding: responsive.ctaPadding }}>
+        <div
+          style={{
+            ...ctaBoxStyle,
+            padding: responsive.ctaBoxPadding,
+          }}
+        >
+          <p style={ctaEyebrowStyle}>HAPI I RADHËS</p>
+          <h2 style={{ ...ctaTitleStyle, fontSize: responsive.ctaTitleSize }}>
+            Ta kthejmë idenë tënde në një dekor të bukur
+          </h2>
+          <p style={ctaTextStyle}>
+            Pasi të zgjedhësh stilin që të pëlqen, mund të vazhdojmë me datën,
+            lokacionin, ngjyrat dhe detajet për ta përshtatur dekorin me eventin
+            tënd.
+          </p>
+
+          <div
+            style={{
+              ...ctaButtonsStyle,
+              flexDirection: isMobile ? 'column' : 'row',
+            }}
+          >
+            <Link
+              to="/booking"
+              style={{
+                ...primaryButtonStyle,
+                width: responsive.buttonWidth,
+                textAlign: 'center',
+              }}
+            >
+              Fillo rezervimin
+            </Link>
+
+            <Link
+              to="/decorations"
+              style={{
+                ...secondaryButtonStyle,
+                width: responsive.buttonWidth,
+                textAlign: 'center',
+              }}
+            >
+              Kthehu te dekorimet
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <ScrollToTopButton />
+    </main>
+  );
+}
+
+const pageStyle: CSSProperties = {
+  background:
+    'linear-gradient(180deg, #fffaf2 0%, #f7f4ef 38%, #ffffff 100%)',
+  minHeight: '100vh',
+};
+
+const introStripStyle: CSSProperties = {
+  padding: '28px 24px 12px',
+};
+
+const introStripInnerStyle: CSSProperties = {
+  maxWidth: '1320px',
   margin: '0 auto',
-  padding: '0 24px 40px',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+  gap: '20px',
 };
 
-const heroStyle: React.CSSProperties = {
-  background: 'linear-gradient(135deg, #1d2b4f, #24365d)',
-  borderRadius: '0 0 34px 34px',
-  padding: '84px 24px 96px',
-  textAlign: 'center',
-  color: '#ffffff',
+const introCardStyle: CSSProperties = {
+  background: 'rgba(255, 255, 255, 0.92)',
+  border: '1px solid #ece6dc',
+  borderRadius: '22px',
+  padding: '22px',
+  boxShadow: '0 14px 32px rgba(15, 23, 42, 0.06)',
+  backdropFilter: 'blur(10px)',
 };
 
-const eyebrowStyle: React.CSSProperties = {
-  display: 'inline-block',
-  margin: 0,
-  padding: '10px 18px',
-  borderRadius: '999px',
-  border: '1px solid rgba(232, 179, 56, 0.35)',
-  color: '#e3a52a',
-  fontSize: '13px',
-  fontWeight: 700,
-  letterSpacing: '1.4px',
-  textTransform: 'uppercase',
+const introIconStyle: CSSProperties = {
+  width: 42,
+  height: 42,
+  borderRadius: '50%',
+  background: '#fff3d6',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '21px',
+  marginBottom: '14px',
 };
 
-const heroTitleStyle: React.CSSProperties = {
-  margin: '22px 0 14px',
-  fontSize: '60px',
-  lineHeight: 1.05,
+const introCardTitleStyle: CSSProperties = {
+  margin: '0 0 10px',
+  color: '#111827',
+  fontSize: '20px',
   fontWeight: 800,
 };
 
-const heroTextStyle: React.CSSProperties = {
+const introCardTextStyle: CSSProperties = {
+  margin: 0,
+  color: '#667085',
+  fontSize: '15px',
+  lineHeight: 1.75,
+};
+
+const sectionStyle: CSSProperties = {
+  maxWidth: '1320px',
   margin: '0 auto',
-  maxWidth: '780px',
-  color: 'rgba(255,255,255,0.74)',
-  fontSize: '18px',
-  lineHeight: 1.8,
+  padding: '56px 24px 80px',
 };
 
-const stateBoxStyle: React.CSSProperties = {
-  padding: '56px 20px',
+const headingWrapStyle: CSSProperties = {
   textAlign: 'center',
-  color: '#6b7280',
-  fontSize: '18px',
+  maxWidth: '790px',
+  margin: '0 auto 36px',
 };
 
-const gridStyle: React.CSSProperties = {
-  marginTop: '42px',
+const eyebrowStyle: CSSProperties = {
+  margin: '0 0 10px',
+  color: '#d99a1d',
+  letterSpacing: '0.16em',
+  fontWeight: 800,
+  fontSize: '13px',
+};
+
+const titleStyle: CSSProperties = {
+  margin: '0 0 14px',
+  color: '#111827',
+  fontSize: 'clamp(34px, 4vw, 50px)',
+  fontWeight: 900,
+  lineHeight: 1.08,
+};
+
+const textStyle: CSSProperties = {
+  margin: 0,
+  color: '#667085',
+  lineHeight: 1.75,
+  fontSize: '17px',
+};
+
+const subcategoryGridStyle: CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: '24px',
+};
+
+const galleryGridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
   gap: '22px',
 };
 
-const cardStyle: React.CSSProperties = {
-  backgroundColor: '#ffffff',
-  borderRadius: '24px',
-  border: '1px solid #ece7df',
-  boxShadow: '0 16px 30px rgba(15, 23, 42, 0.05)',
-  padding: '24px',
-  display: 'flex',
-  flexDirection: 'column',
+const galleryLinkStyle: CSSProperties = {
+  textDecoration: 'none',
+  color: 'inherit',
+  display: 'block',
 };
 
-const cardTopRowStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  gap: '12px',
-  alignItems: 'center',
-  flexWrap: 'wrap',
+const ctaSectionStyle: CSSProperties = {
+  padding: '0 24px 84px',
 };
 
-const badgeStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  padding: '8px 12px',
-  borderRadius: '999px',
-  backgroundColor: '#fbf1e4',
-  color: '#c87f17',
-  fontSize: '12px',
-  fontWeight: 700,
-  textTransform: 'capitalize',
+const ctaBoxStyle: CSSProperties = {
+  maxWidth: '980px',
+  margin: '0 auto',
+  textAlign: 'center',
+  background:
+    'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,247,232,0.96))',
+  border: '1px solid #ece6dc',
+  borderRadius: '28px',
+  padding: '42px 24px',
+  boxShadow: '0 18px 42px rgba(15, 23, 42, 0.07)',
 };
 
-const priceStyle: React.CSSProperties = {
-  color: '#ea7b12',
+const ctaEyebrowStyle: CSSProperties = {
+  margin: '0 0 10px',
+  color: '#d99a1d',
+  letterSpacing: '0.16em',
   fontWeight: 800,
-  fontSize: '28px',
-};
-
-const cardTitleStyle: React.CSSProperties = {
-  margin: '18px 0 10px',
-  fontSize: '30px',
-  fontWeight: 800,
-  color: '#1f2937',
-};
-
-const cardTextStyle: React.CSSProperties = {
-  margin: 0,
-  color: '#6b7280',
-  fontSize: '15px',
-  lineHeight: 1.8,
-  minHeight: '84px',
-};
-
-const metaWrapStyle: React.CSSProperties = {
-  marginTop: '18px',
-  display: 'flex',
-  gap: '10px',
-  flexWrap: 'wrap',
-};
-
-const metaBadgeStyle: React.CSSProperties = {
-  padding: '8px 12px',
-  borderRadius: '999px',
-  backgroundColor: '#f8f6f2',
-  color: '#4b5563',
   fontSize: '13px',
-  fontWeight: 700,
 };
 
-const buttonRowStyle: React.CSSProperties = {
-  marginTop: '22px',
+const ctaTitleStyle: CSSProperties = {
+  margin: '0 0 14px',
+  color: '#111827',
+  fontSize: 'clamp(30px, 4vw, 46px)',
+  fontWeight: 900,
+  lineHeight: 1.08,
+};
+
+const ctaTextStyle: CSSProperties = {
+  margin: '0 auto',
+  maxWidth: '720px',
+  color: '#667085',
+  fontSize: '16px',
+  lineHeight: 1.8,
+};
+
+const ctaButtonsStyle: CSSProperties = {
+  marginTop: '26px',
   display: 'flex',
-  gap: '12px',
+  justifyContent: 'center',
+  alignItems: 'center',
+  gap: '14px',
   flexWrap: 'wrap',
 };
 
-const primaryButtonStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+const primaryButtonStyle: CSSProperties = {
   textDecoration: 'none',
-  backgroundColor: '#e3a52a',
-  color: '#1f2937',
-  padding: '12px 18px',
-  borderRadius: '12px',
-  fontSize: '14px',
-  fontWeight: 700,
+  background: '#d99a1d',
+  color: '#111827',
+  fontWeight: 900,
+  padding: '15px 24px',
+  borderRadius: '999px',
+  fontSize: '15px',
+  boxShadow: '0 12px 24px rgba(217, 154, 29, 0.28)',
 };
 
-const secondaryButtonStyle: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+const secondaryButtonStyle: CSSProperties = {
   textDecoration: 'none',
-  backgroundColor: '#f8f5f1',
-  border: '1px solid #e3d8c9',
-  color: '#1f2937',
-  padding: '12px 18px',
-  borderRadius: '12px',
-  fontSize: '14px',
-  fontWeight: 700,
+  background: '#ffffff',
+  color: '#111827',
+  border: '1px solid #d7dce5',
+  fontWeight: 800,
+  padding: '15px 24px',
+  borderRadius: '999px',
+  fontSize: '15px',
 };

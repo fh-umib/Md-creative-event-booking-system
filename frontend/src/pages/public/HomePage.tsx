@@ -1,412 +1,1946 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type SVGProps } from 'react';
 
-// ── useWindowWidth ────────────────────────────────────────────────────────
-function useWindowWidth() {
-  const [w, setW] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
-  useEffect(() => {
-    const fn = () => setW(window.innerWidth);
-    window.addEventListener('resize', fn);
-    return () => window.removeEventListener('resize', fn);
-  }, []);
-  return w;
+type IconName =
+  | 'mask'
+  | 'sparkles'
+  | 'camera'
+  | 'heart'
+  | 'package'
+  | 'calendar'
+  | 'wand'
+  | 'star';
+
+function GoldIcon({ name, size = 20 }: { name: IconName; size?: number }) {
+  const p: SVGProps<SVGSVGElement> = {
+    width: size,
+    height: size,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+  };
+
+  if (name === 'mask') {
+    return (
+      <svg {...p}>
+        <path
+          d="M4 7.5c2.6-1.2 5.2-1.2 8 0 2.8-1.2 5.4-1.2 8 0v3.2c0 4.2-2.8 7.1-6.1 7.1-1.2 0-2.1-.3-2.9-1-.8.7-1.7 1-2.9 1C4.8 17.8 4 14.9 4 10.7V7.5Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M8 11.1h.01M16 11.1h.01M9.4 14.1c1.4.9 3.8.9 5.2 0"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  if (name === 'sparkles') {
+    return (
+      <svg {...p}>
+        <path
+          d="M12 2.7l1.7 5 5 1.7-5 1.7-1.7 5-1.7-5-5-1.7 5-1.7 1.7-5Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  if (name === 'camera') {
+    return (
+      <svg {...p}>
+        <path
+          d="M8.5 6.5 10 4h4l1.5 2.5H19A2.5 2.5 0 0 1 21.5 9v8A2.5 2.5 0 0 1 19 19.5H5A2.5 2.5 0 0 1 2.5 17V9A2.5 2.5 0 0 1 5 6.5h3.5Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M12 16a3.2 3.2 0 1 0 0-6.4A3.2 3.2 0 0 0 12 16Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+      </svg>
+    );
+  }
+
+  if (name === 'heart') {
+    return (
+      <svg {...p}>
+        <path
+          d="M20.4 5.8c-1.7-1.9-4.4-2-6.2-.3L12 7.6 9.8 5.5C8 3.8 5.3 3.9 3.6 5.8c-1.8 2-1.7 5.1.3 7l8.1 7.5 8.1-7.5c2-1.9 2.1-5 .3-7Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  if (name === 'package') {
+    return (
+      <svg {...p}>
+        <path
+          d="M12 2.8 20 7v10l-8 4.2L4 17V7l8-4.2Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M4.5 7.3 12 11.4l7.5-4.1M12 21V11.4"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  if (name === 'calendar') {
+    return (
+      <svg {...p}>
+        <path
+          d="M7 3v3M17 3v3M4.5 9h15M6.5 5h11A2.5 2.5 0 0 1 20 7.5v10A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5v-10A2.5 2.5 0 0 1 6.5 5Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+
+  if (name === 'wand') {
+    return (
+      <svg {...p}>
+        <path
+          d="M5 19 19 5M15 5h4v4M4.5 5.5l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7.7-1.6ZM17.8 14.2l.6 1.3 1.3.6-1.3.6-.6 1.3-.6-1.3-1.3-.6 1.3-.6.6-1.3Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg {...p}>
+      <path
+        d="M12 3.2 14.3 9l6.2.4-4.8 4 1.5 6-5.2-3.3-5.2 3.3 1.5-6-4.8-4L9.7 9 12 3.2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
-// ── useCountUp ────────────────────────────────────────────────────────────
-function useCountUp(target: number, duration = 3200) {
+function useCountUp(target: number, duration = 2400) {
   const [count, setCount] = useState(0);
   const [started, setStarted] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setStarted(true); obs.disconnect(); } },
-      { threshold: 0.3 }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStarted(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.35 }
     );
-    obs.observe(el);
-    return () => obs.disconnect();
+
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
+
   useEffect(() => {
     if (!started) return;
-    let s: number | null = null;
-    const step = (ts: number) => {
-      if (!s) s = ts;
-      const p = Math.min((ts - s) / duration, 1);
-      setCount(Math.floor((1 - Math.pow(1 - p, 3)) * target));
-      if (p < 1) requestAnimationFrame(step);
+
+    let start: number | null = null;
+
+    const step = (time: number) => {
+      if (!start) start = time;
+
+      const progress = Math.min((time - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+
+      setCount(Math.floor(eased * target));
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
     };
+
     requestAnimationFrame(step);
   }, [started, target, duration]);
+
   return { count, ref };
 }
 
-// ── ScrollToTop ───────────────────────────────────────────────────────────
+function useScrollReveal() {
+  useEffect(() => {
+    const elements = document.querySelectorAll('[data-reveal]');
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).style.animationPlayState = 'running';
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    elements.forEach((element) => {
+      (element as HTMLElement).style.animationPlayState = 'paused';
+      observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+}
+
 function ScrollToTop() {
   const [visible, setVisible] = useState(false);
+
   useEffect(() => {
-    const fn = () => setVisible(window.scrollY > 400);
-    window.addEventListener('scroll', fn, { passive: true });
-    return () => window.removeEventListener('scroll', fn);
+    const handleScroll = () => setVisible(window.scrollY > 440);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
   return (
-    <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Scroll to top"
-      style={{
-        position: 'fixed', bottom: 28, right: 20, zIndex: 999,
-        width: 48, height: 48, borderRadius: '50%',
-        background: '#c8841a', border: 'none', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 4px 20px rgba(200,132,26,.45)',
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0) scale(1)' : 'translateY(14px) scale(0.85)',
-        transition: 'opacity 0.3s, transform 0.3s',
-        pointerEvents: visible ? 'auto' : 'none',
-      }}>
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path d="M10 15V5M10 5L5 10M10 5L15 10" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+    <button
+      type="button"
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      aria-label="Kthehu lart"
+      className={visible ? 'hp-scroll visible' : 'hp-scroll'}
+    >
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M10 15V5M10 5L5 10M10 5L15 10"
+          stroke="#fff"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     </button>
   );
 }
 
-// ── StatItem ──────────────────────────────────────────────────────────────
-function StatItem({ icon, target, suffix, label, isMobile }: {
-  icon: string; target: number; suffix: string; label: string; isMobile: boolean;
+function StatCard({
+  icon,
+  target,
+  suffix = '',
+  label,
+}: {
+  icon: IconName;
+  target: number;
+  suffix?: string;
+  label: string;
 }) {
   const { count, ref } = useCountUp(target);
+
   return (
-    <div ref={ref} style={{ textAlign: 'center', padding: isMobile ? '18px 10px' : '26px 20px' }}>
-      <div style={{ marginBottom: 8, color: '#c8841a', fontSize: isMobile ? 18 : 22 }}>{icon}</div>
-      <h3 style={{ margin: '0 0 4px', color: '#111827', fontSize: isMobile ? '26px' : 'clamp(28px,3vw,44px)', fontWeight: 800, lineHeight: 1, fontFamily: "'Cormorant Garamond',serif" }}>
-        {count.toLocaleString()}{suffix}
-      </h3>
-      <p style={{ margin: 0, color: '#667085', fontSize: isMobile ? '13px' : '15px' }}>{label}</p>
+    <div ref={ref} data-reveal className="hp-stat">
+      <div className="hp-stat-icon">
+        <GoldIcon name={icon} />
+      </div>
+      <span className="hp-stat-num">
+        {count}
+        {suffix}
+      </span>
+      <span className="hp-stat-lbl">{label}</span>
     </div>
   );
 }
 
-// ── Data ──────────────────────────────────────────────────────────────────
-const serviceCards = [
-  { title: 'Decorations',           description: 'Elegant setups for weddings, birthdays, engagements, anniversaries, and grand openings.', image: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80', to: '/decorations', icon: '🎀' },
-  { title: 'Mascot Characters',     description: 'Over 50 unique mascot characters to bring joy and excitement to every celebration.',           image: 'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=1200&q=80', to: '/mascots',     icon: '🎭' },
-  { title: 'Activities & Fun',      description: 'Face painting, bounce houses, ball houses, and music for unforgettable fun.',                   image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80', to: '/activities',  icon: '🎪' },
-  { title: 'Photo Experiences',     description: '360° Photo Booth and photo box stations to capture every special moment.',                      image: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1200&q=80', to: '/photo-booth', icon: '📸' },
+const services = [
+  {
+    title: 'Dekorime',
+    desc: 'Dekore elegante për ditëlindje, fejesa, dasma, baby shower dhe evente që kërkojnë stil.',
+    image: '/images/home/decorations.png',
+    link: '/decorations',
+    badge: 'Dekorime elegante',
+    icon: 'sparkles' as IconName,
+  },
+  {
+    title: 'Maskota',
+    desc: 'Personazhe të dashura për fëmijë — energji, argëtim dhe momente që mbesin gjatë në kujtesë.',
+    image: '/images/home/mascot.png',
+    link: '/mascots',
+    badge: '50+ personazhe',
+    icon: 'mask' as IconName,
+  },
+  {
+    title: 'Aktivitete',
+    desc: 'Face painting, lojëra, muzikë dhe aktivitete që e bëjnë festën më të gjallë dhe zbavitëse.',
+    image: '/images/home/activites-fun.png',
+    link: '/activities',
+    badge: 'Argëtim për fëmijë',
+    icon: 'wand' as IconName,
+  },
+  {
+    title: 'Photo Booth',
+    desc: 'Kënde fotografike dhe photo booth për kujtime të bukura nga çdo event i veçantë.',
+    image: '/images/home/photo-experiences.png',
+    link: '/photo-booth',
+    badge: 'Kujtime speciale',
+    icon: 'camera' as IconName,
+  },
 ];
 
-const reasons = [
-  { icon: '✦', title: 'Premium Quality',       text: 'Every detail planned with the highest quality materials and execution.' },
-  { icon: '✦', title: 'Exclusive Attractions', text: 'The only provider in Kosovo offering select entertainment attractions.' },
-  { icon: '✦', title: 'Custom Packages',       text: 'Build your perfect event by combining services and activities your way.' },
+const marqueeItems = [
+  'Kënde fotografie',
+  'Ditëlindje',
+  'Dasma',
+  'Fejesa',
+  'Baby Shower',
+  'Dekorime elegante',
+  'Maskota',
+  'Photo Booth',
+  'Aktivitete',
+  'Evente për fëmijë',
+  'Mbrëmje festive',
+  'Hyrje speciale',
 ];
 
-const eventTypes = ['Weddings', 'Birthdays', 'Engagements', 'Baby Showers', 'Anniversaries', 'Grand Openings', 'Baptisms', 'Corporate Events'];
+const whyCards = [
+  {
+    n: '01',
+    title: 'Kreativitet në çdo detaj',
+    text: 'Çdo dekor, ngjyrë dhe vendosje mendohet që eventi të duket unik, i kuruar dhe me stil.',
+  },
+  {
+    n: '02',
+    title: 'Shërbime të kombinuara',
+    text: 'Dekorime, maskota, aktivitete dhe photo booth kombinohen bukur në një përjetim të plotë.',
+  },
+  {
+    n: '03',
+    title: 'Përshtatje sipas kërkesës',
+    text: 'Çdo festë ndërtohet sipas temës, hapësirës, dëshirës dhe buxhetit të klientit.',
+  },
+];
 
-// ── HomePage ──────────────────────────────────────────────────────────────
+const featurePoints = [
+  'Planifikim me stil dhe harmoni vizuale',
+  'Kënde foto dhe detaje që bien në sy',
+  'Përshtatje sipas temës dhe atmosferës',
+];
+
+const reviews = [
+  {
+    name: 'Klient i MD Creative',
+    event: 'Ditëlindje',
+    stars: 5,
+    text: 'Dekorimi, maskotat dhe organizimi ishin shumë të bukura. Çdo detaj dukej i menduar me kujdes dhe festa mori një pamje shumë të veçantë.',
+  },
+  {
+    name: 'Klient i MD Creative',
+    event: 'Event familjar',
+    stars: 5,
+    text: 'Shërbimi ishte korrekt, i organizuar dhe shumë profesional. Fëmijët u argëtuan shumë dhe atmosfera ishte plot jetë nga fillimi deri në fund.',
+  },
+  {
+    name: 'Klient i MD Creative',
+    event: 'Baby Shower',
+    stars: 5,
+    text: 'Pamja finale doli elegante dhe shumë e kuruar. Ishte pikërisht ajo ndjesia e butë, festive dhe speciale që e dëshironim për këtë ditë.',
+  },
+];
+
+const ctaHighlights = [
+  { icon: 'sparkles' as IconName, label: 'Dekor i kuruar' },
+  { icon: 'calendar' as IconName, label: 'Rezervim me plan' },
+  { icon: 'heart' as IconName, label: 'Përjetim me kujdes' },
+];
+
+const miniItems = [
+  {
+    title: 'Stil i dallueshëm',
+    text: 'Dizajn i menduar për t’u dukur elegant dhe i kuruar.',
+  },
+  {
+    title: 'Ide kreative',
+    text: 'Zgjidhje që e bëjnë eventin më tërheqës dhe më unik.',
+  },
+  {
+    title: 'Realizim profesional',
+    text: 'Pamje serioze, e pastër dhe e organizuar bukur.',
+  },
+];
+
 export default function HomePage() {
-  const width = useWindowWidth();
-  const isMobile  = width < 640;
-  const isTablet  = width < 1024;
+  useScrollReveal();
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400;1,600;1,700&family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
 
-        * { box-sizing: border-box; }
-        .hp { font-family: 'DM Sans', sans-serif; background: #f7f4ef; }
-        .hp-serif { font-family: 'Cormorant Garamond', serif; }
-
-        @keyframes hp-fadeUp  { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes hp-marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-        @keyframes hp-pulse   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
-
-        .hp-a1 { animation: hp-fadeUp .6s ease both .05s; }
-        .hp-a2 { animation: hp-fadeUp .6s ease both .2s; }
-        .hp-a3 { animation: hp-fadeUp .6s ease both .35s; }
-        .hp-a4 { animation: hp-fadeUp .6s ease both .5s; }
-
-        /* service cards */
-        .hp-scard { transition: transform .35s ease, box-shadow .35s ease; }
-        .hp-scard:hover { transform: translateY(-6px); box-shadow: 0 24px 52px rgba(26,18,11,.18) !important; }
-        .hp-scard:hover .hp-scard-img { transform: scale(1.05); }
-        .hp-scard-img { transition: transform .5s ease; }
-        .hp-scard:hover .hp-scard-overlay { opacity: 1 !important; }
-        .hp-scard-overlay { transition: opacity .3s; }
-
-        /* reason cards */
-        .hp-reason:hover { border-color: #c8841a !important; box-shadow: 0 8px 28px rgba(200,132,26,.12) !important; }
-        .hp-reason { transition: border-color .2s, box-shadow .2s, transform .2s; }
-        .hp-reason:hover { transform: translateY(-3px); }
-
-        /* buttons */
-        .hp-btn-gold { transition: transform .2s, box-shadow .2s, opacity .2s; }
-        .hp-btn-gold:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(200,132,26,.4) !important; }
-        .hp-btn-ghost:hover { background: rgba(255,255,255,.15) !important; }
-        .hp-btn-ghost { transition: background .2s; }
-        .hp-btn-outline:hover { background: #1a120b !important; color: #fff !important; }
-        .hp-btn-outline { transition: background .2s, color .2s; }
-
-        /* ticker */
-        .hp-ticker { display: inline-flex; animation: hp-marquee 28s linear infinite; }
-
-        /* cta pulse badge */
-        .hp-pulse { animation: hp-pulse 3s ease-in-out infinite; }
-
-        /* ── MOBILE MEDIA QUERIES ── */
-        @media (max-width: 639px) {
-          .hp-hero-btns   { flex-direction: column !important; align-items: stretch !important; }
-          .hp-hero-btns a { text-align: center !important; min-width: unset !important; }
-          .hp-stats-grid  { grid-template-columns: 1fr !important; }
-          .hp-stat-sep    { border-top: 1px solid #f0e9dd !important; border-left: none !important; }
-          .hp-svc-grid    { grid-template-columns: 1fr !important; }
-          .hp-reasons-grid{ grid-template-columns: 1fr !important; }
-          .hp-cta-btns    { flex-direction: column !important; align-items: stretch !important; }
-          .hp-cta-btns a  { text-align: center !important; }
-          .hp-event-types { display: none !important; }
+        *, *::before, *::after {
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
         }
-        @media (min-width: 640px) and (max-width: 1023px) {
-          .hp-svc-grid     { grid-template-columns: 1fr !important; }
-          .hp-reasons-grid { grid-template-columns: repeat(2,1fr) !important; }
-          .hp-stat-sep     { border-left: 1px solid #f0e9dd; }
+
+        .hp {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
+          background:
+            radial-gradient(circle at 8% 16%, rgba(200,132,26,.07), transparent 28%),
+            radial-gradient(circle at 90% 52%, rgba(80,42,12,.05), transparent 28%),
+            linear-gradient(180deg, #f7f3ee 0%, #fbf8f4 100%);
+          color: #1a120b;
+          font-family: 'DM Sans', sans-serif;
         }
-        @media (min-width: 640px) {
-          .hp-stat-sep { border-left: 1px solid #f0e9dd; }
+
+        .hp-wrap {
+          width: 100%;
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 0 28px;
+        }
+
+        .hp-serif {
+          font-family: 'Cormorant Garamond', serif;
+        }
+
+        @keyframes hp-up {
+          from {
+            opacity: 0;
+            transform: translateY(32px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes hp-zoom {
+          from {
+            transform: scale(1.08);
+          }
+          to {
+            transform: scale(1.02);
+          }
+        }
+
+        @keyframes hp-glow {
+          0%, 100% {
+            box-shadow: 0 10px 24px rgba(209,145,31,.25);
+          }
+          50% {
+            box-shadow: 0 14px 34px rgba(209,145,31,.43);
+          }
+        }
+
+        @keyframes hp-float {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-8px);
+          }
+        }
+
+        @keyframes hp-mrq {
+          from {
+            transform: translateX(0);
+          }
+          to {
+            transform: translateX(-50%);
+          }
+        }
+
+        @keyframes hp-pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: .65;
+            transform: scale(1.06);
+          }
+        }
+
+        @keyframes hp-shine {
+          0% {
+            background-position: -200% center;
+          }
+          100% {
+            background-position: 200% center;
+          }
+        }
+
+        [data-reveal] {
+          animation: hp-up .85s ease both;
+          animation-play-state: paused;
+        }
+
+        .hp-kicker {
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+          padding: 8px 18px;
+          border-radius: 99px;
+          background: rgba(200,132,26,.11);
+          border: 1px solid rgba(200,132,26,.28);
+          color: #c8841a;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: .16em;
+          text-transform: uppercase;
+        }
+
+        .hp-kicker.lite {
+          background: rgba(255,255,255,.09);
+          border-color: rgba(255,255,255,.18);
+          color: rgba(255,255,255,.88);
+        }
+
+        .hp-kicker-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #c8841a;
+          animation: hp-pulse 2.2s ease-in-out infinite;
+          flex-shrink: 0;
+        }
+
+        .hp-section-head {
+          max-width: 720px;
+          margin: 0 auto 38px;
+          text-align: center;
+        }
+
+        .hp-section-title {
+          margin: 14px 0 12px;
+          font-size: clamp(40px, 4.5vw, 66px);
+          font-weight: 700;
+          line-height: .96;
+          color: #1a120b;
+        }
+
+        .hp-section-title em {
+          color: #c8841a;
+          font-style: italic;
+        }
+
+        .hp-section-text {
+          color: #716556;
+          font-size: 16px;
+          line-height: 1.85;
+        }
+
+        .hp-btn-gold {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 9px;
+          min-height: 50px;
+          padding: 0 26px;
+          border-radius: 17px;
+          text-decoration: none;
+          background: linear-gradient(135deg, #d4911e, #c8841a);
+          color: #fff;
+          font-size: 14px;
+          font-weight: 800;
+          animation: hp-glow 3.5s ease-in-out infinite;
+          transition: transform .25s, box-shadow .25s;
+        }
+
+        .hp-btn-gold:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 18px 38px rgba(200,132,26,.48);
+        }
+
+        .hp-btn-ghost {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 50px;
+          padding: 0 26px;
+          border-radius: 17px;
+          text-decoration: none;
+          background: rgba(255,255,255,.08);
+          border: 1px solid rgba(255,255,255,.22);
+          color: #fff;
+          font-size: 14px;
+          font-weight: 700;
+          transition: background .2s, transform .2s;
+        }
+
+        .hp-btn-ghost:hover {
+          background: rgba(255,255,255,.16);
+          transform: translateY(-2px);
+        }
+
+        .hp-hero {
+          position: relative;
+          min-height: calc(100vh - 84px);
+          display: flex;
+          align-items: center;
+          padding: 38px 0 34px;
+          overflow: hidden;
+          background: #120c07;
+          isolation: isolate;
+        }
+
+        .hp-hero-bg {
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(100deg, rgba(15,10,5,.92) 0%, rgba(15,10,5,.72) 45%, rgba(15,10,5,.38) 100%),
+            url('/images/home/home.png');
+          background-size: cover;
+          background-position: center;
+          animation: hp-zoom 2s ease both;
+        }
+
+        .hp-hero::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 1;
+          background-image: repeating-linear-gradient(
+            45deg,
+            rgba(255,255,255,.028) 0,
+            rgba(255,255,255,.028) 1px,
+            transparent 1px,
+            transparent 68px
+          );
+        }
+
+        .hp-hero::before {
+          content: '';
+          position: absolute;
+          width: 520px;
+          height: 520px;
+          left: -170px;
+          bottom: -210px;
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 1;
+          background: radial-gradient(circle, rgba(200,132,26,.22), transparent 68%);
+        }
+
+        .hp-hero-inner {
+          position: relative;
+          z-index: 2;
+          max-width: 760px;
+        }
+
+        .hp-hero-title {
+          margin: 16px 0 14px;
+          color: #fff;
+          line-height: .9;
+          font-size: clamp(50px, 6.1vw, 88px);
+          font-weight: 700;
+          letter-spacing: -.03em;
+        }
+
+        .hp-hero-title em {
+          color: #d89a2d;
+          font-style: italic;
+          display: block;
+        }
+
+        .hp-hero-title em::after {
+          content: '';
+          display: block;
+          height: 3px;
+          border-radius: 2px;
+          margin-top: 6px;
+          background: linear-gradient(90deg, #c8841a, #e8b56a, #c8841a);
+          background-size: 200% auto;
+          animation: hp-shine 3s linear infinite;
+        }
+
+        .hp-hero-sub {
+          max-width: 560px;
+          color: rgba(255,255,255,.82);
+          font-size: 16px;
+          line-height: 1.7;
+          margin-bottom: 24px;
+        }
+
+        .hp-hero-btns {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+
+        .hp-hero-tags {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+
+        .hp-tag {
+          padding: 9px 16px;
+          border-radius: 99px;
+          font-size: 12px;
+          font-weight: 800;
+          background: rgba(255,255,255,.08);
+          border: 1px solid rgba(255,255,255,.14);
+          color: rgba(255,255,255,.85);
+          backdrop-filter: blur(8px);
+          transition: background .2s, transform .2s;
+        }
+
+        .hp-tag:hover {
+          background: rgba(200,132,26,.25);
+          transform: translateY(-2px);
+        }
+
+        .hp-hero-float {
+          position: absolute;
+          right: 48px;
+          bottom: 54px;
+          z-index: 3;
+          background: rgba(255,255,255,.1);
+          backdrop-filter: blur(18px);
+          border: 1px solid rgba(255,255,255,.16);
+          border-radius: 22px;
+          padding: 16px 20px;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          animation: hp-float 4s ease-in-out infinite;
+        }
+
+        .hp-hero-float-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #d4911e, #c8841a);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          flex-shrink: 0;
+          font-size: 24px;
+        }
+
+        .hp-hero-float-text p:first-child {
+          color: #fff;
+          font-size: 15px;
+          font-weight: 800;
+          margin-bottom: 2px;
+        }
+
+        .hp-hero-float-text p:last-child {
+          color: rgba(255,255,255,.6);
+          font-size: 12px;
+        }
+
+        .hp-marquee {
+          background: #160e08;
+          border-top: 1px solid rgba(255,255,255,.07);
+          border-bottom: 1px solid rgba(255,255,255,.07);
+          overflow: hidden;
+          padding: 12px 0;
+        }
+
+        .hp-marquee-track {
+          display: flex;
+          width: max-content;
+          animation: hp-mrq 32s linear infinite;
+        }
+
+        .hp-marquee-group {
+          display: flex;
+          align-items: center;
+          white-space: nowrap;
+        }
+
+        .hp-marquee-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 18px;
+          padding: 0 22px;
+          color: rgba(255,255,255,.8);
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: .1em;
+          text-transform: uppercase;
+        }
+
+        .hp-marquee-sep {
+          width: 7px;
+          height: 7px;
+          border-radius: 2px;
+          background: #d1911f;
+          transform: rotate(45deg);
+          box-shadow: 0 0 14px rgba(209,145,31,.55);
+          flex-shrink: 0;
+        }
+
+        .hp-stats-wrap {
+          padding: 32px 0 22px;
+        }
+
+        .hp-stats {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          background: rgba(255,255,255,.97);
+          border: 1px solid #ece0d0;
+          border-radius: 28px;
+          overflow: hidden;
+          box-shadow: 0 20px 48px rgba(26,18,11,.09);
+        }
+
+        .hp-stat {
+          padding: 26px 16px;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+          border-left: 1px solid #f1e7d9;
+          transition: background .25s, transform .25s;
+        }
+
+        .hp-stat:first-child {
+          border-left: none;
+        }
+
+        .hp-stat:hover {
+          background: #fffaf2;
+          transform: translateY(-3px);
+        }
+
+        .hp-stat-icon {
+          width: 44px;
+          height: 44px;
+          border-radius: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(209,145,31,.1);
+          color: #c8841a;
+        }
+
+        .hp-stat-num {
+          font-family: 'Cormorant Garamond', serif;
+          font-size: clamp(30px, 3.5vw, 48px);
+          font-weight: 700;
+          color: #1a120b;
+          line-height: 1;
+        }
+
+        .hp-stat-lbl {
+          font-size: 13px;
+          color: #7b6c5c;
+        }
+
+        .hp-svc {
+          padding: 38px 0 28px;
+        }
+
+        .hp-svc-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 20px;
+        }
+
+        .hp-svc-card {
+          position: relative;
+          min-height: 450px;
+          border-radius: 28px;
+          overflow: hidden;
+          text-decoration: none;
+          color: #fff;
+          display: block;
+          border: 1px solid rgba(200,132,26,.14);
+          box-shadow: 0 16px 40px rgba(26,18,11,.12);
+          transition: transform .38s ease, box-shadow .38s ease, border-color .38s ease;
+        }
+
+        .hp-svc-card:hover {
+          transform: translateY(-10px);
+          box-shadow: 0 32px 64px rgba(26,18,11,.22);
+          border-color: rgba(200,132,26,.42);
+        }
+
+        .hp-svc-img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform .6s ease, filter .6s ease;
+        }
+
+        .hp-svc-card:hover .hp-svc-img {
+          transform: scale(1.09);
+          filter: brightness(.82) saturate(1.1);
+        }
+
+        .hp-svc-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(to top, rgba(14,9,4,.96) 0%, rgba(14,9,4,.72) 44%, rgba(14,9,4,.14) 100%);
+          z-index: 1;
+        }
+
+        .hp-svc-top {
+          position: absolute;
+          top: 18px;
+          left: 18px;
+          right: 18px;
+          z-index: 2;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .hp-svc-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 8px 13px;
+          border-radius: 99px;
+          background: rgba(255,255,255,.92);
+          color: #1a120b;
+          font-size: 12px;
+          font-weight: 800;
+          box-shadow: 0 6px 20px rgba(26,18,11,.14);
+        }
+
+        .hp-svc-pill svg {
+          color: #c8841a;
+        }
+
+        .hp-svc-num {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: #d1911f;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: 900;
+          box-shadow: 0 6px 18px rgba(209,145,31,.38);
+        }
+
+        .hp-svc-body {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          z-index: 2;
+          padding: 24px 22px 22px;
+        }
+
+        .hp-svc-title {
+          font-size: 42px;
+          font-weight: 700;
+          line-height: .92;
+          margin: 0 0 10px;
+        }
+
+        .hp-svc-desc {
+          font-size: 13px;
+          line-height: 1.72;
+          color: rgba(255,255,255,.78);
+          margin: 0 0 16px;
+        }
+
+        .hp-svc-cta {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 18px;
+          border-radius: 99px;
+          font-size: 13px;
+          font-weight: 800;
+          background: rgba(255,255,255,.12);
+          border: 1px solid rgba(255,255,255,.2);
+          color: #fff;
+          transition: all .25s;
+        }
+
+        .hp-svc-card:hover .hp-svc-cta {
+          background: #d1911f;
+          transform: translateX(4px);
+          border-color: transparent;
+        }
+
+        .hp-why {
+          padding: 36px 0 38px;
+        }
+
+        .hp-why-layout {
+          display: grid;
+          grid-template-columns: 1.15fr .85fr;
+          gap: 22px;
+          align-items: stretch;
+        }
+
+        .hp-why-feature {
+          position: relative;
+          overflow: hidden;
+          min-height: 500px;
+          border-radius: 30px;
+          background:
+            linear-gradient(128deg, rgba(16,10,5,.94), rgba(40,25,12,.88)),
+            url('/images/home/decorations.png');
+          background-size: cover;
+          background-position: center;
+          border: 1px solid rgba(200,132,26,.2);
+          box-shadow: 0 22px 52px rgba(26,18,11,.18);
+          padding: 36px;
+          display: flex;
+          align-items: flex-end;
+        }
+
+        .hp-why-feature::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background:
+            radial-gradient(circle at top right, rgba(209,145,31,.2), transparent 32%),
+            linear-gradient(to top, rgba(10,7,4,.4), transparent 50%);
+        }
+
+        .hp-why-fc {
+          position: relative;
+          z-index: 2;
+        }
+
+        .hp-why-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 7px 14px;
+          border-radius: 99px;
+          background: rgba(255,255,255,.1);
+          border: 1px solid rgba(255,255,255,.14);
+          color: rgba(255,255,255,.9);
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: .1em;
+          text-transform: uppercase;
+          margin-bottom: 18px;
+        }
+
+        .hp-why-badge svg {
+          color: #d1911f;
+        }
+
+        .hp-why-ftitle {
+          font-size: clamp(38px, 4vw, 58px);
+          font-weight: 700;
+          color: #fff;
+          line-height: .96;
+          margin: 0 0 14px;
+        }
+
+        .hp-why-ftitle em {
+          color: #d89a2d;
+          font-style: italic;
+        }
+
+        .hp-why-ftext {
+          color: rgba(255,255,255,.8);
+          font-size: 15px;
+          line-height: 1.9;
+          margin: 0 0 22px;
+        }
+
+        .hp-why-list {
+          display: grid;
+          gap: 10px;
+        }
+
+        .hp-why-li {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          padding: 13px 16px;
+          border-radius: 16px;
+          background: rgba(255,255,255,.08);
+          border: 1px solid rgba(255,255,255,.1);
+          color: rgba(255,255,255,.84);
+          font-size: 14px;
+          line-height: 1.65;
+        }
+
+        .hp-why-li-dot {
+          width: 28px;
+          height: 28px;
+          flex-shrink: 0;
+          border-radius: 50%;
+          background: rgba(209,145,31,.18);
+          color: #d1911f;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-top: 1px;
+        }
+
+        .hp-why-li-dot svg {
+          width: 14px;
+          height: 14px;
+        }
+
+        .hp-why-side {
+          display: grid;
+          gap: 18px;
+        }
+
+        .hp-why-card {
+          background: linear-gradient(160deg, #fff 0%, #fcf8f2 100%);
+          border: 1px solid #eadfce;
+          border-radius: 26px;
+          padding: 26px 22px;
+          box-shadow: 0 12px 28px rgba(26,18,11,.06);
+          transition: transform .28s, box-shadow .28s, border-color .28s;
+        }
+
+        .hp-why-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 20px 40px rgba(26,18,11,.1);
+          border-color: #d7c19a;
+        }
+
+        .hp-why-card-n {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: rgba(209,145,31,.1);
+          color: #c8841a;
+          font-size: 13px;
+          font-weight: 900;
+          margin-bottom: 16px;
+        }
+
+        .hp-why-card-t {
+          font-size: 22px;
+          font-weight: 900;
+          color: #1a120b;
+          margin: 0 0 10px;
+        }
+
+        .hp-why-card-p {
+          font-size: 14px;
+          color: #70635a;
+          line-height: 1.8;
+          margin: 0;
+        }
+
+        .hp-mini-row {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-top: 22px;
+        }
+
+        .hp-mini {
+          background: #fff;
+          border: 1px solid #eadfce;
+          border-radius: 22px;
+          padding: 22px 18px;
+          text-align: center;
+          box-shadow: 0 10px 24px rgba(26,18,11,.05);
+          transition: transform .2s;
+        }
+
+        .hp-mini:hover {
+          transform: translateY(-4px);
+        }
+
+        .hp-mini-title {
+          display: block;
+          font-size: 16px;
+          font-weight: 800;
+          color: #1a120b;
+          margin-bottom: 6px;
+        }
+
+        .hp-mini-text {
+          font-size: 13px;
+          color: #7a6b59;
+          line-height: 1.6;
+        }
+
+        .hp-reviews {
+          padding: 36px 0 26px;
+        }
+
+        .hp-reviews-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 20px;
+        }
+
+        .hp-review {
+          background: #fff;
+          border: 1px solid #ece0d0;
+          border-radius: 24px;
+          padding: 26px 22px;
+          box-shadow: 0 8px 24px rgba(26,18,11,.06);
+          transition: transform .25s, box-shadow .25s;
+        }
+
+        .hp-review:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 16px 40px rgba(26,18,11,.1);
+        }
+
+        .hp-review-stars {
+          display: flex;
+          gap: 3px;
+          margin-bottom: 14px;
+        }
+
+        .hp-review-star {
+          color: #c8841a;
+          font-size: 15px;
+        }
+
+        .hp-review-text {
+          font-size: 14px;
+          color: #4a3b28;
+          line-height: 1.8;
+          font-style: italic;
+          margin: 0 0 20px;
+        }
+
+        .hp-review-author {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .hp-review-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #d4911e, #c8841a);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Cormorant Garamond', serif;
+          font-size: 18px;
+          font-weight: 700;
+          flex-shrink: 0;
+        }
+
+        .hp-review-name {
+          font-size: 14px;
+          font-weight: 700;
+          color: #1a120b;
+        }
+
+        .hp-review-event {
+          font-size: 12px;
+          color: #9a8878;
+          margin-top: 2px;
+        }
+
+        .hp-notice {
+          padding: 0 0 16px;
+        }
+
+        .hp-notice-box {
+          background: #fff;
+          border: 1.5px solid #e6d9c4;
+          border-radius: 22px;
+          padding: 22px 28px;
+          display: flex;
+          align-items: center;
+          gap: 18px;
+          box-shadow: 0 4px 18px rgba(26,18,11,.05);
+          flex-wrap: wrap;
+        }
+
+        .hp-notice-icon {
+          width: 50px;
+          height: 50px;
+          border-radius: 14px;
+          background: #fef3d0;
+          border: 1.5px solid #e8d5a0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #c8841a;
+          flex-shrink: 0;
+        }
+
+        .hp-notice-title {
+          font-size: 16px;
+          font-weight: 800;
+          color: #1a120b;
+          margin: 0 0 4px;
+        }
+
+        .hp-notice-text {
+          font-size: 14px;
+          color: #7a6a52;
+          line-height: 1.7;
+          margin: 0;
+        }
+
+        .hp-notice-btn {
+          margin-left: auto;
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          text-decoration: none;
+          background: #c8841a;
+          color: #fff;
+          padding: 11px 22px;
+          border-radius: 99px;
+          font-weight: 700;
+          font-size: 14px;
+          white-space: nowrap;
+          flex-shrink: 0;
+          box-shadow: 0 4px 14px rgba(200,132,26,.3);
+          transition: transform .2s, box-shadow .2s;
+        }
+
+        .hp-notice-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 22px rgba(200,132,26,.42);
+        }
+
+        .hp-cta {
+          padding: 0 0 70px;
+        }
+
+        .hp-cta-box {
+          position: relative;
+          overflow: hidden;
+          border-radius: 32px;
+          background:
+            linear-gradient(135deg, rgba(16,10,5,.90), rgba(42,26,10,.84)),
+            url('/images/home/home.png');
+          background-size: cover;
+          background-position: center 42%;
+          padding: 54px 36px 48px;
+          text-align: center;
+          box-shadow: 0 24px 56px rgba(26,18,11,.18);
+          border: 1px solid rgba(255,255,255,.08);
+        }
+
+        .hp-cta-box::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background:
+            radial-gradient(circle at 78% 18%, rgba(209,145,31,.26), transparent 30%),
+            radial-gradient(circle at 18% 86%, rgba(255,255,255,.06), transparent 26%);
+        }
+
+        .hp-cta-box::after {
+          content: '';
+          position: absolute;
+          inset: 20px;
+          border-radius: 24px;
+          border: 1px solid rgba(255,255,255,.1);
+          pointer-events: none;
+        }
+
+        .hp-cta-inner {
+          position: relative;
+          z-index: 2;
+          max-width: 820px;
+          margin: 0 auto;
+        }
+
+        .hp-cta-title {
+          font-size: clamp(42px, 5.2vw, 70px);
+          font-weight: 700;
+          color: #fff;
+          line-height: .96;
+          margin: 16px 0 14px;
+        }
+
+        .hp-cta-title em {
+          color: #d89a2d;
+          font-style: italic;
+        }
+
+        .hp-cta-sub {
+          max-width: 650px;
+          margin: 0 auto 26px;
+          color: rgba(255,255,255,.80);
+          font-size: 16px;
+          line-height: 1.9;
+        }
+
+        .hp-cta-highlights {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 12px;
+          max-width: 760px;
+          margin: 0 auto 28px;
+        }
+
+        .hp-cta-hl {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 9px;
+          min-height: 48px;
+          padding: 10px 14px;
+          border-radius: 16px;
+          background: rgba(255,255,255,.09);
+          border: 1px solid rgba(255,255,255,.13);
+          color: rgba(255,255,255,.86);
+          font-size: 13px;
+          font-weight: 800;
+          backdrop-filter: blur(8px);
+        }
+
+        .hp-cta-hl svg {
+          color: #d89a2d;
+          flex-shrink: 0;
+        }
+
+        .hp-cta-btns {
+          display: flex;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 14px;
+        }
+
+        .hp-scroll {
+          position: fixed;
+          bottom: 28px;
+          right: 22px;
+          z-index: 999;
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #d4911e, #c8841a);
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 6px 24px rgba(200,132,26,.5);
+          opacity: 0;
+          transform: translateY(16px) scale(.8);
+          transition: all .3s ease;
+          pointer-events: none;
+        }
+
+        .hp-scroll.visible {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+          pointer-events: auto;
+        }
+
+        @media (max-width: 1180px) {
+          .hp-svc-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .hp-why-layout {
+            grid-template-columns: 1fr;
+          }
+
+          .hp-hero-float {
+            display: none;
+          }
+        }
+
+        @media (max-width: 1023px) {
+          .hp-stats {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .hp-stat:nth-child(3),
+          .hp-stat:nth-child(4) {
+            border-top: 1px solid #f1e7d9;
+          }
+
+          .hp-reviews-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .hp-mini-row {
+            grid-template-columns: 1fr;
+          }
+
+          .hp-cta-highlights {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (max-width: 767px) {
+          .hp-wrap {
+            padding: 0 18px;
+          }
+
+          .hp-hero {
+            min-height: auto;
+            padding: 54px 0 44px;
+          }
+
+          .hp-hero-title {
+            font-size: 46px;
+          }
+
+          .hp-hero-sub {
+            font-size: 15px;
+          }
+
+          .hp-hero-btns {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .hp-hero-btns a {
+            width: 100%;
+          }
+
+          .hp-stats {
+            grid-template-columns: 1fr;
+          }
+
+          .hp-stat {
+            border-left: none !important;
+            border-top: 1px solid #f1e7d9;
+          }
+
+          .hp-stat:first-child {
+            border-top: none;
+          }
+
+          .hp-svc-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+
+          .hp-svc-card {
+            min-height: 380px;
+            border-radius: 22px;
+          }
+
+          .hp-svc-title {
+            font-size: 38px;
+          }
+
+          .hp-why-feature {
+            min-height: 400px;
+            padding: 22px;
+            border-radius: 22px;
+          }
+
+          .hp-notice-box {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .hp-notice-btn {
+            margin-left: 0;
+            align-self: stretch;
+            justify-content: center;
+          }
+
+          .hp-cta {
+            padding-bottom: 54px;
+          }
+
+          .hp-cta-box {
+            padding: 38px 20px 34px;
+            border-radius: 24px;
+          }
+
+          .hp-cta-box::after {
+            inset: 14px;
+            border-radius: 18px;
+          }
+
+          .hp-cta-title {
+            font-size: 40px;
+          }
+
+          .hp-cta-btns {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .hp-cta-btns a {
+            width: 100%;
+          }
         }
       `}</style>
 
       <div className="hp">
+        <section className="hp-hero">
+          <div className="hp-hero-bg" />
 
-        {/* ══ HERO ════════════════════════════════════════════════════════ */}
-        <section style={{
-          position: 'relative', overflow: 'hidden',
-          minHeight: isMobile ? '100svh' : '680px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          {/* bg image */}
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(https://images.unsplash.com/photo-1519167758481-83f550bb49b3?auto=format&fit=crop&w=1600&q=80)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
-          {/* gradient overlay */}
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(170deg,rgba(15,23,42,.72) 0%,rgba(15,23,42,.55) 50%,rgba(200,132,26,.15) 100%)' }} />
-
-          {/* content */}
-          <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 1000, margin: '0 auto', padding: isMobile ? '80px 22px 100px' : '80px 44px', textAlign: 'center' }}>
-
-            {/* eyebrow pill */}
-            <div className="hp-a1" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, background: 'rgba(200,132,26,.15)', border: '1px solid rgba(200,132,26,.4)', borderRadius: 99, padding: '8px 20px', marginBottom: isMobile ? 20 : 28 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#c8841a', flexShrink: 0 }} />
-              <span style={{ color: '#e8b56a', fontSize: isMobile ? 11 : 12, fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase' }}>Premium Event Services · Kosovo</span>
-            </div>
-
-            <h1 className="hp-serif hp-a2" style={{
-              margin: '0 0 20px', color: '#fff',
-              fontSize: isMobile ? '44px' : isTablet ? '60px' : '82px',
-              lineHeight: 1.02, fontWeight: 700,
-            }}>
-              Creating<br />
-              <em style={{ fontStyle: 'italic', color: '#c8841a' }}>Extraordinary</em><br />
-              Events & Celebrations
-            </h1>
-
-            <p className="hp-a3" style={{ margin: '0 auto 36px', maxWidth: 600, color: 'rgba(255,255,255,.78)', fontSize: isMobile ? '16px' : '18px', lineHeight: 1.85 }}>
-              From elegant decorations to captivating entertainment — we craft bespoke experiences that make every occasion truly memorable.
-            </p>
-
-            <div className="hp-a4 hp-hero-btns" style={{ display: 'flex', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>
-              <Link to="/packages" className="hp-btn-gold" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, minWidth: 210, padding: '15px 24px', borderRadius: 14, background: '#c8841a', color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: 16, boxShadow: '0 6px 20px rgba(200,132,26,.35)' }}>
-                Explore Our Packages
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </Link>
-              <Link to="/booking" className="hp-btn-ghost" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 180, padding: '15px 24px', borderRadius: 14, background: 'rgba(255,255,255,.09)', color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: 16, border: '1px solid rgba(255,255,255,.3)' }}>
-                Book an Event
-              </Link>
-            </div>
-
-            {/* scroll hint */}
-            {!isMobile && (
-              <div style={{ marginTop: 48, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, opacity: 0.5 }}>
-                <span style={{ fontSize: 11, color: '#fff', letterSpacing: '.12em', textTransform: 'uppercase' }}>Scroll to explore</span>
-                <svg width="18" height="24" viewBox="0 0 18 24" fill="none"><rect x="6.5" y="1" width="5" height="9" rx="2.5" stroke="#fff" strokeWidth="1.5"/><circle cx="9" cy="5" r="1.5" fill="#fff"><animate attributeName="cy" values="5;8;5" dur="1.6s" repeatCount="indefinite"/></circle><path d="M4 15l5 5 5-5" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <div className="hp-wrap">
+            <div className="hp-hero-inner">
+              <div className="hp-kicker" data-reveal style={{ animationDelay: '.05s' }}>
+                <span className="hp-kicker-dot" />
+                Shërbime kreative për evente
               </div>
-            )}
+
+              <h1 className="hp-serif hp-hero-title" data-reveal style={{ animationDelay: '.18s' }}>
+                Festa juaj,
+                <br />
+                momenti juaj
+                <br />
+                <em>magjik</em>
+              </h1>
+
+              <p className="hp-hero-sub" data-reveal style={{ animationDelay: '.3s' }}>
+                Në MD Creative krijojmë eksperienca që lënë përshtypje — dekorime elegante,
+                maskota të dashura, aktivitete argëtuese dhe photo booth që e bëjnë çdo event
+                të paharrueshëm.
+              </p>
+
+              <div className="hp-hero-btns" data-reveal style={{ animationDelay: '.42s' }}>
+                <Link to="/booking" className="hp-btn-gold">
+                  Rezervo tani
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path
+                      d="M3 8h10M9 4l4 4-4 4"
+                      stroke="#fff"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </Link>
+
+                <Link to="/packages" className="hp-btn-ghost">
+                  Shiko paketat
+                </Link>
+              </div>
+
+              <div className="hp-hero-tags" data-reveal style={{ animationDelay: '.54s' }}>
+                {['Dekorime unike', '50+ personazhe', 'Photo Booth', 'Aktivitete argëtuese'].map(
+                  (tag) => (
+                    <span key={tag} className="hp-tag">
+                      {tag}
+                    </span>
+                  )
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* ticker at bottom of hero */}
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, borderTop: '1px solid rgba(200,132,26,.2)', padding: '12px 0', overflow: 'hidden', background: 'rgba(15,23,42,.4)', backdropFilter: 'blur(8px)' }}>
-            <div className="hp-ticker">
-              {[...Array(2)].map((_, ri) => (
-                <span key={ri} style={{ display: 'inline-flex' }}>
-                  {eventTypes.map((t) => (
-                    <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: 14, paddingRight: 36 }}>
-                      <span style={{ color: '#c8841a', fontSize: 12 }}>✦</span>
-                      <span style={{ color: 'rgba(255,255,255,.55)', fontSize: 12, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase' }}>{t}</span>
-                    </span>
-                  ))}
-                </span>
-              ))}
+          <div className="hp-hero-float">
+            <div className="hp-hero-float-icon">🎉</div>
+            <div className="hp-hero-float-text">
+              <p>800+ evente</p>
+              <p>të realizuara me sukses</p>
             </div>
           </div>
         </section>
 
-        {/* ══ STATS ═══════════════════════════════════════════════════════ */}
-        <section style={{ padding: '0 20px', marginTop: isMobile ? '-36px' : '-52px', position: 'relative', zIndex: 2 }}>
-          <div className="hp-stats-grid" style={{ maxWidth: 860, margin: '0 auto', background: '#fff', borderRadius: 22, boxShadow: '0 18px 48px rgba(26,18,11,.1)', display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', overflow: 'hidden' }}>
-            <StatItem icon="◌" target={5000} suffix="+" label="Happy Clients"    isMobile={isMobile} />
-            <div className="hp-stat-sep"><StatItem icon="☆" target={200}  suffix="+" label="5-Star Reviews"   isMobile={isMobile} /></div>
-            <div className="hp-stat-sep"><StatItem icon="⌘" target={800}  suffix="+" label="Events Delivered" isMobile={isMobile} /></div>
-          </div>
-        </section>
-
-        {/* ══ SERVICES ════════════════════════════════════════════════════ */}
-        <section style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '56px 20px 32px' : '80px 44px 40px' }}>
-          <div style={{ maxWidth: 680, margin: '0 auto 44px', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 8px', color: '#c8841a', fontSize: 12, fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase' }}>What We Offer</p>
-            <h2 className="hp-serif" style={{ margin: '0 0 14px', fontSize: isMobile ? '34px' : 'clamp(34px,4.5vw,56px)', fontWeight: 700, color: '#111827', lineHeight: 1.08 }}>
-              Our Services
-            </h2>
-            <p style={{ margin: 0, color: '#667085', fontSize: isMobile ? '15px' : '17px', lineHeight: 1.8 }}>
-              Select a category to explore our full range of professional event services.
-            </p>
-          </div>
-
-          <div className="hp-svc-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: isMobile ? 14 : 22 }}>
-            {serviceCards.map((card) => (
-              <Link key={card.title} to={card.to} style={{ textDecoration: 'none' }}>
-                <article className="hp-scard" style={{ borderRadius: 22, overflow: 'hidden', position: 'relative', height: isMobile ? 220 : 360, boxShadow: '0 6px 24px rgba(26,18,11,.08)' }}>
-                  <div className="hp-scard-img" style={{ position: 'absolute', inset: 0, backgroundImage: `url(${card.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(15,8,2,.88) 0%, rgba(15,8,2,.3) 55%, rgba(15,8,2,.04) 100%)' }} />
-                  <div className="hp-scard-overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(200,132,26,.08)', opacity: 0 }} />
-
-                  <div style={{ position: 'absolute', top: 16, left: 16, width: 36, height: 36, borderRadius: 10, background: 'rgba(200,132,26,.2)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                    {card.icon}
+        <div className="hp-marquee">
+          <div className="hp-marquee-track">
+            {[...Array(2)].map((_, repeatIndex) => (
+              <div key={repeatIndex} className="hp-marquee-group">
+                {marqueeItems.map((item) => (
+                  <div key={`${repeatIndex}-${item}`} className="hp-marquee-item">
+                    <span>{item}</span>
+                    <span className="hp-marquee-sep" />
                   </div>
-
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: isMobile ? '16px' : '24px' }}>
-                    <h3 className="hp-serif" style={{ margin: '0 0 6px', color: '#fff', fontSize: isMobile ? '22px' : '28px', fontWeight: 700, lineHeight: 1.1 }}>{card.title}</h3>
-                    {!isMobile && <p style={{ margin: '0 0 12px', color: 'rgba(255,255,255,.78)', fontSize: 14, lineHeight: 1.7 }}>{card.description}</p>}
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#f0c060', fontSize: 14, fontWeight: 700 }}>
-                      Explore
-                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5h9M8 3l3.5 3.5L8 10" stroke="#f0c060" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    </span>
-                  </div>
-                </article>
-              </Link>
+                ))}
+              </div>
             ))}
           </div>
-        </section>
+        </div>
 
-        {/* ══ WHY US ══════════════════════════════════════════════════════ */}
-        <section style={{ background: 'linear-gradient(135deg,#1a120b 0%,#2c1a0a 100%)', padding: isMobile ? '56px 20px' : '80px 44px', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: -80, right: -80, width: 360, height: 360, borderRadius: '50%', background: 'radial-gradient(circle,rgba(200,132,26,.16) 0%,transparent 70%)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', bottom: -60, left: -60, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle,rgba(200,132,26,.1) 0%,transparent 70%)', pointerEvents: 'none' }} />
-
-          <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
-            <div style={{ textAlign: 'center', marginBottom: 44 }}>
-              <p style={{ margin: '0 0 10px', color: '#c8841a', fontSize: 12, fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase' }}>Why Choose Us</p>
-              <h2 className="hp-serif" style={{ margin: 0, color: '#fff', fontSize: isMobile ? '32px' : 'clamp(34px,4.5vw,54px)', fontWeight: 700, lineHeight: 1.08 }}>
-                The MD Creative <em style={{ fontStyle: 'italic', color: '#c8841a' }}>Difference</em>
-              </h2>
-            </div>
-
-            <div className="hp-reasons-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: isMobile ? 14 : 20 }}>
-              {reasons.map((item, i) => (
-                <div key={item.title} className="hp-reason" style={{ background: 'rgba(255,255,255,.05)', border: '1.5px solid rgba(255,255,255,.08)', borderRadius: 20, padding: isMobile ? '22px 18px' : '28px 24px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(200,132,26,.15)', border: '1.5px solid rgba(200,132,26,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c8841a', fontSize: 20, fontWeight: 800 }}>
-                    {i + 1}
-                  </div>
-                  <h3 style={{ margin: 0, color: '#fff', fontSize: isMobile ? '17px' : '20px', fontWeight: 700 }}>{item.title}</h3>
-                  <p style={{ margin: 0, color: 'rgba(255,255,255,.6)', fontSize: isMobile ? '14px' : '15px', lineHeight: 1.8 }}>{item.text}</p>
-                </div>
-              ))}
+        <section className="hp-stats-wrap">
+          <div className="hp-wrap">
+            <div className="hp-stats">
+              <StatCard icon="mask" target={50} suffix="+" label="Personazhe në dispozicion" />
+              <StatCard icon="sparkles" target={800} suffix="+" label="Evente të realizuara" />
+              <StatCard icon="package" target={10} suffix="+" label="Kategori shërbimesh" />
+              <StatCard icon="heart" target={100} suffix="%" label="Përkushtim në çdo detaj" />
             </div>
           </div>
         </section>
 
-        {/* ══ SOCIAL PROOF ════════════════════════════════════════════════ */}
-        <section style={{ background: '#fff', padding: isMobile ? '48px 20px' : '64px 44px', borderTop: '1px solid #e8ddd0', borderBottom: '1px solid #e8ddd0' }}>
-          <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-            <div style={{ textAlign: 'center', marginBottom: 36 }}>
-              <p style={{ margin: '0 0 8px', color: '#c8841a', fontSize: 12, fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase' }}>Trusted by Families Across Kosovo</p>
-              <h2 className="hp-serif" style={{ margin: 0, fontSize: isMobile ? '28px' : '40px', fontWeight: 700, color: '#1a120b', lineHeight: 1.1 }}>
-                What our clients say
+        <section className="hp-svc">
+          <div className="hp-wrap">
+            <div className="hp-section-head" data-reveal>
+              <div className="hp-kicker">Shërbimet tona</div>
+              <h2 className="hp-serif hp-section-title">
+                Gjithçka që ju duhet
+                <br />
+                për një event <em>të veçantë</em>
               </h2>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? 'repeat(2,1fr)' : 'repeat(3,1fr)', gap: 18 }}>
-              {[
-                { name: 'Arta K.',      event: 'Birthday Party',    stars: 5, text: 'Absolutely magical! The decorations were beyond what I imagined. Every guest was amazed. MD Creative made my daughter\'s birthday unforgettable.' },
-                { name: 'Besnik M.',    event: 'Wedding Reception',  stars: 5, text: 'Professional from start to finish. The team arrived early, set up beautifully, and handled every detail perfectly. Highly recommend!' },
-                { name: 'Flutura D.',  event: 'Baby Shower',        stars: 5, text: 'The mascot characters were a huge hit with the kids! Everyone was laughing and having fun. Will definitely book again for our next event.' },
-              ].map((r, i) => (
-                <div key={i} style={{ background: '#faf7f2', borderRadius: 20, padding: '24px', border: '1.5px solid #e6d9c4' }}>
-                  <div style={{ display: 'flex', gap: 2, marginBottom: 14 }}>
-                    {Array(r.stars).fill(0).map((_, j) => (
-                      <svg key={j} width="16" height="16" viewBox="0 0 16 16" fill="#c8841a"><path d="M8 1l1.8 3.6L14 5.4l-3 2.9.7 4.1L8 10.4l-3.7 2 .7-4.1-3-2.9 4.2-.8z"/></svg>
-                    ))}
-                  </div>
-                  <p style={{ margin: '0 0 18px', color: '#4a3b28', fontSize: 14, lineHeight: 1.8, fontStyle: 'italic' }}>"{r.text}"</p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg,#d4911e,#c8841a)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 15, fontWeight: 700, fontFamily: "'Cormorant Garamond',serif" }}>
-                      {r.name[0]}
-                    </div>
-                    <div>
-                      <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#1a120b' }}>{r.name}</p>
-                      <p style={{ margin: 0, fontSize: 12, color: '#9a8878' }}>{r.event}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ══ PEAK NOTICE ═════════════════════════════════════════════════ */}
-        <section style={{ padding: isMobile ? '36px 20px' : '48px 44px' }}>
-          <div style={{ maxWidth: 820, margin: '0 auto', background: '#fff', borderRadius: 22, border: '1.5px solid #e6d9c4', padding: isMobile ? '24px 20px' : '32px 40px', display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: 20, flexDirection: isMobile ? 'column' : 'row', boxShadow: '0 4px 20px rgba(26,18,11,.05)' }}>
-            <div style={{ width: 52, height: 52, borderRadius: 14, background: '#fef3d0', border: '1.5px solid #e8d5a0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>
-              📅
-            </div>
-            <div style={{ flex: 1 }}>
-              <h3 style={{ margin: '0 0 6px', fontSize: isMobile ? '17px' : '19px', fontWeight: 800, color: '#1a120b' }}>Peak Season Notice</h3>
-              <p style={{ margin: 0, color: '#7a6a52', fontSize: isMobile ? '14px' : '15px', lineHeight: 1.75 }}>
-                June – September are peak months. Book at least <strong style={{ color: '#c8841a' }}>1 week in advance</strong> to secure your preferred date.
+              <p className="hp-section-text">
+                Zgjidhni shërbimin që ju përshtatet dhe krijoni kombinimin ideal për festën tuaj.
               </p>
             </div>
-            <Link to="/booking" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, textDecoration: 'none', background: '#c8841a', color: '#fff', padding: '11px 22px', borderRadius: 99, fontWeight: 700, fontSize: 14, whiteSpace: 'nowrap', flexShrink: 0, boxShadow: '0 4px 14px rgba(200,132,26,.3)' }}>
-              Book Now
-            </Link>
+
+            <div className="hp-svc-grid">
+              {services.map((service, index) => (
+                <Link
+                  key={service.title}
+                  to={service.link}
+                  className="hp-svc-card"
+                  data-reveal
+                  style={{ animationDelay: `${0.08 + index * 0.12}s` }}
+                >
+                  <img src={service.image} alt={service.title} className="hp-svc-img" />
+                  <div className="hp-svc-overlay" />
+
+                  <div className="hp-svc-top">
+                    <span className="hp-svc-pill">
+                      <GoldIcon name={service.icon} />
+                      {service.badge}
+                    </span>
+                    <span className="hp-svc-num">{String(index + 1).padStart(2, '0')}</span>
+                  </div>
+
+                  <div className="hp-svc-body">
+                    <h3 className="hp-serif hp-svc-title">{service.title}</h3>
+                    <p className="hp-svc-desc">{service.desc}</p>
+                    <span className="hp-svc-cta">
+                      Shiko më shumë
+                      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                        <path
+                          d="M3 8h10M9 4l4 4-4 4"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* ══ CTA ════════════════════════════════════════════════════════ */}
-        <section style={{ padding: isMobile ? '0 20px 60px' : '0 44px 80px' }}>
-          <div style={{ maxWidth: 900, margin: '0 auto', background: 'linear-gradient(135deg,#1a120b 0%,#2c1a0a 100%)', borderRadius: 28, padding: isMobile ? '48px 24px' : '64px 60px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-            <div style={{ position: 'absolute', top: -60, right: -60, width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle,rgba(200,132,26,.2) 0%,transparent 70%)', pointerEvents: 'none' }} />
-
-            <div className="hp-pulse" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(200,132,26,.15)', border: '1px solid rgba(200,132,26,.35)', borderRadius: 99, padding: '7px 18px', marginBottom: 20 }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#c8841a', display: 'inline-block' }} />
-              <span style={{ color: '#e8b56a', fontSize: 11, fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase' }}>Taking bookings now</span>
+        <section className="hp-why">
+          <div className="hp-wrap">
+            <div className="hp-section-head" data-reveal>
+              <div className="hp-kicker">Pse ne</div>
+              <h2 className="hp-serif hp-section-title">
+                Ne nuk krijojmë vetëm
+                <br />
+                dekor, krijojmë <em>atmosferë</em>
+              </h2>
+              <p className="hp-section-text">
+                Çdo event ndërtohet me stil, kreativitet dhe kujdes në detaje — klienti e ndien
+                menjëherë seriozitetin dhe elegancën e MD Creative.
+              </p>
             </div>
 
-            <h2 className="hp-serif" style={{ margin: '0 0 16px', color: '#fff', fontSize: isMobile ? '32px' : 'clamp(34px,5vw,54px)', fontWeight: 700, lineHeight: 1.08 }}>
-              Ready to Create Something<br />
-              <em style={{ fontStyle: 'italic', color: '#c8841a' }}>Extraordinary?</em>
-            </h2>
-            <p style={{ margin: '0 auto 36px', maxWidth: 520, color: 'rgba(255,255,255,.6)', fontSize: isMobile ? '15px' : '16px', lineHeight: 1.85 }}>
-              Let us bring your vision to life. Choose a package, customize your services, and leave the rest to us.
-            </p>
+            <div className="hp-why-layout">
+              <div className="hp-why-feature" data-reveal>
+                <div className="hp-why-fc">
+                  <div className="hp-why-badge">
+                    <GoldIcon name="sparkles" />
+                    <span>Përjetim me stil</span>
+                  </div>
 
-            <div className="hp-cta-btns" style={{ display: 'flex', justifyContent: 'center', gap: 14, flexWrap: 'wrap' }}>
-              <Link to="/booking" className="hp-btn-gold" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, textDecoration: 'none', background: '#c8841a', color: '#fff', padding: '15px 30px', borderRadius: 99, fontWeight: 700, fontSize: 15, boxShadow: '0 6px 24px rgba(200,132,26,.4)' }}>
-                Start Planning Your Event
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <h3 className="hp-serif hp-why-ftitle">
+                    Jo vetëm organizim,
+                    <br />
+                    por një ndjesi <em>e kuruar</em>
+                  </h3>
+
+                  <p className="hp-why-ftext">
+                    Nga koncepti fillestar deri te realizimi final, mendojmë çdo kënd dhe element
+                    që eventi juaj të duket i veçantë, harmonik dhe profesional.
+                  </p>
+
+                  <div className="hp-why-list">
+                    {featurePoints.map((point) => (
+                      <div key={point} className="hp-why-li">
+                        <div className="hp-why-li-dot">
+                          <GoldIcon name="star" />
+                        </div>
+                        <span>{point}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="hp-why-side">
+                {whyCards.map((card, index) => (
+                  <div
+                    key={card.n}
+                    className="hp-why-card"
+                    data-reveal
+                    style={{ animationDelay: `${0.1 + index * 0.14}s` }}
+                  >
+                    <div className="hp-why-card-n">{card.n}</div>
+                    <h3 className="hp-why-card-t">{card.title}</h3>
+                    <p className="hp-why-card-p">{card.text}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="hp-mini-row">
+              {miniItems.map((item) => (
+                <div key={item.title} className="hp-mini" data-reveal>
+                  <span className="hp-mini-title">{item.title}</span>
+                  <span className="hp-mini-text">{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="hp-reviews">
+          <div className="hp-wrap">
+            <div className="hp-section-head" data-reveal>
+              <div className="hp-kicker">Çfarë thonë klientët</div>
+              <h2 className="hp-serif hp-section-title">
+                Fjalët e tyre janë
+                <br />
+                <em>mirënjohja jonë</em>
+              </h2>
+            </div>
+
+            <div className="hp-reviews-grid">
+              {reviews.map((review, index) => (
+                <div
+                  key={`${review.event}-${index}`}
+                  className="hp-review"
+                  data-reveal
+                  style={{ animationDelay: `${0.08 + index * 0.14}s` }}
+                >
+                  <div className="hp-review-stars">
+                    {Array.from({ length: review.stars }).map((_, starIndex) => (
+                      <span key={starIndex} className="hp-review-star">
+                        ★
+                      </span>
+                    ))}
+                  </div>
+
+                  <p className="hp-review-text">"{review.text}"</p>
+
+                  <div className="hp-review-author">
+                    <div className="hp-review-avatar">{review.name[0]}</div>
+                    <div>
+                      <div className="hp-review-name">{review.name}</div>
+                      <div className="hp-review-event">{review.event}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="hp-notice">
+          <div className="hp-wrap">
+            <div className="hp-notice-box" data-reveal>
+              <div className="hp-notice-icon">
+                <GoldIcon name="calendar" size={24} />
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <h3 className="hp-notice-title">Rezervoni me kohë datën tuaj</h3>
+                <p className="hp-notice-text">
+                  Për evente me dekorime të personalizuara, maskota ose photo booth, rekomandojmë
+                  rezervimin disa ditë paraprakisht. Kështu kemi kohë ta planifikojmë çdo detaj me
+                  kujdes.
+                </p>
+              </div>
+
+              <Link to="/booking" className="hp-notice-btn">
+                Rezervo tani →
               </Link>
-              <a href="tel:+38344378786" className="hp-btn-outline" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, textDecoration: 'none', background: 'transparent', color: '#fff', padding: '15px 28px', borderRadius: 99, fontWeight: 700, fontSize: 15, border: '1.5px solid rgba(255,255,255,.3)' }}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M14 11.3c-.2-.2-1.8-1.2-2.1-1.3-.3-.1-.5 0-.7.2l-.9 1.1c-.2.2-.4.3-.7.1C8.9 10.9 7.1 9.1 6.6 8.4c-.2-.3-.1-.5.1-.7l1.1-.9c.2-.2.3-.4.2-.7C7.9 5.8 6.9 4.2 6.7 4c-.2-.2-.4-.2-.6-.2-.2 0-.4.1-.6.2C4.7 4.6 4 5.4 4 6.5c0 1.2.6 2.6 1.6 3.9 1 1.3 2.6 2.6 4 3.1 1.4.5 2.4.3 3.1-.4.7-.7.9-1.4.5-1.8z" fill="#fff"/></svg>
-                Call Us
-              </a>
             </div>
           </div>
         </section>
 
+        <section className="hp-cta">
+          <div className="hp-wrap">
+            <div className="hp-cta-box" data-reveal>
+              <div className="hp-cta-inner">
+                <div className="hp-kicker lite">
+                  <span className="hp-kicker-dot" />
+                  Le ta bëjmë eventin tuaj të veçantë
+                </div>
+
+                <h2 className="hp-serif hp-cta-title">
+                  Na tregoni idenë tuaj,
+                  <br />
+                  ne e kthejmë në një event <em>të paharrueshëm</em>
+                </h2>
+
+                <p className="hp-cta-sub">
+                  Qoftë një ditëlindje për fëmijë, një dekorim elegant apo një festë më e madhe,
+                  MD Creative kujdeset që çdo detaj të duket bukur, i organizuar dhe me stil.
+                </p>
+
+                <div className="hp-cta-highlights">
+                  {ctaHighlights.map((highlight) => (
+                    <div key={highlight.label} className="hp-cta-hl">
+                      <GoldIcon name={highlight.icon} size={18} />
+                      <span>{highlight.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="hp-cta-btns">
+                  <Link to="/booking" className="hp-btn-gold">
+                    Rezervo eventin
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path
+                        d="M3 8h10M9 4l4 4-4 4"
+                        stroke="#fff"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </Link>
+
+                  <Link to="/packages" className="hp-btn-ghost">
+                    Shiko paketat
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
 
       <ScrollToTop />
