@@ -65,7 +65,7 @@ The project has evolved significantly from its earlier version and now has a cle
 | Frontend | Functional across the main pages and flows |
 | UI/UX | Improved and visually cleaner than before |
 | Project Structure | Updated and more professional than the earlier version |
-| Documentation | Available in `docs/`, with README now aligned more closely to the real structure |
+| Documentation | Available in `docs/`, including the demo plan for live presentation |
 
 ### Important note
 
@@ -131,6 +131,7 @@ The frontend is no longer just a placeholder or an early prototype. It has been 
 | Git & GitHub | Version control |
 | VS Code | Development environment |
 | Postman | API testing |
+| pgAdmin | Database inspection and testing |
 
 ---
 
@@ -142,12 +143,14 @@ MD-CREATIVE-EVENT-BOOKING-SYSTEM/
 │   ├── screenshots/
 │   ├── architecture.md
 │   ├── class-diagram.md
+│   ├── demo-plan.md
 │   ├── implementation.md
 │   ├── project-audit.md
 │   └── sprint-plan.md
 │
 ├── frontend/
 │   ├── public/
+│   │   └── images/
 │   ├── src/
 │   │   ├── assets/
 │   │   ├── components/
@@ -157,6 +160,9 @@ MD-CREATIVE-EVENT-BOOKING-SYSTEM/
 │   │   ├── layouts/
 │   │   ├── mocks/
 │   │   ├── pages/
+│   │   │   ├── admin/
+│   │   │   ├── auth/
+│   │   │   └── public/
 │   │   ├── routes/
 │   │   ├── services/
 │   │   ├── types/
@@ -185,6 +191,8 @@ MD-CREATIVE-EVENT-BOOKING-SYSTEM/
 │   │   ├── controllers/
 │   │   ├── middleware/
 │   │   └── routes/
+│   │       ├── admin/
+│   │       └── public/
 │   ├── utils/
 │   ├── app.js
 │   └── server.js
@@ -272,9 +280,34 @@ Project documentation is available in the `docs/` folder.
 |------|---------|
 | `architecture.md` | Explains the architecture of the system |
 | `class-diagram.md` | Shows the class-level design and relationships |
+| `demo-plan.md` | Contains the live demo plan, selected flow, presentation structure, detailed demo script, and Plan B |
 | `implementation.md` | Describes implementation-related work |
 | `project-audit.md` | Contains project audit analysis |
 | `sprint-plan.md` | Documents sprint planning and work progress |
+| `screenshots/` | Stores project screenshots used for documentation, demo support, and visual reference |
+
+---
+
+## Demo Preparation
+
+The project includes a dedicated demo plan in:
+
+```text
+docs/demo-plan.md
+```
+
+The demo focuses on the main flow:
+
+```text
+Home Page → Packages → Booking Page → Admin Login → Admin Dashboard → Admin Packages / Admin Bookings
+```
+
+This flow was selected because it shows both sides of the system:
+
+- the customer side, where users explore services and start a booking request
+- the admin side, where the business manages data and booking-related operations
+
+The demo plan also includes a backup approach using screenshots, documentation, and the prepared presentation in case any live technical issue appears during the presentation.
 
 ---
 
@@ -346,22 +379,27 @@ PORT=5000
 
 | Area | Note |
 |------|------|
-| Frontend | Functional and improved across all pages |
+| Frontend | Functional and improved across all main pages |
+| Backend | Organized with layered architecture |
 | UI | Cleaner, stronger, and better organized than before |
+| Demo | A complete demo flow is prepared in `docs/demo-plan.md` |
 | Structure | Updated and more professional |
 | Documentation | Should continue to stay aligned with future code changes |
 
 ### Future Direction
 
-In the future, the project can still be improved further in areas such as:
+The current version of the project is functional and ready to be demonstrated. Future work can focus on extending and polishing the system even further, such as:
 
 - more advanced UI/UX polish
 - stronger validation and reliability improvements
 - further consistency across all modules
 - additional refinement in admin-side workflows
+- email notifications after booking requests
+- richer dashboard analytics
+- future payment or deposit support
 - even better visual presentation and interaction design
 
-The current version is already functional and much more complete than the earlier stage, but the long-term goal is to continue improving it into an even more polished and professional system.
+These are future extensions, not blockers for the current demo.
 
 ---
 
