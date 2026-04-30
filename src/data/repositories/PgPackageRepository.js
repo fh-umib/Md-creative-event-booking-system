@@ -27,6 +27,26 @@ class PgPackageRepository {
     return rows;
   }
 
+  async getAllPublic() {
+    const query = `
+      SELECT
+        p.*,
+        COALESCE(
+          json_agg(DISTINCT e.name) FILTER (WHERE e.id IS NOT NULL),
+          '[]'
+        ) AS extras
+      FROM packages p
+      LEFT JOIN package_extras pe ON pe.package_id = p.id
+      LEFT JOIN extras e ON e.id = pe.extra_id
+      WHERE p.is_active = TRUE
+      GROUP BY p.id
+      ORDER BY p.base_price ASC, p.id ASC
+    `;
+
+    const { rows } = await pool.query(query);
+    return rows;
+  }
+
   async getPublicCategories() {
     const query = `
       SELECT
@@ -155,6 +175,7 @@ class PgPackageRepository {
       WHERE id = $1
       RETURNING *
     `;
+
     const { rows } = await pool.query(query, [id]);
     return rows[0] || null;
   }

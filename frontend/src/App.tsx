@@ -6,6 +6,8 @@ import ProtectedRoute from './routes/ProtectedRoute';
 
 import HomePage from './pages/public/HomePage';
 import DecorationsPage from './pages/public/DecorationsPage';
+import DecorationCategoryPage from './pages/public/DecorationCategoryPage';
+import DecorationDetailPage from './pages/public/DecorationDetailPage';
 import BookingPage from './pages/public/BookingPage';
 import MascotsPage from './pages/public/MascotsPage';
 import ActivitiesPage from './pages/public/ActivitiesPage';
@@ -38,29 +40,49 @@ import GalleryAdminPage from './pages/admin/GalleryPage';
 export default function App() {
   return (
     <Routes>
+      {/* PUBLIC ROUTES */}
       <Route path="/" element={<PublicLayout />}>
         <Route index element={<HomePage />} />
+
+        {/* DECORATIONS ROUTES */}
         <Route path="decorations" element={<DecorationsPage />} />
+        <Route path="decorations/:categorySlug" element={<DecorationCategoryPage />} />
+        <Route
+          path="decorations/:categorySlug/:styleSlug"
+          element={<DecorationDetailPage />}
+        />
+
+        {/* PUBLIC PAGES */}
         <Route path="mascots" element={<MascotsPage />} />
         <Route path="activities" element={<ActivitiesPage />} />
         <Route path="photo-booth" element={<PhotoBoothPage />} />
+
+        {/* PACKAGES ROUTES */}
         <Route path="packages" element={<PackagesPage />} />
-        <Route path="packages/:category" element={<PackageCategoryPage />} />
+
+        {/* Detail route duhet me qenë para packages/:category */}
         <Route path="packages/details/:id" element={<PackageDetailPage />} />
+
+        {/* Category route për /packages/bounce-house, /packages/decorations, etj. */}
+        <Route path="packages/:category" element={<PackageCategoryPage />} />
+
         <Route path="gallery" element={<GalleryPage />} />
         <Route path="our-team" element={<OurTeamPage />} />
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="booking" element={<BookingPage />} />
       </Route>
 
+      {/* AUTH ROUTES */}
       <Route path="/signin" element={<SignInPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
+      {/* ADMIN LOGIN */}
       <Route path="/admin/login" element={<AdminLoginPage />} />
 
+      {/* ADMIN PROTECTED ROUTES */}
       <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
@@ -77,6 +99,7 @@ export default function App() {
         </Route>
       </Route>
 
+      {/* FALLBACK */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

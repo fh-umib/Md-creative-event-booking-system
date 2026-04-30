@@ -153,9 +153,7 @@ const tickerItems = [
 ];
 
 function useWindowWidth() {
-  const [w, setW] = useState(
-    typeof window !== 'undefined' ? window.innerWidth : 1200
-  );
+  const [w, setW] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
 
   useEffect(() => {
     const fn = () => setW(window.innerWidth);
@@ -245,10 +243,15 @@ export default function PackagesPage() {
 
   useEffect(() => {
     getPackageCategories()
-      .then((data) => setCategories(data as PackageCategorySummary[]))
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : 'Paketat nuk arritën të ngarkohen')
-      )
+      .then((data) => {
+        setCategories(data as PackageCategorySummary[]);
+        setError('');
+      })
+      .catch((err) => {
+        console.error('Packages API error:', err);
+        setCategories([]);
+        setError('Paketat nga databaza nuk u ngarkuan, por kategoritë bazë janë të disponueshme.');
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -637,7 +640,11 @@ export default function PackagesPage() {
               width: '100%',
               maxWidth: 1280,
               margin: '0 auto',
-              padding: isMobile ? '50px 16px 42px' : isTablet ? '72px 30px 64px' : '84px 44px 76px',
+              padding: isMobile
+                ? '50px 16px 42px'
+                : isTablet
+                  ? '72px 30px 64px'
+                  : '84px 44px 76px',
               position: 'relative',
               zIndex: 1,
               textAlign: 'center',
@@ -755,7 +762,11 @@ export default function PackagesPage() {
             width: '100%',
             maxWidth: 1280,
             margin: '0 auto',
-            padding: isMobile ? '40px 14px 70px' : isTablet ? '58px 30px 82px' : '68px 44px 90px',
+            padding: isMobile
+              ? '40px 14px 70px'
+              : isTablet
+                ? '58px 30px 82px'
+                : '68px 44px 90px',
           }}
         >
           <div
@@ -831,20 +842,22 @@ export default function PackagesPage() {
           {!loading && error && (
             <div
               style={{
-                background: '#fff1f1',
-                color: '#991b1b',
-                border: '1.5px solid #fecaca',
+                background: '#fff8e7',
+                color: '#8a5a0a',
+                border: '1.5px solid #f3d28b',
                 borderRadius: 16,
-                padding: '28px',
+                padding: '16px 18px',
                 textAlign: 'center',
-                fontSize: 15,
+                fontSize: 14,
+                fontWeight: 700,
+                marginBottom: 24,
               }}
             >
               {error}
             </div>
           )}
 
-          {!loading && !error && mapped.length === 0 && (
+          {!loading && mapped.length === 0 && (
             <div
               style={{
                 textAlign: 'center',
@@ -860,7 +873,7 @@ export default function PackagesPage() {
             </div>
           )}
 
-          {!loading && !error && mapped.length > 0 && (
+          {!loading && mapped.length > 0 && (
             <div
               className="pp-grid"
               style={{

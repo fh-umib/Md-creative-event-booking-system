@@ -27,12 +27,22 @@ type ApiResponse<T> = {
 };
 
 async function handleResponse<T>(response: Response): Promise<T> {
+  const result = await response.json().catch(() => null);
+
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || 'Request failed');
+    const message =
+      result?.message ||
+      result?.error ||
+      `Request failed with status ${response.status}`;
+
+    throw new Error(message);
   }
 
-  return response.json();
+  if (result && result.success === false) {
+    throw new Error(result.message || 'Request failed');
+  }
+
+  return result as T;
 }
 
 export async function getPublicPackages(): Promise<PackageItem[]> {
@@ -45,21 +55,42 @@ export async function getPublicPackages(): Promise<PackageItem[]> {
 }
 
 export async function getPackageCategories(): Promise<PackageCategorySummary[]> {
-  const response = await fetch(`${API_BASE_URL}/categories`);
-  const result = await handleResponse<ApiResponse<PackageCategorySummary[]>>(response);
+  const packages = await getPublicPackages();
 
-  return Array.isArray(result.data) ? result.data : [];
+  const grouped = packages.reduce<Record<string, PackageItem[]>>((acc, item) => {
+    if (!item.category) return acc;
+
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+
+    acc[item.category].push(item);
+    return acc;
+  }, {});
+
+  return Object.entries(grouped).map(([category, items]) => {
+    const prices = items.map((item) => Number(item.base_price || 0));
+
+    return {
+      category,
+      min_price: Math.min(...prices),
+      max_price: Math.max(...prices),
+      total_packages: items.length,
+    };
+  });
 }
 
 export async function getPackagesByCategory(category: string): Promise<PackageItem[]> {
-  const response = await fetch(`${API_BASE_URL}/category/${category}`);
-  const result = await handleResponse<ApiResponse<PackageItem[]>>(response);
+  const packages = await getPublicPackages();
 
-  return Array.isArray(result.data) ? result.data : [];
+  return packages.filter(
+    (item) => item.category.toLowerCase() === category.toLowerCase()
+  );
 }
 
 export async function getPackageById(id: string): Promise<PackageItem> {
   const response = await fetch(`${API_BASE_URL}/${id}`);
   const result = await handleResponse<ApiResponse<PackageItem>>(response);
+
   return result.data;
 }

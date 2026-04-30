@@ -27,6 +27,14 @@ class PackageService {
     return packageRepository.getAllAdmin(normalizeString(search));
   }
 
+  async getAllPublic() {
+    return packageRepository.getAllPublic();
+  }
+
+  async getAllPublicPackages() {
+    return packageRepository.getAllPublic();
+  }
+
   async getPublicCategories() {
     return packageRepository.getPublicCategories();
   }
@@ -53,12 +61,16 @@ class PackageService {
     const title = normalizeString(payload.title);
     const description = payload.description !== undefined ? normalizeString(payload.description) : '';
     const category = normalizeString(payload.category);
+
     const durationMinutes =
       payload.duration_minutes !== undefined ? toNumber(payload.duration_minutes) : 60;
+
     const minMascots =
       payload.min_mascots !== undefined ? toNumber(payload.min_mascots) : 0;
+
     const maxMascots =
       payload.max_mascots !== undefined ? toNumber(payload.max_mascots) : 0;
+
     const basePrice =
       payload.base_price !== undefined ? toNumber(payload.base_price) : 0;
 
@@ -205,4 +217,3 @@ class PackageService {
 }
 
 module.exports = new PackageService();
-

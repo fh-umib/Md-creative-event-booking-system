@@ -1,483 +1,628 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { getPackagesByCategory } from '../../services/packageApi';
+import type { PackageItem } from '../../services/packageApi';
 
-import DecorationEmptyState from '../../components/public/decorations/DecorationEmptyState';
-import DecorationGalleryCard from '../../components/public/decorations/DecorationGalleryCard';
-import DecorationHero from '../../components/public/decorations/DecorationHero';
-import DecorationSubcategoryCard from '../../components/public/decorations/DecorationSubcategoryCard';
-import { getDecorationCategoryBySlug } from '../../data/decorations';
+type CategoryInfo = {
+  title: string;
+  subtitle: string;
+  image: string;
+  badge: string;
+};
 
-function useWindowWidth() {
-  const [width, setWidth] = useState(
-    typeof window !== 'undefined' ? window.innerWidth : 1200
-  );
+const categoryInfo: Record<string, CategoryInfo> = {
+  'bounce-house': {
+    title: 'Bounce House',
+    subtitle:
+      'Zgjidh paketën që i përshtatet festës suaj me bounce house, argëtim dhe atmosferë të veçantë për fëmijë.',
+    image: '/images/packages/bounce-house.png',
+    badge: 'Zonë Argëtimi',
+  },
+  'bounce-house-bubble-show': {
+    title: 'Bounce House & Bubble Show',
+    subtitle:
+      'Kombinim i bukur i bounce house dhe bubble show për festa më dinamike, më argëtuese dhe më magjike.',
+    image: '/images/packages/bounce-house-bubble-show.png',
+    badge: 'Kombinim Special',
+  },
+  'bubble-bounce': {
+    title: 'Bounce House & Bubble Show',
+    subtitle:
+      'Kombinim i bukur i bounce house dhe bubble show për festa më dinamike, më argëtuese dhe më magjike.',
+    image: '/images/packages/bounce-house-bubble-show.png',
+    badge: 'Kombinim Special',
+  },
+  'bubble-show': {
+    title: 'Bubble Show',
+    subtitle:
+      'Shfaqje me flluska që sjell gëzim, lojë dhe momente magjike për fëmijët gjatë eventit.',
+    image: '/images/packages/bubble-show.png',
+    badge: 'Show Magjik',
+  },
+  'baby-shower': {
+    title: 'Baby Shower',
+    subtitle:
+      'Paketa të veçanta për baby shower dhe gender reveal me dekorime, zërim dhe organizim elegant.',
+    image: '/images/packages/baby-shower.png',
+    badge: 'Moment i Ëmbël',
+  },
+  'event-decorations': {
+    title: 'Dekorime Eventesh',
+    subtitle:
+      'Dekorime të personalizuara për ditëlindje, festa familjare dhe evente të veçanta.',
+    image: '/images/packages/event-decorations.png',
+    badge: 'Dekorime',
+  },
+  decorations: {
+    title: 'Dekorime Eventesh',
+    subtitle:
+      'Dekorime të personalizuara për ditëlindje, festa familjare dhe evente të veçanta.',
+    image: '/images/packages/event-decorations.png',
+    badge: 'Dekorime',
+  },
+  mascots: {
+    title: 'Maskota për Fëmijë',
+    subtitle:
+      'Personazhe të dashura për fëmijë që sjellin lojë, buzëqeshje dhe atmosferë festive.',
+    image: '/images/packages/mascots.png',
+    badge: 'Personazhe',
+  },
+  mascot: {
+    title: 'Maskota për Fëmijë',
+    subtitle:
+      'Personazhe të dashura për fëmijë që sjellin lojë, buzëqeshje dhe atmosferë festive.',
+    image: '/images/packages/mascots.png',
+    badge: 'Personazhe',
+  },
+  'photo-booth': {
+    title: 'Photo Booth & Photo Box',
+    subtitle:
+      'Kënd fotografik për kujtime të bukura dhe momente që mbeten gjatë pas festës.',
+    image: '/images/packages/photo-booth.png',
+    badge: 'Kujtime',
+  },
+  'drinks-bar': {
+    title: 'Shankerica për Evente',
+    subtitle:
+      'Shankerica dhe pije festive për evente, me çmime që përshtaten sipas sasisë dhe kërkesës.',
+    image: '/images/packages/drinks-bar.png',
+    badge: 'Pije',
+  },
+  'entrance-balloons': {
+    title: 'Balona për Hyrje',
+    subtitle:
+      'Dekorim hyrës me balona për një përshtypje të bukur që në momentin e parë të eventit.',
+    image: '/images/packages/entrance-balloons.png',
+    badge: 'Hyrje Speciale',
+  },
+};
 
-  useEffect(() => {
-    const handleResize = () => setWidth(window.innerWidth);
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  return width;
+function normalizeCategory(value?: string) {
+  return value ? value.trim().toLowerCase() : '';
 }
 
-function ScrollToTopButton() {
-  const [visible, setVisible] = useState(false);
+function formatPrice(value: number | string | null | undefined) {
+  const price = Number(value);
 
-  useEffect(() => {
-    const handleScroll = () => setVisible(window.scrollY > 420);
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return (
-    <button
-      type="button"
-      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      aria-label="Kthehu lart"
-      style={{
-        position: 'fixed',
-        right: 22,
-        bottom: 24,
-        zIndex: 999,
-        width: 46,
-        height: 46,
-        borderRadius: '50%',
-        border: 'none',
-        background: '#d99a1d',
-        color: '#111827',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 12px 28px rgba(217, 154, 29, 0.42)',
-        opacity: visible ? 1 : 0,
-        pointerEvents: visible ? 'auto' : 'none',
-        transform: visible ? 'translateY(0)' : 'translateY(14px)',
-        transition: '0.25s ease',
-      }}
-    >
-      ↑
-    </button>
-  );
-}
-
-export default function DecorationCategoryPage() {
-  const { categorySlug } = useParams<{ categorySlug: string }>();
-  const width = useWindowWidth();
-
-  const isMobile = width <= 640;
-  const isTablet = width > 640 && width <= 980;
-
-  const category = categorySlug ? getDecorationCategoryBySlug(categorySlug) : null;
-
-  const responsive = useMemo(() => {
-    const introColumns = isMobile
-      ? '1fr'
-      : isTablet
-        ? 'repeat(2, minmax(0, 1fr))'
-        : 'repeat(3, minmax(0, 1fr))';
-
-    const subcategoryColumns = isMobile ? '1fr' : 'repeat(2, minmax(0, 1fr))';
-
-    const galleryColumns = isMobile
-      ? '1fr'
-      : isTablet
-        ? 'repeat(2, minmax(0, 1fr))'
-        : 'repeat(3, minmax(0, 1fr))';
-
-    return {
-      sectionPadding: isMobile ? '38px 18px 56px' : '56px 24px 80px',
-      introPadding: isMobile ? '22px 18px 8px' : '28px 24px 12px',
-      ctaPadding: isMobile ? '0 18px 58px' : '0 24px 84px',
-      introColumns,
-      subcategoryColumns,
-      galleryColumns,
-      titleSize: isMobile ? '30px' : 'clamp(34px, 4vw, 50px)',
-      ctaTitleSize: isMobile ? '28px' : 'clamp(30px, 4vw, 46px)',
-      cardPadding: isMobile ? '18px' : '22px',
-      ctaBoxPadding: isMobile ? '34px 20px' : '42px 24px',
-      buttonWidth: isMobile ? '100%' : 'auto',
-    };
-  }, [isMobile, isTablet]);
-
-  if (!category) {
-    return (
-      <main style={pageStyle}>
-        <section style={{ ...sectionStyle, padding: responsive.sectionPadding }}>
-          <DecorationEmptyState
-            title="Kategoria nuk u gjet"
-            message="Kjo kategori e dekorimit nuk ekziston ose nuk është më e disponueshme."
-          />
-
-          <div style={{ textAlign: 'center', marginTop: 24 }}>
-            <Link to="/decorations" style={secondaryButtonStyle}>
-              Kthehu te dekorimet
-            </Link>
-          </div>
-        </section>
-      </main>
-    );
+  if (!Number.isFinite(price) || price <= 0) {
+    return 'Sipas kërkesës';
   }
 
-  const hasSubcategories = Boolean(category.subcategories?.length);
-  const hasStyles = Boolean(category.styles?.length);
-
-  return (
-    <main style={pageStyle}>
-      <DecorationHero
-        label={category.heroLabel}
-        title={category.heroTitle}
-        text={category.heroText}
-        primaryText="Rezervo këtë dekor"
-        primaryTo="/booking"
-        secondaryText="Shiko më poshtë"
-        secondaryTo="#content"
-      />
-
-      <section style={{ ...introStripStyle, padding: responsive.introPadding }}>
-        <div
-          style={{
-            ...introStripInnerStyle,
-            gridTemplateColumns: responsive.introColumns,
-          }}
-        >
-          <div style={{ ...introCardStyle, padding: responsive.cardPadding }}>
-            <span style={introIconStyle}>🎨</span>
-            <h3 style={introCardTitleStyle}>Ide të personalizuara</h3>
-            <p style={introCardTextStyle}>
-              Çdo dekor përshtatet me temën, ngjyrat, ambientin dhe stilin e
-              eventit tuaj.
-            </p>
-          </div>
-
-          <div style={{ ...introCardStyle, padding: responsive.cardPadding }}>
-            <span style={introIconStyle}>💬</span>
-            <h3 style={introCardTitleStyle}>Konsultim para realizimit</h3>
-            <p style={introCardTextStyle}>
-              Detajet finale dhe çmimi caktohen pas diskutimit të idesë,
-              hapësirës dhe kërkesave tuaja.
-            </p>
-          </div>
-
-          <div style={{ ...introCardStyle, padding: responsive.cardPadding }}>
-            <span style={introIconStyle}>✨</span>
-            <h3 style={introCardTitleStyle}>Pamje elegante në event</h3>
-            <p style={introCardTextStyle}>
-              Dekori planifikohet që hyrja, tavolina dhe këndi fotografik të
-              duken bukur në çdo detaj.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section
-        id="content"
-        style={{
-          ...sectionStyle,
-          padding: responsive.sectionPadding,
-        }}
-      >
-        {hasSubcategories ? (
-          <>
-            <div style={headingWrapStyle}>
-              <p style={eyebrowStyle}>KATEGORITË E DEKORIT</p>
-              <h2 style={{ ...titleStyle, fontSize: responsive.titleSize }}>
-                Zgjedh drejtimin që i përshtatet eventit
-              </h2>
-              <p style={textStyle}>
-                Shiko llojet e dekorimeve dhe vazhdo te stili që të përshtatet
-                më së miri për festën, dasmën apo eventin tënd.
-              </p>
-            </div>
-
-            <div
-              style={{
-                ...subcategoryGridStyle,
-                gridTemplateColumns: responsive.subcategoryColumns,
-              }}
-            >
-              {category.subcategories!.map((subcategory) => (
-                <DecorationSubcategoryCard
-                  key={subcategory.slug}
-                  title={subcategory.title}
-                  description={subcategory.description}
-                  image={subcategory.coverImage}
-                  to={`/decorations/${category.slug}/${subcategory.slug}`}
-                />
-              ))}
-            </div>
-          </>
-        ) : hasStyles ? (
-          <>
-            <div style={headingWrapStyle}>
-              <p style={eyebrowStyle}>STILET E DEKORIMIT</p>
-              <h2 style={{ ...titleStyle, fontSize: responsive.titleSize }}>
-                Shiko koleksionin e kësaj kategorie
-              </h2>
-              <p style={textStyle}>
-                Këtu mund të shohësh disa drejtime vizuale për këtë dekor dhe
-                të zgjedhësh stilin që përshtatet më bukur me eventin.
-              </p>
-            </div>
-
-            <div
-              style={{
-                ...galleryGridStyle,
-                gridTemplateColumns: responsive.galleryColumns,
-              }}
-            >
-              {category.styles!.map((style) => (
-                <Link
-                  key={style.slug}
-                  to={`/decorations/${category.slug}/${style.slug}`}
-                  style={galleryLinkStyle}
-                >
-                  <DecorationGalleryCard
-                    title={style.title}
-                    image={style.heroImage}
-                    description={style.shortDescription}
-                  />
-                </Link>
-              ))}
-            </div>
-          </>
-        ) : (
-          <DecorationEmptyState
-            title="Nuk ka stile për momentin"
-            message="Kjo kategori është duke u përgatitur. Mund të na kontaktoni për ide dhe dekorime të personalizuara."
-          />
-        )}
-      </section>
-
-      <section style={{ ...ctaSectionStyle, padding: responsive.ctaPadding }}>
-        <div
-          style={{
-            ...ctaBoxStyle,
-            padding: responsive.ctaBoxPadding,
-          }}
-        >
-          <p style={ctaEyebrowStyle}>HAPI I RADHËS</p>
-          <h2 style={{ ...ctaTitleStyle, fontSize: responsive.ctaTitleSize }}>
-            Ta kthejmë idenë tënde në një dekor të bukur
-          </h2>
-          <p style={ctaTextStyle}>
-            Pasi të zgjedhësh stilin që të pëlqen, mund të vazhdojmë me datën,
-            lokacionin, ngjyrat dhe detajet për ta përshtatur dekorin me eventin
-            tënd.
-          </p>
-
-          <div
-            style={{
-              ...ctaButtonsStyle,
-              flexDirection: isMobile ? 'column' : 'row',
-            }}
-          >
-            <Link
-              to="/booking"
-              style={{
-                ...primaryButtonStyle,
-                width: responsive.buttonWidth,
-                textAlign: 'center',
-              }}
-            >
-              Fillo rezervimin
-            </Link>
-
-            <Link
-              to="/decorations"
-              style={{
-                ...secondaryButtonStyle,
-                width: responsive.buttonWidth,
-                textAlign: 'center',
-              }}
-            >
-              Kthehu te dekorimet
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <ScrollToTopButton />
-    </main>
-  );
+  return `€${price.toFixed(2)}`;
 }
 
-const pageStyle: CSSProperties = {
-  background:
-    'linear-gradient(180deg, #fffaf2 0%, #f7f4ef 38%, #ffffff 100%)',
-  minHeight: '100vh',
-};
+function getCategoryTitle(category: string) {
+  return category
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
 
-const introStripStyle: CSSProperties = {
-  padding: '28px 24px 12px',
-};
+export default function PackageCategoryPage() {
+  const { category } = useParams<{ category: string }>();
 
-const introStripInnerStyle: CSSProperties = {
-  maxWidth: '1320px',
-  margin: '0 auto',
-  display: 'grid',
-  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-  gap: '20px',
-};
+  const [packages, setPackages] = useState<PackageItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-const introCardStyle: CSSProperties = {
-  background: 'rgba(255, 255, 255, 0.92)',
-  border: '1px solid #ece6dc',
-  borderRadius: '22px',
-  padding: '22px',
-  boxShadow: '0 14px 32px rgba(15, 23, 42, 0.06)',
-  backdropFilter: 'blur(10px)',
-};
+  const normalizedCategory = normalizeCategory(category);
 
-const introIconStyle: CSSProperties = {
-  width: 42,
-  height: 42,
-  borderRadius: '50%',
-  background: '#fff3d6',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  fontSize: '21px',
-  marginBottom: '14px',
-};
+  const info = useMemo(() => {
+    return (
+      categoryInfo[normalizedCategory] || {
+        title: getCategoryTitle(normalizedCategory),
+        subtitle: 'Shiko paketat e disponueshme për këtë kategori.',
+        image: '/images/packages/event-decorations.png',
+        badge: 'Paketa',
+      }
+    );
+  }, [normalizedCategory]);
 
-const introCardTitleStyle: CSSProperties = {
-  margin: '0 0 10px',
-  color: '#111827',
-  fontSize: '20px',
-  fontWeight: 800,
-};
+  useEffect(() => {
+    if (!normalizedCategory) {
+      setLoading(false);
+      setError('Kategoria nuk është valide.');
+      return;
+    }
 
-const introCardTextStyle: CSSProperties = {
-  margin: 0,
-  color: '#667085',
-  fontSize: '15px',
-  lineHeight: 1.75,
-};
+    getPackagesByCategory(normalizedCategory)
+      .then((data) => {
+        setPackages(data);
+        setError('');
+      })
+      .catch((err) => {
+        console.error('Package category error:', err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Paketat për këtë kategori nuk arritën të ngarkohen.'
+        );
+      })
+      .finally(() => setLoading(false));
+  }, [normalizedCategory]);
 
-const sectionStyle: CSSProperties = {
-  maxWidth: '1320px',
-  margin: '0 auto',
-  padding: '56px 24px 80px',
-};
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700;800&display=swap');
 
-const headingWrapStyle: CSSProperties = {
-  textAlign: 'center',
-  maxWidth: '790px',
-  margin: '0 auto 36px',
-};
+        .pcp,
+        .pcp * {
+          box-sizing: border-box;
+          max-width: 100%;
+        }
 
-const eyebrowStyle: CSSProperties = {
-  margin: '0 0 10px',
-  color: '#d99a1d',
-  letterSpacing: '0.16em',
-  fontWeight: 800,
-  fontSize: '13px',
-};
+        .pcp {
+          width: 100%;
+          min-height: 100vh;
+          background: #faf7f2;
+          font-family: 'DM Sans', sans-serif;
+          color: #1a120b;
+          overflow-x: hidden;
+        }
 
-const titleStyle: CSSProperties = {
-  margin: '0 0 14px',
-  color: '#111827',
-  fontSize: 'clamp(34px, 4vw, 50px)',
-  fontWeight: 900,
-  lineHeight: 1.08,
-};
+        .pcp-serif {
+          font-family: 'Cormorant Garamond', serif;
+        }
 
-const textStyle: CSSProperties = {
-  margin: 0,
-  color: '#667085',
-  lineHeight: 1.75,
-  fontSize: '17px',
-};
+        .pcp-card {
+          transition: transform .25s ease, box-shadow .25s ease;
+        }
 
-const subcategoryGridStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: '24px',
-};
+        .pcp-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 18px 38px rgba(26,18,11,.12) !important;
+        }
 
-const galleryGridStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-  gap: '22px',
-};
+        .pcp-btn {
+          transition: background .2s ease, color .2s ease, transform .2s ease;
+        }
 
-const galleryLinkStyle: CSSProperties = {
-  textDecoration: 'none',
-  color: 'inherit',
-  display: 'block',
-};
+        .pcp-btn:hover {
+          transform: translateY(-1px);
+          background: #c8841a !important;
+          color: #ffffff !important;
+        }
 
-const ctaSectionStyle: CSSProperties = {
-  padding: '0 24px 84px',
-};
+        @media (max-width: 700px) {
+          .pcp-hero {
+            padding: 44px 16px 34px !important;
+          }
 
-const ctaBoxStyle: CSSProperties = {
-  maxWidth: '980px',
-  margin: '0 auto',
-  textAlign: 'center',
-  background:
-    'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,247,232,0.96))',
-  border: '1px solid #ece6dc',
-  borderRadius: '28px',
-  padding: '42px 24px',
-  boxShadow: '0 18px 42px rgba(15, 23, 42, 0.07)',
-};
+          .pcp-hero-inner {
+            grid-template-columns: 1fr !important;
+            gap: 24px !important;
+          }
 
-const ctaEyebrowStyle: CSSProperties = {
-  margin: '0 0 10px',
-  color: '#d99a1d',
-  letterSpacing: '0.16em',
-  fontWeight: 800,
-  fontSize: '13px',
-};
+          .pcp-title {
+            font-size: 40px !important;
+          }
 
-const ctaTitleStyle: CSSProperties = {
-  margin: '0 0 14px',
-  color: '#111827',
-  fontSize: 'clamp(30px, 4vw, 46px)',
-  fontWeight: 900,
-  lineHeight: 1.08,
-};
+          .pcp-main {
+            padding: 34px 14px 70px !important;
+          }
 
-const ctaTextStyle: CSSProperties = {
-  margin: '0 auto',
-  maxWidth: '720px',
-  color: '#667085',
-  fontSize: '16px',
-  lineHeight: 1.8,
-};
+          .pcp-grid {
+            grid-template-columns: 1fr !important;
+          }
 
-const ctaButtonsStyle: CSSProperties = {
-  marginTop: '26px',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  gap: '14px',
-  flexWrap: 'wrap',
-};
+          .pcp-card-img {
+            height: 190px !important;
+          }
+        }
 
-const primaryButtonStyle: CSSProperties = {
-  textDecoration: 'none',
-  background: '#d99a1d',
-  color: '#111827',
-  fontWeight: 900,
-  padding: '15px 24px',
-  borderRadius: '999px',
-  fontSize: '15px',
-  boxShadow: '0 12px 24px rgba(217, 154, 29, 0.28)',
-};
+        @media (min-width: 701px) and (max-width: 1050px) {
+          .pcp-hero-inner {
+            grid-template-columns: 1fr !important;
+          }
 
-const secondaryButtonStyle: CSSProperties = {
-  textDecoration: 'none',
-  background: '#ffffff',
-  color: '#111827',
-  border: '1px solid #d7dce5',
-  fontWeight: 800,
-  padding: '15px 24px',
-  borderRadius: '999px',
-  fontSize: '15px',
-};
+          .pcp-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+      `}</style>
+
+      <main className="pcp">
+        <section
+          className="pcp-hero"
+          style={{
+            background:
+              'linear-gradient(135deg, #1a120b 0%, #2c1a0a 55%, #1a120b 100%)',
+            padding: '70px 24px 62px',
+            position: 'relative',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundImage:
+                'repeating-linear-gradient(45deg,rgba(200,132,26,.04) 0,rgba(200,132,26,.04) 1px,transparent 1px,transparent 56px)',
+            }}
+          />
+
+          <div
+            className="pcp-hero-inner"
+            style={{
+              maxWidth: 1180,
+              margin: '0 auto',
+              display: 'grid',
+              gridTemplateColumns: '1.1fr .9fr',
+              gap: 42,
+              alignItems: 'center',
+              position: 'relative',
+              zIndex: 1,
+            }}
+          >
+            <div>
+              <Link
+                to="/packages"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  textDecoration: 'none',
+                  color: '#e8b56a',
+                  fontWeight: 800,
+                  fontSize: 13,
+                  marginBottom: 22,
+                }}
+              >
+                ← Kthehu te paketat
+              </Link>
+
+              <div
+                style={{
+                  display: 'inline-flex',
+                  background: 'rgba(200,132,26,.14)',
+                  border: '1px solid rgba(200,132,26,.32)',
+                  color: '#e8b56a',
+                  padding: '8px 16px',
+                  borderRadius: 99,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: '.12em',
+                  textTransform: 'uppercase',
+                  marginBottom: 18,
+                }}
+              >
+                {info.badge}
+              </div>
+
+              <h1
+                className="pcp-serif pcp-title"
+                style={{
+                  margin: '0 0 16px',
+                  fontSize: 72,
+                  lineHeight: 1.02,
+                  color: '#ffffff',
+                  fontWeight: 700,
+                }}
+              >
+                {info.title}
+              </h1>
+
+              <p
+                style={{
+                  margin: 0,
+                  color: 'rgba(255,255,255,.68)',
+                  fontSize: 17,
+                  lineHeight: 1.85,
+                  maxWidth: 620,
+                }}
+              >
+                {info.subtitle}
+              </p>
+            </div>
+
+            <div
+              style={{
+                minHeight: 330,
+                borderRadius: 28,
+                backgroundImage: `linear-gradient(rgba(26,18,11,.10), rgba(26,18,11,.34)), url("${info.image}")`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                border: '1px solid rgba(255,255,255,.14)',
+                boxShadow: '0 22px 50px rgba(0,0,0,.26)',
+              }}
+            />
+          </div>
+        </section>
+
+        <section
+          className="pcp-main"
+          style={{
+            maxWidth: 1180,
+            margin: '0 auto',
+            padding: '58px 24px 90px',
+          }}
+        >
+          <div style={{ textAlign: 'center', marginBottom: 34 }}>
+            <p
+              style={{
+                margin: '0 0 8px',
+                color: '#c8841a',
+                fontSize: 12,
+                fontWeight: 800,
+                letterSpacing: '.18em',
+                textTransform: 'uppercase',
+              }}
+            >
+              Paketat në këtë kategori
+            </p>
+
+            <h2
+              className="pcp-serif"
+              style={{
+                margin: 0,
+                color: '#1a120b',
+                fontSize: 44,
+                lineHeight: 1.08,
+              }}
+            >
+              Zgjidh ofertën që të përshtatet më shumë
+            </h2>
+          </div>
+
+          {loading && (
+            <div
+              style={{
+                textAlign: 'center',
+                color: '#7a6a52',
+                padding: '48px 0',
+                fontWeight: 700,
+              }}
+            >
+              Duke u ngarkuar paketat…
+            </div>
+          )}
+
+          {!loading && error && (
+            <div
+              style={{
+                background: '#fff1f1',
+                color: '#991b1b',
+                border: '1.5px solid #fecaca',
+                borderRadius: 18,
+                padding: '20px',
+                textAlign: 'center',
+                marginBottom: 24,
+                fontWeight: 700,
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          {!loading && !error && packages.length === 0 && (
+            <div
+              style={{
+                background: '#ffffff',
+                border: '1.5px solid #eadfce',
+                borderRadius: 22,
+                padding: '42px 20px',
+                textAlign: 'center',
+                color: '#7a6a52',
+              }}
+            >
+              <h3
+                className="pcp-serif"
+                style={{ margin: '0 0 8px', color: '#1a120b', fontSize: 32 }}
+              >
+                Nuk ka paketa për momentin
+              </h3>
+              <p style={{ margin: '0 0 22px', lineHeight: 1.7 }}>
+                Kjo kategori ekziston, por ende nuk ka paketa aktive në databazë.
+              </p>
+
+              <Link
+                to="/packages"
+                style={{
+                  display: 'inline-flex',
+                  textDecoration: 'none',
+                  background: '#fef3d0',
+                  color: '#92640e',
+                  border: '1.5px solid #e8d5a0',
+                  padding: '12px 18px',
+                  borderRadius: 999,
+                  fontWeight: 800,
+                }}
+              >
+                Kthehu te paketat
+              </Link>
+            </div>
+          )}
+
+          {!loading && !error && packages.length > 0 && (
+            <div
+              className="pcp-grid"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                gap: 22,
+              }}
+            >
+              {packages.map((item) => (
+                <article
+                  key={item.id}
+                  className="pcp-card"
+                  style={{
+                    background: '#ffffff',
+                    border: '1.5px solid #eadfce',
+                    borderRadius: 24,
+                    overflow: 'hidden',
+                    boxShadow: '0 6px 24px rgba(26,18,11,.06)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }}
+                >
+                  <div
+                    className="pcp-card-img"
+                    style={{
+                      height: 205,
+                      backgroundImage: `linear-gradient(rgba(26,18,11,.12), rgba(26,18,11,.36)), url("${info.image}")`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      position: 'relative',
+                    }}
+                  >
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: 14,
+                        left: 14,
+                        background: 'rgba(255,255,255,.92)',
+                        color: '#1a120b',
+                        borderRadius: 99,
+                        padding: '6px 12px',
+                        fontSize: 11,
+                        fontWeight: 800,
+                      }}
+                    >
+                      {item.category}
+                    </span>
+
+                    <span
+                      style={{
+                        position: 'absolute',
+                        right: 14,
+                        bottom: 14,
+                        background: '#c8841a',
+                        color: '#fff',
+                        borderRadius: 99,
+                        padding: '6px 12px',
+                        fontSize: 11,
+                        fontWeight: 800,
+                      }}
+                    >
+                      {formatPrice(item.base_price)}
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: 20,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      flex: 1,
+                    }}
+                  >
+                    <h3
+                      className="pcp-serif"
+                      style={{
+                        margin: '0 0 10px',
+                        fontSize: 30,
+                        lineHeight: 1.08,
+                        color: '#1a120b',
+                      }}
+                    >
+                      {item.title}
+                    </h3>
+
+                    <p
+                      style={{
+                        margin: '0 0 18px',
+                        color: '#7a6a52',
+                        fontSize: 14,
+                        lineHeight: 1.7,
+                        flex: 1,
+                      }}
+                    >
+                      {item.description || 'Paketë e përshtatshme për evente dhe festa.'}
+                    </p>
+
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: 10,
+                        marginBottom: 18,
+                        padding: '14px 0',
+                        borderTop: '1px solid #f0e6d8',
+                        borderBottom: '1px solid #f0e6d8',
+                      }}
+                    >
+                      <div>
+                        <p
+                          style={{
+                            margin: '0 0 4px',
+                            color: '#9a8878',
+                            fontSize: 11,
+                            fontWeight: 800,
+                          }}
+                        >
+                          Kohëzgjatja
+                        </p>
+                        <p style={{ margin: 0, fontWeight: 800 }}>
+                          {item.duration_minutes} min
+                        </p>
+                      </div>
+
+                      <div>
+                        <p
+                          style={{
+                            margin: '0 0 4px',
+                            color: '#9a8878',
+                            fontSize: 11,
+                            fontWeight: 800,
+                          }}
+                        >
+                          Maskota
+                        </p>
+                        <p style={{ margin: 0, fontWeight: 800 }}>
+                          {item.min_mascots}-{item.max_mascots}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Link
+                      to={`/packages/details/${item.id}`}
+                      className="pcp-btn"
+                      style={{
+                        width: '100%',
+                        height: 46,
+                        borderRadius: 14,
+                        background: '#fef3d0',
+                        color: '#92640e',
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 14,
+                        fontWeight: 800,
+                        border: '1.5px solid #e8d5a0',
+                      }}
+                    >
+                      Shiko detajet →
+                    </Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+    </>
+  );
+}
