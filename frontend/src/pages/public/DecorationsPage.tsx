@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type SVGProps } from 'react';
 import { Link } from 'react-router-dom';
 
 type IconName =
@@ -22,7 +22,7 @@ type DecorationService = {
 };
 
 function GoldIcon({ name }: { name: IconName }) {
-  const props: React.SVGProps<SVGSVGElement> = {
+  const props: SVGProps<SVGSVGElement> = {
     width: 22,
     height: 22,
     viewBox: '0 0 24 24',
@@ -162,7 +162,12 @@ function GoldIcon({ name }: { name: IconName }) {
           stroke="currentColor"
           strokeWidth="1.8"
         />
-        <path d="M8 10h.01M11 7.5h.01M15 8.5h.01M7.5 14h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+        <path
+          d="M8 10h.01M11 7.5h.01M15 8.5h.01M7.5 14h.01"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
       </svg>
     );
   }
@@ -229,7 +234,12 @@ const services: DecorationService[] = [
     subtitle: 'Për vajza dhe djem',
     description:
       'Krijojmë dekore të personalizuara për ditëlindje fëmijësh, me tema, ngjyra dhe detaje që përshtaten me dëshirën e klientit.',
-    details: ['Backdrop tematik', 'Balona me ngjyra të kombinuara', 'Tavolina kryesore', 'Detaje sipas personazhit ose temës'],
+    details: [
+      'Backdrop tematik',
+      'Balona me ngjyra të kombinuara',
+      'Tavolina kryesore',
+      'Detaje sipas personazhit ose temës',
+    ],
     icon: 'gift',
   },
   {
@@ -237,7 +247,12 @@ const services: DecorationService[] = [
     subtitle: 'Të buta dhe elegante',
     description:
       'Për baby shower përgatisim atmosferë të ngrohtë, të ëmbël dhe shumë të kujdesshme, me ngjyra të buta dhe elemente që duken bukur në foto.',
-    details: ['Ngjyra pastel', 'Balona dhe lule dekorative', 'Kënd për fotografi', 'Tekste të personalizuara'],
+    details: [
+      'Ngjyra pastel',
+      'Balona dhe lule dekorative',
+      'Kënd për fotografi',
+      'Tekste të personalizuara',
+    ],
     icon: 'heart',
   },
   {
@@ -245,47 +260,77 @@ const services: DecorationService[] = [
     subtitle: 'Momente familjare me stil',
     description:
       'Për fejesa dhe dasma fokusohemi në elegancë, pastërti vizuale dhe detaje që e bëjnë hapësirën të duket më solemne.',
-    details: ['Dekor elegant hyrjeje', 'Aranzhime me lule', 'Kënde fotografike', 'Përshtatje me ngjyrat e eventit'],
+    details: [
+      'Dekor elegant hyrjeje',
+      'Aranzhime me lule',
+      'Kënde fotografike',
+      'Përshtatje me ngjyrat e eventit',
+    ],
     icon: 'ring',
   },
   {
     title: 'Balona për hyrje',
     subtitle: 'Përshtypja e parë',
     description:
-      'Dekorimi i hyrjes është pjesa që krijon përshtypjen e parë te mysafirët. Ne e ndërtojmë hyrjen sipas hapësirës dhe stilit të eventit.',
-    details: ['Hyrje me balona', 'Kombinime gold, nude, pastel ose tema fëmijësh', 'Vendosje sipas ambientit', 'Detaje mirëseardhjeje'],
+      'Dekorimi i hyrjes krijon përshtypjen e parë te mysafirët. Ne e ndërtojmë hyrjen sipas hapësirës dhe stilit të eventit.',
+    details: [
+      'Hyrje me balona',
+      'Kombinime gold, nude ose pastel',
+      'Vendosje sipas ambientit',
+      'Detaje mirëseardhjeje',
+    ],
     icon: 'home',
   },
   {
-    title: 'Mirëseardhje dhe tabela të personalizuara',
-    subtitle: 'Detaji që e bën eventin unik',
+    title: 'Mirëseardhje dhe tabela',
+    subtitle: 'Detaje të personalizuara',
     description:
-      'Përgatisim kënde mirëseardhjeje, tabela me emër, mbishkrime dhe elemente të personalizuara që i japin eventit identitet.',
-    details: ['Tabela mirëseardhjeje', 'Emra të personalizuar', 'Përshtatje me temën', 'Vendosje pranë hyrjes ose këndit kryesor'],
+      'Përgatisim kënde mirëseardhjeje, tabela me emër, mbishkrime dhe elemente që i japin eventit identitet.',
+    details: [
+      'Tabela mirëseardhjeje',
+      'Emra të personalizuar',
+      'Përshtatje me temën',
+      'Vendosje pranë hyrjes',
+    ],
     icon: 'sparkles',
   },
   {
     title: 'Kënde fotografike',
     subtitle: 'Për kujtime më të bukura',
     description:
-      'Krijojmë kënde që janë të menduara për foto, video dhe kujtime. Çdo kënd ndërtohet që të duket bukur dhe i plotë në pamje.',
-    details: ['Backdrop për foto', 'Kompozim me balona/lule', 'Detaje dekorative', 'Kombinim me Photo Booth ose Photo Box'],
+      'Krijojmë kënde për foto dhe video, të menduara që çdo pamje të duket e plotë, elegante dhe e veçantë.',
+    details: [
+      'Backdrop për foto',
+      'Kompozim me balona/lule',
+      'Detaje dekorative',
+      'Kombinim me Photo Booth',
+    ],
     icon: 'camera',
   },
   {
-    title: 'Lule, ngjyra dhe detaje dekorative',
+    title: 'Lule dhe detaje',
     subtitle: 'Për atmosferë më të plotë',
     description:
-      'Dekori nuk është vetëm vendosje balonash. Ne mundohemi të kombinojmë ngjyra, forma dhe detaje që ambienti të duket i kuruar.',
-    details: ['Lule artificiale/dekorative', 'Kombinim ngjyrash', 'Elemente gold, cream ose pastel', 'Stilizim sipas eventit'],
+      'Dekori nuk është vetëm vendosje balonash. Ne kombinojmë ngjyra, forma dhe detaje që ambienti të duket i kuruar.',
+    details: [
+      'Lule dekorative',
+      'Kombinim ngjyrash',
+      'Elemente gold, cream ose pastel',
+      'Stilizim sipas eventit',
+    ],
     icon: 'flower',
   },
   {
     title: 'Dekore sipas kërkesës',
     subtitle: 'Çdo event ka çmim të veçantë',
     description:
-      'Çmimet e dekorimeve nuk janë gjithmonë fikse, sepse varen nga tema, hapësira, madhësia dhe elementet që klienti zgjedh.',
-    details: ['Analizojmë kërkesën', 'Përshtatim idenë me buxhetin', 'Propozojmë stilin më të mirë', 'Vendosim çmimin pas specifikimit'],
+      'Çmimet varen nga tema, hapësira, madhësia dhe elementet që klienti zgjedh. Prandaj çdo ofertë e bëjmë të personalizuar.',
+    details: [
+      'Analizojmë kërkesën',
+      'Përshtatim idenë me buxhetin',
+      'Propozojmë stilin më të mirë',
+      'Vendosim çmimin pas specifikimit',
+    ],
     icon: 'palette',
   },
 ];
@@ -347,20 +392,12 @@ export default function DecorationsPage() {
         @keyframes decorFadeUp {
           from {
             opacity: 0;
-            transform: translateY(28px);
+            transform: translateY(22px);
           }
+
           to {
             opacity: 1;
             transform: translateY(0);
-          }
-        }
-
-        @keyframes decorFloat {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-12px);
           }
         }
 
@@ -368,6 +405,7 @@ export default function DecorationsPage() {
           from {
             transform: translateX(0);
           }
+
           to {
             transform: translateX(-50%);
           }
@@ -377,9 +415,9 @@ export default function DecorationsPage() {
           position: relative;
           overflow: hidden;
           background:
-            radial-gradient(circle at 16% 22%, rgba(209,145,31,0.18), transparent 28%),
-            radial-gradient(circle at 82% 22%, rgba(255,255,255,0.08), transparent 22%),
-            linear-gradient(125deg, #150d07 0%, #241409 45%, #321b0b 100%);
+            radial-gradient(circle at 15% 18%, rgba(209,145,31,0.16), transparent 30%),
+            radial-gradient(circle at 82% 20%, rgba(255,255,255,0.07), transparent 24%),
+            linear-gradient(125deg, #150d07 0%, #241409 48%, #321b0b 100%);
           color: #fff;
         }
 
@@ -387,13 +425,11 @@ export default function DecorationsPage() {
           content: '';
           position: absolute;
           inset: 0;
-          background-image: repeating-linear-gradient(
-            45deg,
-            rgba(255,255,255,0.035) 0,
-            rgba(255,255,255,0.035) 1px,
-            transparent 1px,
-            transparent 70px
-          );
+          background:
+            linear-gradient(rgba(255,255,255,0.026) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.026) 1px, transparent 1px);
+          background-size: 54px 54px;
+          opacity: 0.32;
           pointer-events: none;
         }
 
@@ -401,41 +437,42 @@ export default function DecorationsPage() {
           position: relative;
           z-index: 2;
           display: grid;
-          grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
-          gap: 34px;
+          grid-template-columns: minmax(0, 1fr) minmax(340px, 470px);
+          gap: 44px;
           align-items: center;
-          min-height: 680px;
-          padding: 78px 0 88px;
+          min-height: calc(100vh - 118px);
+          padding: 34px 0 32px;
         }
 
         .decor-hero-content {
-          max-width: 760px;
-          animation: decorFadeUp 0.85s ease both;
+          max-width: 720px;
+          animation: decorFadeUp 0.75s ease both;
         }
 
         .decor-kicker {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
-          padding: 9px 18px;
+          gap: 9px;
+          padding: 8px 16px;
           border-radius: 999px;
           background: rgba(200,132,26,0.14);
           border: 1px solid rgba(200,132,26,0.34);
           color: #e8b56a;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 900;
-          letter-spacing: 0.15em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
         }
 
         .decor-kicker svg {
           color: #d89a2d;
+          flex-shrink: 0;
         }
 
         .decor-title {
-          margin: 24px 0 20px;
-          font-size: clamp(62px, 7.5vw, 112px);
-          line-height: 0.9;
+          margin: 15px 0 12px;
+          font-size: clamp(48px, 5.8vw, 82px);
+          line-height: 0.92;
           font-weight: 700;
           letter-spacing: -0.04em;
           color: #fff;
@@ -447,18 +484,18 @@ export default function DecorationsPage() {
         }
 
         .decor-hero-text {
-          max-width: 670px;
+          max-width: 620px;
           margin: 0;
           color: rgba(255,255,255,0.84);
-          font-size: 17px;
-          line-height: 1.9;
+          font-size: 15px;
+          line-height: 1.68;
         }
 
         .decor-actions {
           display: flex;
           flex-wrap: wrap;
-          gap: 12px;
-          margin-top: 32px;
+          gap: 10px;
+          margin-top: 18px;
         }
 
         .decor-btn-gold,
@@ -467,14 +504,14 @@ export default function DecorationsPage() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 9px;
-          min-height: 52px;
-          padding: 0 24px;
-          border-radius: 16px;
+          gap: 8px;
+          min-height: 46px;
+          padding: 0 20px;
+          border-radius: 15px;
           text-decoration: none;
           border: none;
           cursor: pointer;
-          font-size: 14px;
+          font-size: 13.5px;
           font-weight: 900;
           transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
         }
@@ -482,7 +519,7 @@ export default function DecorationsPage() {
         .decor-btn-gold {
           background: linear-gradient(135deg, #d4911e, #c8841a);
           color: #fff;
-          box-shadow: 0 12px 30px rgba(200,132,26,0.34);
+          box-shadow: 0 12px 30px rgba(200,132,26,0.32);
         }
 
         .decor-btn-light {
@@ -502,131 +539,211 @@ export default function DecorationsPage() {
           transform: translateY(-2px);
         }
 
-        .decor-visual {
-          position: relative;
-          min-height: 520px;
-          animation: decorFadeUp 1s ease both 0.15s;
+        .decor-mini-info {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-top: 14px;
         }
 
-        .decor-visual-card {
-          position: absolute;
-          border-radius: 34px;
-          background:
-            linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
+        .decor-mini-pill {
+          padding: 8px 12px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.08);
           border: 1px solid rgba(255,255,255,0.12);
-          box-shadow: 0 24px 60px rgba(0,0,0,0.28);
-          backdrop-filter: blur(10px);
+          color: rgba(255,255,255,0.86);
+          font-size: 12.5px;
+          font-weight: 800;
+          backdrop-filter: blur(8px);
         }
 
-        .decor-visual-main {
-          width: 360px;
-          height: 430px;
-          right: 40px;
-          top: 38px;
-          padding: 30px;
-          animation: decorFloat 5.5s ease-in-out infinite;
-        }
-
-        .decor-visual-side {
-          width: 220px;
-          height: 260px;
-          left: 20px;
-          bottom: 52px;
-          transform: rotate(-7deg);
-          opacity: 0.75;
-        }
-
-        .decor-arch {
-          position: relative;
+        .decor-visual-clean {
           width: 100%;
-          height: 100%;
-          border-radius: 180px 180px 28px 28px;
-          border: 2px solid rgba(232,181,106,0.46);
-          background:
-            radial-gradient(circle at 50% 16%, rgba(216,154,45,0.22), transparent 30%),
-            linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
-          overflow: hidden;
+          animation: decorFadeUp 0.8s ease both 0.12s;
         }
 
-        .decor-arch::before {
+        .decor-moodboard {
+          width: 100%;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          align-items: stretch;
+        }
+
+        .decor-board-card {
+          position: relative;
+          overflow: hidden;
+          border-radius: 22px;
+          background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06));
+          border: 1px solid rgba(255,255,255,0.16);
+          box-shadow: 0 18px 42px rgba(0,0,0,0.20);
+          backdrop-filter: blur(18px);
+        }
+
+        .decor-board-card.main {
+          grid-column: span 2;
+          padding: 20px;
+          min-height: 205px;
+        }
+
+        .decor-board-card.small {
+          padding: 15px;
+          min-height: 104px;
+        }
+
+        .decor-board-card.image {
+          min-height: 118px;
+          background:
+            linear-gradient(135deg, rgba(26,18,11,0.35), rgba(26,18,11,0.72)),
+            url('/images/home/decorations.png');
+          background-size: cover;
+          background-position: center;
+        }
+
+        .decor-board-card::before {
           content: '';
           position: absolute;
-          left: 50%;
-          bottom: 30px;
-          width: 160px;
-          height: 160px;
-          transform: translateX(-50%);
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(216,154,45,0.22), transparent 68%);
+          inset: 0;
+          background:
+            radial-gradient(circle at top right, rgba(216,154,45,0.18), transparent 38%),
+            linear-gradient(145deg, rgba(255,255,255,0.08), transparent);
+          pointer-events: none;
         }
 
-        .decor-balloon {
-          position: absolute;
-          width: 44px;
-          height: 56px;
-          border-radius: 50%;
-          background: linear-gradient(180deg, #f7e6c8, #c8841a);
-          box-shadow: 0 12px 28px rgba(0,0,0,0.16);
+        .decor-board-content {
+          position: relative;
+          z-index: 2;
         }
 
-        .decor-balloon.one {
-          left: 42px;
-          top: 90px;
+        .decor-board-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-bottom: 13px;
         }
 
-        .decor-balloon.two {
-          right: 42px;
-          top: 120px;
-          background: linear-gradient(180deg, #ffffff, #eadcc8);
-        }
-
-        .decor-balloon.three {
-          left: 82px;
-          bottom: 110px;
-          background: linear-gradient(180deg, #f4d6cc, #d6a48e);
-        }
-
-        .decor-balloon.four {
-          right: 82px;
-          bottom: 88px;
-          background: linear-gradient(180deg, #f7ead8, #d8b27d);
-        }
-
-        .decor-visual-label {
-          position: absolute;
-          left: 50%;
-          bottom: 42px;
-          transform: translateX(-50%);
-          padding: 12px 16px;
+        .decor-logo-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 7px 11px;
           border-radius: 999px;
-          background: rgba(26,18,11,0.58);
-          color: #fff7ea;
-          font-size: 12px;
+          background: rgba(27,12,3,0.50);
+          color: #fff;
+          font-size: 10.5px;
           font-weight: 900;
-          letter-spacing: 0.12em;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
+        }
+
+        .decor-love-chip {
+          padding: 7px 10px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.12);
+          color: #fff5e8;
+          font-size: 11.5px;
+          font-weight: 800;
           white-space: nowrap;
         }
 
-        .decor-floating-note {
-          position: absolute;
-          left: 0;
-          top: 60px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 13px 16px;
-          border-radius: 18px;
-          background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.13);
-          color: #fff7ea;
-          font-size: 13px;
-          font-weight: 800;
-          backdrop-filter: blur(10px);
+        .decor-board-title {
+          margin: 0 0 8px;
+          color: #ffffff;
+          font-size: 23px;
+          line-height: 1.13;
+          font-weight: 900;
+          max-width: 390px;
         }
 
-        .decor-floating-note svg {
-          color: #d89a2d;
+        .decor-board-text {
+          margin: 0;
+          color: rgba(255,255,255,0.78);
+          font-size: 12.8px;
+          line-height: 1.55;
+          max-width: 400px;
+        }
+
+        .decor-chip-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 7px;
+          margin-top: 12px;
+        }
+
+        .decor-chip {
+          padding: 7px 10px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.10);
+          border: 1px solid rgba(255,255,255,0.14);
+          color: #fff;
+          font-size: 11.5px;
+          font-weight: 800;
+        }
+
+        .decor-stat-value {
+          display: block;
+          color: #ffffff;
+          font-size: 24px;
+          font-weight: 900;
+          margin-bottom: 4px;
+        }
+
+        .decor-stat-label {
+          color: rgba(255,255,255,0.76);
+          font-size: 11.8px;
+          font-weight: 800;
+          line-height: 1.35;
+        }
+
+        .decor-check-list {
+          display: grid;
+          gap: 8px;
+          margin-top: 10px;
+        }
+
+        .decor-check-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+          color: rgba(255,255,255,0.88);
+          font-size: 11.8px;
+          font-weight: 800;
+          line-height: 1.35;
+        }
+
+        .decor-check-dot {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: rgba(214,152,41,0.20);
+          color: #f3c16c;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          flex-shrink: 0;
+        }
+
+        .decor-side-title {
+          margin: 0 0 7px;
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 900;
+        }
+
+        .decor-image-label {
+          position: absolute;
+          left: 14px;
+          bottom: 14px;
+          z-index: 2;
+          padding: 8px 11px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.14);
+          color: #fff;
+          font-size: 11.5px;
+          font-weight: 900;
+          backdrop-filter: blur(10px);
         }
 
         .decor-marquee {
@@ -640,12 +757,14 @@ export default function DecorationsPage() {
         .decor-marquee-track {
           display: flex;
           width: max-content;
+          max-width: none;
           animation: decorMarquee 34s linear infinite;
         }
 
         .decor-marquee-group {
           display: flex;
           white-space: nowrap;
+          max-width: none;
         }
 
         .decor-marquee-item {
@@ -658,6 +777,7 @@ export default function DecorationsPage() {
           font-weight: 900;
           letter-spacing: 0.16em;
           text-transform: uppercase;
+          max-width: none;
         }
 
         .decor-marquee-dot {
@@ -724,17 +844,6 @@ export default function DecorationsPage() {
         .decor-service-card:hover {
           transform: translateY(-7px);
           box-shadow: 0 24px 52px rgba(26,18,11,0.12);
-        }
-
-        .decor-service-card::after {
-          content: '';
-          position: absolute;
-          right: -45px;
-          bottom: -45px;
-          width: 140px;
-          height: 140px;
-          border-radius: 50%;
-          background: rgba(200,132,26,0.07);
         }
 
         .decor-service-icon {
@@ -992,21 +1101,20 @@ export default function DecorationsPage() {
           border-radius: 50%;
           border: none;
           background: #c8841a;
-          color: #fff;
-          cursor: pointer;
-          box-shadow: 0 10px 26px rgba(200,132,26,0.35);
           display: flex;
           align-items: center;
           justify-content: center;
+          box-shadow: 0 14px 34px rgba(200,132,26,0.42);
+          cursor: pointer;
           opacity: 0;
-          transform: translateY(14px);
+          transform: translateY(16px) scale(0.9);
           pointer-events: none;
-          transition: all 0.28s ease;
+          transition: 0.25s ease;
         }
 
         .decor-scroll.visible {
           opacity: 1;
-          transform: translateY(0);
+          transform: translateY(0) scale(1);
           pointer-events: auto;
         }
 
@@ -1014,25 +1122,21 @@ export default function DecorationsPage() {
           .decor-hero-inner {
             grid-template-columns: 1fr;
             min-height: auto;
-            padding: 70px 0;
+            gap: 28px;
+            padding: 40px 0 42px;
           }
 
-          .decor-visual {
-            min-height: 420px;
-          }
-
-          .decor-visual-main {
-            right: 80px;
+          .decor-visual-clean {
+            max-width: 660px;
           }
 
           .decor-services-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
+        }
 
-          .decor-process-top {
-            grid-template-columns: 1fr;
-          }
-
+        @media (max-width: 980px) {
+          .decor-process-top,
           .decor-gallery-inner {
             grid-template-columns: 1fr;
           }
@@ -1044,19 +1148,20 @@ export default function DecorationsPage() {
 
         @media (max-width: 767px) {
           .decor-wrap {
-            padding: 0 18px;
+            padding: 0 16px;
           }
 
           .decor-hero-inner {
-            padding: 56px 0 62px;
+            padding: 32px 0 36px;
           }
 
           .decor-title {
-            font-size: 58px;
+            font-size: 43px;
           }
 
           .decor-hero-text {
-            font-size: 15px;
+            font-size: 14px;
+            line-height: 1.6;
           }
 
           .decor-actions {
@@ -1067,8 +1172,36 @@ export default function DecorationsPage() {
             width: 100%;
           }
 
-          .decor-visual {
-            display: none;
+          .decor-mini-info {
+            gap: 7px;
+          }
+
+          .decor-mini-pill {
+            font-size: 11.5px;
+            padding: 8px 10px;
+          }
+
+          .decor-moodboard {
+            grid-template-columns: 1fr;
+          }
+
+          .decor-board-card.main {
+            grid-column: span 1;
+            min-height: auto;
+          }
+
+          .decor-board-card.small,
+          .decor-board-card.image {
+            min-height: auto;
+          }
+
+          .decor-board-title {
+            font-size: 23px;
+          }
+
+          .decor-board-top {
+            flex-direction: column;
+            align-items: flex-start;
           }
 
           .decor-marquee-item {
@@ -1156,23 +1289,88 @@ export default function DecorationsPage() {
                     <GoldIcon name="camera" />
                   </Link>
                 </div>
+
+                <div className="decor-mini-info">
+                  <span className="decor-mini-pill">Ditëlindje</span>
+                  <span className="decor-mini-pill">Baby Shower</span>
+                  <span className="decor-mini-pill">Bride To Be</span>
+                  <span className="decor-mini-pill">Dasma & Fejesa</span>
+                </div>
               </div>
 
-              <div className="decor-visual">
-                <div className="decor-floating-note">
-                  <GoldIcon name="heart" />
-                  Çdo detaj vendoset me dashni
-                </div>
+              <div className="decor-visual-clean">
+                <div className="decor-moodboard">
+                  <div className="decor-board-card main">
+                    <div className="decor-board-content">
+                      <div className="decor-board-top">
+                        <span className="decor-logo-chip">MD Creative Decor</span>
+                        <span className="decor-love-chip">♡ Me dashni</span>
+                      </div>
 
-                <div className="decor-visual-card decor-visual-side" />
+                      <h3 className="decor-board-title">
+                        Çdo event e kthejmë në një pamje që të mbetet në mend
+                      </h3>
 
-                <div className="decor-visual-card decor-visual-main">
-                  <div className="decor-arch">
-                    <div className="decor-balloon one" />
-                    <div className="decor-balloon two" />
-                    <div className="decor-balloon three" />
-                    <div className="decor-balloon four" />
-                    <div className="decor-visual-label">MD Creative Decor</div>
+                      <p className="decor-board-text">
+                        Nga balonat hyrëse deri te backdrop, tavolinat dekorative
+                        dhe detajet finale — çdo pjesë kombinohet që ambienti të
+                        duket elegant dhe i plotë.
+                      </p>
+
+                      <div className="decor-chip-list">
+                        <span className="decor-chip">Balona</span>
+                        <span className="decor-chip">Backdrop</span>
+                        <span className="decor-chip">Lule</span>
+                        <span className="decor-chip">Tavolina</span>
+                        <span className="decor-chip">Temë me ngjyra</span>
+                        <span className="decor-chip">Detaje unike</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="decor-board-card small">
+                    <div className="decor-board-content">
+                      <span className="decor-stat-value">100+</span>
+                      <span className="decor-stat-label">
+                        Dekore të realizuara me stil, kujdes dhe detaje të veçanta.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="decor-board-card small">
+                    <div className="decor-board-content">
+                      <span className="decor-stat-value">Custom</span>
+                      <span className="decor-stat-label">
+                        Çdo dekor përshtatet sipas kërkesës, hapësirës dhe temës.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="decor-board-card image">
+                    <span className="decor-image-label">Pamje elegante për çdo festë</span>
+                  </div>
+
+                  <div className="decor-board-card small">
+                    <div className="decor-board-content">
+                      <h4 className="decor-side-title">Çfarë përfshijmë?</h4>
+
+                      <div className="decor-check-list">
+                        <div className="decor-check-item">
+                          <span className="decor-check-dot">✓</span>
+                          <span>Zgjedhje stili dhe ngjyrash</span>
+                        </div>
+
+                        <div className="decor-check-item">
+                          <span className="decor-check-dot">✓</span>
+                          <span>Vendosje me kujdes e dekorit</span>
+                        </div>
+
+                        <div className="decor-check-item">
+                          <span className="decor-check-dot">✓</span>
+                          <span>Përshtatje për eventin tuaj</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1182,56 +1380,51 @@ export default function DecorationsPage() {
 
         <div className="decor-marquee">
           <div className="decor-marquee-track">
-            {[...Array(2)].map((_, repeatIndex) => (
-              <div key={repeatIndex} className="decor-marquee-group">
+            {[0, 1].map((group) => (
+              <div className="decor-marquee-group" key={group}>
                 {[
-                  'Ditëlindje',
-                  'Baby Shower',
-                  'Fejesa',
-                  'Dasma',
-                  'Hyrje speciale',
-                  'Balona',
-                  'Mirëseardhje',
+                  'Dekore për ditëlindje',
+                  'Baby shower',
+                  'Fejesa dhe dasma',
+                  'Balona për hyrje',
                   'Kënde fotografike',
-                  'Dekore të personalizuara',
+                  'Tabela të personalizuara',
                 ].map((item) => (
-                  <div key={`${repeatIndex}-${item}`} className="decor-marquee-item">
-                    <span>{item}</span>
+                  <span className="decor-marquee-item" key={`${group}-${item}`}>
                     <span className="decor-marquee-dot" />
-                  </div>
+                    {item}
+                  </span>
                 ))}
               </div>
             ))}
           </div>
         </div>
 
-        <section className="decor-section" id="sherbimet">
+        <section className="decor-section">
           <div className="decor-wrap">
             <div className="decor-section-head">
               <div className="decor-kicker">
                 <GoldIcon name="star" />
-                Çfarë ofrojmë
+                Shërbimet e dekorimit
               </div>
 
               <h2 className="decor-serif decor-section-title">
-                Dekore të menduara
-                <br />
-                për çdo <em>rast</em>
+                Çfarë ofrojmë për <em>eventin tuaj?</em>
               </h2>
 
               <p className="decor-section-text">
-                Këtu nuk kemi vendosur shumë foto, sepse kjo faqe është për t’ju
-                treguar qartë çfarë shërbimesh ofrojmë. Për më shumë pamje reale
-                nga eventet tona, mund të vizitoni Galerinë ose faqet tona në rrjete sociale.
+                Në këtë faqe nuk kemi vendosur shumë foto, sepse fotot reale i kemi
+                në galeri. Këtu mund të shihni përshkrimet kryesore të dekorimeve
+                që ofrojmë dhe mënyrën se si i përshtatim me eventin tuaj.
               </p>
             </div>
 
             <div className="decor-services-grid">
               {services.map((service, index) => (
                 <article
-                  key={service.title}
                   className="decor-service-card"
-                  style={{ animationDelay: `${index * 0.06}s` }}
+                  key={service.title}
+                  style={{ animationDelay: `${index * 0.05}s` }}
                 >
                   <div className="decor-service-icon">
                     <GoldIcon name={service.icon} />
@@ -1239,7 +1432,9 @@ export default function DecorationsPage() {
 
                   <span className="decor-service-subtitle">{service.subtitle}</span>
 
-                  <h3 className="decor-service-title">{service.title}</h3>
+                  <h3 className="decor-serif decor-service-title">
+                    {service.title}
+                  </h3>
 
                   <p className="decor-service-desc">{service.description}</p>
 
@@ -1263,23 +1458,22 @@ export default function DecorationsPage() {
                 <div className="decor-process-content">
                   <div className="decor-kicker">
                     <GoldIcon name="palette" />
-                    Si punojmë
+                    Procesi ynë
                   </div>
 
                   <h2 className="decor-serif decor-process-title">
-                    Nga ideja juaj
-                    <br />
-                    te dekori <em>final</em>
+                    Nga ideja deri te <em>dekorimi final</em>
                   </h2>
 
                   <p className="decor-section-text" style={{ margin: 0 }}>
-                    Çdo dekor e ndërtojmë sipas kërkesës, prandaj çmimi dhe realizimi
-                    varen nga hapësira, tema, ngjyrat dhe elementet që zgjidhen.
+                    Çdo dekor fillon me një ide. Ne e dëgjojmë kërkesën tuaj,
+                    propozojmë stilin dhe e përgatisim atmosferën sipas eventit,
+                    hapësirës dhe ngjyrave që dëshironi.
                   </p>
 
                   <div className="decor-steps">
                     {processSteps.map((step, index) => (
-                      <div key={step.title} className="decor-step">
+                      <div className="decor-step" key={step.title}>
                         <div className="decor-step-number">
                           {String(index + 1).padStart(2, '0')}
                         </div>
@@ -1290,6 +1484,13 @@ export default function DecorationsPage() {
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  <div className="decor-actions">
+                    <Link to="/booking" className="decor-btn-dark">
+                      Fillo rezervimin
+                      <GoldIcon name="arrow" />
+                    </Link>
                   </div>
                 </div>
               </div>
