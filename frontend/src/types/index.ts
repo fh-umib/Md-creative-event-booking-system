@@ -41,3 +41,62 @@ export type {
   AdminBookingFilters,
   AdminBookingListResponse,
 } from './booking-admin.types';
+
+
+export type Booking = {
+  id: number;
+  bookingCode?: string;
+  customerName?: string;
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  packageId?: number;
+  packageTitle?: string;
+  eventTitle?: string;
+  eventType?: string;
+  eventDate?: string;
+  startTime?: string;
+  endTime?: string;
+  venueName?: string;
+  venueAddress?: string;
+  guestCount?: number;
+  specialRequests?: string;
+  status?: string;
+  paymentStatus?: string;
+  totalPrice?: number;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type CreateBookingRequest = {
+  fullName?: string;
+  customerName?: string;
+  email: string;
+  phone?: string;
+  packageId?: number | string;
+  eventTitle?: string;
+  eventType?: string;
+  eventDate?: string;
+  startTime?: string;
+  endTime?: string;
+  venueName?: string;
+  venueAddress?: string;
+  guestCount?: number | string;
+  specialRequests?: string;
+};
+
+export type DashboardStats = {
+  totalBookings: number;
+
+  totalRevenue?: number;
+  activePackages?: number;
+  totalClients?: number;
+
+  totalPackages?: number;
+  totalMascots?: number;
+  totalReviews?: number;
+  upcomingEvents?: number;
+  pendingBookings?: number;
+  approvedBookings?: number;
+  completedBookings?: number;
+};

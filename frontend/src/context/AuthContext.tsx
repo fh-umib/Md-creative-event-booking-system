@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+
 import { authService, type AuthUser } from '../services/auth/authService';
 
 interface AuthContextValue {
@@ -18,7 +26,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const AUTH_TOKEN_KEY = 'md_auth_token';
 const AUTH_USER_KEY = 'md_auth_user';
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -31,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (savedToken && savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser) as AuthUser;
+
         setToken(savedToken);
         setUser(parsedUser);
         setIsAuthenticated(true);
@@ -75,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(AUTH_USER_KEY);
   };
 
-  const value = useMemo(
+  const value = useMemo<AuthContextValue>(
     () => ({
       isAuthenticated,
       isLoading,
@@ -90,12 +99,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export function useAuthContext() {
+export function useAuth() {
   const context = useContext(AuthContext);
 
   if (!context) {
-    throw new Error('useAuthContext must be used within AuthProvider');
+    throw new Error('useAuth must be used within AuthProvider');
   }
 
   return context;
+}
+
+export function useAuthContext() {
+  return useAuth();
 }
