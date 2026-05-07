@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../utils/constants';
 
 export default function SignInPage() {
   const navigate = useNavigate();
@@ -29,13 +30,13 @@ export default function SignInPage() {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
+          email: email.trim(),
           password,
         }),
       });
@@ -46,8 +47,8 @@ export default function SignInPage() {
         throw new Error(data?.message || 'Kyçja dështoi.');
       }
 
-      const token = data?.data?.token;
-      const user = data?.data?.user;
+      const token = data?.data?.token || data?.token;
+      const user = data?.data?.user || data?.user;
 
       if (!token || !user) {
         throw new Error('Të dhënat e kyçjes nuk janë kthyer si duhet nga serveri.');
@@ -78,13 +79,8 @@ export default function SignInPage() {
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
 
         @keyframes signinFadeIn {
-          from {
-            opacity: 0;
-          }
-
-          to {
-            opacity: 1;
-          }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
 
         @keyframes signinCardEnter {
@@ -92,7 +88,6 @@ export default function SignInPage() {
             opacity: 0;
             transform: translateY(26px) scale(.98);
           }
-
           to {
             opacity: 1;
             transform: translateY(0) scale(1);
@@ -259,130 +254,136 @@ export default function SignInPage() {
           margin: -5px 0 10px;
           color: #7a6a52;
           font-size: 14px;
-          line-height: 1.65;
+          line-height: 1.55;
         }
 
         .signin-alert {
-          margin: 0;
-          padding: 12px 14px;
-          border-radius: 14px;
+          border-radius: 15px;
+          padding: 13px 14px;
           font-size: 13px;
-          font-weight: 750;
           line-height: 1.45;
+          font-weight: 850;
         }
 
         .signin-alert.success {
+          color: #047857;
           background: #ecfdf5;
           border: 1px solid #bbf7d0;
-          color: #047857;
         }
 
         .signin-alert.error {
-          background: #fef2f2;
-          border: 1px solid #fecaca;
           color: #991b1b;
+          background: #fff1f2;
+          border: 1px solid #fecdd3;
         }
 
         .signin-field {
-          display: flex;
-          flex-direction: column;
+          display: grid;
           gap: 7px;
         }
 
         .signin-label {
-          color: #6b5a45;
-          font-size: 12px;
-          font-weight: 850;
-          letter-spacing: .04em;
+          color: #6b5132;
+          font-size: 11px;
+          font-weight: 950;
+          letter-spacing: .08em;
           text-transform: uppercase;
         }
 
         .signin-input {
           width: 100%;
-          height: 46px;
-          border-radius: 14px;
+          min-height: 54px;
           border: 1.5px solid #eadfce;
-          background: #fffdf8;
+          border-radius: 15px;
+          padding: 0 16px;
+          background: #fffdf9;
           color: #1a120b;
-          padding: 0 14px;
           font-size: 14px;
+          font-weight: 700;
           outline: none;
           transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
         }
 
-        .signin-input::placeholder {
-          color: #b8a48e;
-        }
-
         .signin-input:focus {
-          border-color: #c8841a;
-          box-shadow: 0 0 0 4px rgba(200,132,26,.12);
+          border-color: #d4911e;
+          box-shadow: 0 0 0 4px rgba(212,145,30,.14);
           background: #ffffff;
         }
 
         .signin-row {
           display: flex;
           justify-content: flex-end;
-          align-items: center;
           margin-top: -4px;
         }
 
         .signin-link {
           color: #9a5d0a;
           font-size: 13px;
-          font-weight: 850;
+          font-weight: 900;
           text-decoration: none;
-          transition: opacity .2s ease;
         }
 
         .signin-link:hover {
-          opacity: .75;
           text-decoration: underline;
         }
 
         .signin-button {
-          height: 48px;
+          min-height: 54px;
           border: none;
           border-radius: 15px;
           background: linear-gradient(135deg, #d4911e, #b87318);
           color: #ffffff;
-          font-size: 14px;
+          font-size: 15px;
           font-weight: 950;
           cursor: pointer;
-          box-shadow: 0 12px 26px rgba(200,132,26,.26);
+          box-shadow: 0 14px 28px rgba(200,132,26,.28);
           transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
         }
 
         .signin-button:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 16px 34px rgba(200,132,26,.34);
+          box-shadow: 0 18px 34px rgba(200,132,26,.36);
         }
 
         .signin-button:disabled {
-          opacity: .68;
+          opacity: .65;
           cursor: not-allowed;
         }
 
-        .signin-footer {
-          margin: 6px 0 0;
-          display: flex;
-          justify-content: center;
-          gap: 6px;
-          flex-wrap: wrap;
-          color: #7a6a52;
+        .signin-register {
+          text-align: center;
+          color: #8a7558;
           font-size: 14px;
-          line-height: 1.6;
+          margin: 2px 0 0;
         }
 
-        .signin-back {
-          margin-top: 8px;
-          display: flex;
+        .signin-register a {
+          color: #9a5d0a;
+          font-weight: 950;
+          text-decoration: none;
+        }
+
+        .signin-register a:hover {
+          text-decoration: underline;
+        }
+
+        .signin-home {
+          display: inline-flex;
           justify-content: center;
+          color: #9a5d0a;
+          font-size: 14px;
+          font-weight: 950;
+          text-decoration: none;
+          margin-top: 4px;
+        }
+
+        .signin-home:hover {
+          text-decoration: underline;
         }
 
         .signin-note {
-          margin: 10px 0 0;
-          padding: 13px 14px;
+          margin-top: 8px;
+          padding: 14px 16px;
           border-radius: 16px;
           background: #fffaf2;
           border: 1px solid #f3eadc;
@@ -392,60 +393,60 @@ export default function SignInPage() {
           text-align: center;
         }
 
-        @media (max-width: 900px) {
-          .signin-card {
-            grid-template-columns: 1fr;
-            max-width: 640px;
-          }
-
-          .signin-left {
-            padding: 34px;
-          }
-
-          .signin-right {
-            padding: 34px;
-          }
-
-          .signin-info-list {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            margin-top: 28px;
-          }
-        }
-
-        @media (max-width: 560px) {
+        @media (max-width: 860px) {
           .signin-page {
-            padding: 16px;
+            padding: 18px;
             align-items: flex-start;
           }
 
           .signin-card {
-            border-radius: 24px;
+            grid-template-columns: 1fr;
+            border-radius: 26px;
           }
 
-          .signin-left,
+          .signin-left {
+            padding: 34px 26px;
+            min-height: 320px;
+          }
+
           .signin-right {
-            padding: 24px;
+            padding: 32px 24px;
+          }
+        }
+
+        @media (max-width: 520px) {
+          .signin-page {
+            padding: 12px;
+          }
+
+          .signin-card {
+            border-radius: 22px;
+          }
+
+          .signin-left {
+            padding: 28px 22px;
+            min-height: 300px;
           }
 
           .signin-logo {
-            width: 52px;
-            height: 52px;
-            border-radius: 16px;
-            font-size: 19px;
-            margin-bottom: 22px;
+            width: 54px;
+            height: 54px;
+            border-radius: 17px;
+            font-size: 20px;
+            margin-bottom: 26px;
           }
 
           .signin-info-list {
-            grid-template-columns: 1fr;
+            margin-top: 26px;
+          }
+
+          .signin-right {
+            padding: 28px 20px;
           }
 
           .signin-input,
           .signin-button {
-            height: 45px;
-          }
-
-          .signin-row {
-            justify-content: flex-start;
+            min-height: 50px;
           }
         }
       `}</style>
@@ -471,17 +472,14 @@ export default function SignInPage() {
                 <span className="signin-dot" />
                 Qasje e sigurt në llogari
               </div>
-
               <div className="signin-info-item">
                 <span className="signin-dot" />
                 Rezervimet në një vend
               </div>
-
               <div className="signin-info-item">
                 <span className="signin-dot" />
                 Evente më të organizuara
               </div>
-
               <div className="signin-info-item">
                 <span className="signin-dot" />
                 Përvojë më e lehtë për klientë
@@ -498,40 +496,34 @@ export default function SignInPage() {
                 </p>
               </div>
 
-              {message && <p className="signin-alert success">{message}</p>}
-              {errorMessage && <p className="signin-alert error">{errorMessage}</p>}
+              {message && <div className="signin-alert success">{message}</div>}
+              {errorMessage && <div className="signin-alert error">{errorMessage}</div>}
 
-              <div className="signin-field">
-                <label htmlFor="email" className="signin-label">
-                  Email
-                </label>
-
+              <label className="signin-field">
+                <span className="signin-label">Email</span>
                 <input
-                  id="email"
-                  type="email"
-                  placeholder="Shkruaj emailin"
                   className="signin-input"
+                  type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   required
+                  autoComplete="email"
+                  placeholder="email@example.com"
                 />
-              </div>
+              </label>
 
-              <div className="signin-field">
-                <label htmlFor="password" className="signin-label">
-                  Fjalëkalimi
-                </label>
-
+              <label className="signin-field">
+                <span className="signin-label">Fjalëkalimi</span>
                 <input
-                  id="password"
-                  type="password"
-                  placeholder="Shkruaj fjalëkalimin"
                   className="signin-input"
+                  type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
+                  autoComplete="current-password"
+                  placeholder="••••••••"
                 />
-              </div>
+              </label>
 
               <div className="signin-row">
                 <Link to="/forgot-password" className="signin-link">
@@ -543,23 +535,18 @@ export default function SignInPage() {
                 {isSubmitting ? 'Duke u kyçur...' : 'Kyçu'}
               </button>
 
-              <div className="signin-footer">
-                <span>Nuk keni llogari?</span>
-                <Link to="/register" className="signin-link">
-                  Krijo llogari
-                </Link>
-              </div>
+              <p className="signin-register">
+                Nuk keni llogari? <Link to="/register">Krijo llogari</Link>
+              </p>
 
-              <div className="signin-back">
-                <Link to="/" className="signin-link">
-                  Kthehu në faqen kryesore
-                </Link>
-              </div>
+              <Link to="/" className="signin-home">
+                Kthehu në faqen kryesore
+              </Link>
 
-              <p className="signin-note">
+              <div className="signin-note">
                 Pas kyçjes, klienti mund të vazhdojë me rezervimin dhe të menaxhojë më lehtë
                 të dhënat e eventit.
-              </p>
+              </div>
             </form>
           </div>
         </section>
