@@ -22,17 +22,8 @@ function createEmailTransporter() {
 }
 
 function getFrontendUrl() {
-  if (process.env.FRONTEND_URL) {
-    return process.env.FRONTEND_URL;
-  }
-
-  if (process.env.NODE_ENV === 'production') {
-    return 'https://md-creative-event-booking-system.vercel.app';
-  }
-
-  return 'http://localhost:5173';
+  return 'https://md-creative-event-booking-system.vercel.app';
 }
-
 async function sendVerificationEmail({ to, fullName, verificationToken }) {
   if (!to) {
     throw createHttpError('Recipient email is required.', 500);
