@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { API_BASE_URL } from '../../utils/constants';
 
 type FormData = {
   fullName: string;
@@ -89,7 +90,7 @@ export default function RegisterPage() {
 
     if (!formData.email.trim()) {
       newErrors.email = 'Emaili është i detyrueshëm.';
-    } else if (!isValidEmail(formData.email)) {
+    } else if (!isValidEmail(formData.email.trim())) {
       newErrors.email = 'Shkruani një email të vlefshëm.';
     }
 
@@ -131,14 +132,14 @@ export default function RegisterPage() {
       setSuccessMessage('');
       setErrors({});
 
-      const response = await fetch('http://localhost:5000/api/auth/client-register', {
+      const response = await fetch(`${API_BASE_URL}/auth/client-register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           fullName: formData.fullName.trim(),
-          email: formData.email.trim(),
+          email: formData.email.trim().toLowerCase(),
           password: formData.password,
           phone: formData.phone.trim(),
         }),
@@ -174,13 +175,8 @@ export default function RegisterPage() {
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
 
         @keyframes registerFadeIn {
-          from {
-            opacity: 0;
-          }
-
-          to {
-            opacity: 1;
-          }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
 
         @keyframes registerCardEnter {
@@ -188,7 +184,6 @@ export default function RegisterPage() {
             opacity: 0;
             transform: translateY(18px) scale(.98);
           }
-
           to {
             opacity: 1;
             transform: translateY(0) scale(1);
@@ -244,7 +239,7 @@ export default function RegisterPage() {
           position: absolute;
           right: -18px;
           bottom: -34px;
-          font-size: clamp(100px, 17vw, 170px);
+          font-size: clamp(120px, 18vw, 210px);
           line-height: 1;
           font-weight: 950;
           color: rgba(212,145,30,.09);
@@ -254,28 +249,28 @@ export default function RegisterPage() {
         .register-logo {
           position: relative;
           z-index: 1;
-          width: 48px;
-          height: 48px;
-          border-radius: 15px;
+          width: 54px;
+          height: 54px;
+          border-radius: 17px;
           background: linear-gradient(135deg, #d4911e, #b87318);
           color: #ffffff;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 18px;
+          font-size: 20px;
           font-weight: 950;
-          box-shadow: 0 12px 26px rgba(212,145,30,.22);
-          margin-bottom: 18px;
+          box-shadow: 0 14px 30px rgba(212,145,30,.25);
+          margin-bottom: 24px;
         }
 
         .register-kicker {
           position: relative;
           z-index: 1;
-          margin: 0 0 7px;
+          margin: 0 0 9px;
           color: #d4911e;
-          font-size: 10px;
+          font-size: 11px;
           font-weight: 900;
-          letter-spacing: .16em;
+          letter-spacing: .18em;
           text-transform: uppercase;
         }
 
@@ -284,7 +279,7 @@ export default function RegisterPage() {
           z-index: 1;
           margin: 0;
           font-family: 'Cormorant Garamond', serif;
-          font-size: clamp(34px, 5vw, 52px);
+          font-size: clamp(38px, 5.5vw, 62px);
           line-height: .95;
           font-weight: 700;
         }
@@ -297,41 +292,41 @@ export default function RegisterPage() {
         .register-subtitle {
           position: relative;
           z-index: 1;
-          margin: 12px 0 0;
-          max-width: 420px;
-          color: rgba(255,255,255,.70);
-          font-size: 13px;
-          line-height: 1.55;
+          margin: 18px 0 0;
+          max-width: 430px;
+          color: rgba(255,255,255,.72);
+          font-size: 14px;
+          line-height: 1.75;
         }
 
         .register-info-list {
           position: relative;
           z-index: 1;
           display: grid;
-          gap: 8px;
-          margin-top: 20px;
+          gap: 11px;
+          margin-top: 28px;
         }
 
         .register-info-item {
           display: flex;
           align-items: center;
-          gap: 9px;
-          color: rgba(255,255,255,.78);
-          font-size: 12px;
-          font-weight: 750;
+          gap: 10px;
+          color: rgba(255,255,255,.82);
+          font-size: 13px;
+          font-weight: 800;
         }
 
         .register-dot {
-          width: 8px;
-          height: 8px;
+          width: 9px;
+          height: 9px;
           border-radius: 50%;
           background: #d4911e;
-          box-shadow: 0 0 0 4px rgba(212,145,30,.12);
+          box-shadow: 0 0 0 5px rgba(212,145,30,.12);
           flex-shrink: 0;
         }
 
         .register-right {
-          padding: 22px 28px;
+          padding: 26px 36px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -340,33 +335,33 @@ export default function RegisterPage() {
 
         .register-form {
           width: 100%;
-          max-width: 430px;
+          max-width: 460px;
           display: grid;
-          gap: 9px;
+          gap: 10px;
         }
 
         .register-form-title {
           margin: 0;
           color: #1a120b;
-          font-size: clamp(23px, 2.6vw, 30px);
-          line-height: 1.05;
+          font-size: clamp(28px, 3vw, 36px);
+          line-height: 1.1;
           font-weight: 950;
         }
 
         .register-form-text {
-          margin: -3px 0 4px;
+          margin: -4px 0 8px;
           color: #7a6a52;
-          font-size: 13px;
-          line-height: 1.45;
+          font-size: 14px;
+          line-height: 1.5;
         }
 
         .register-alert {
           margin: 0;
-          padding: 9px 11px;
-          border-radius: 12px;
-          font-size: 12px;
-          font-weight: 750;
-          line-height: 1.35;
+          padding: 11px 13px;
+          border-radius: 13px;
+          font-size: 13px;
+          font-weight: 800;
+          line-height: 1.45;
         }
 
         .register-alert.success {
@@ -384,26 +379,27 @@ export default function RegisterPage() {
         .register-field {
           display: flex;
           flex-direction: column;
-          gap: 5px;
+          gap: 6px;
         }
 
         .register-label {
           color: #6b5a45;
-          font-size: 10px;
-          font-weight: 850;
+          font-size: 11px;
+          font-weight: 900;
           letter-spacing: .04em;
           text-transform: uppercase;
         }
 
         .register-input {
           width: 100%;
-          height: 38px;
-          border-radius: 11px;
+          height: 42px;
+          border-radius: 13px;
           border: 1.5px solid #eadfce;
           background: #fffdf8;
           color: #1a120b;
-          padding: 0 12px;
-          font-size: 13px;
+          padding: 0 13px;
+          font-size: 14px;
+          font-weight: 650;
           outline: none;
           transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
         }
@@ -414,49 +410,44 @@ export default function RegisterPage() {
 
         .register-input:focus {
           border-color: #c8841a;
-          box-shadow: 0 0 0 3px rgba(200,132,26,.11);
+          box-shadow: 0 0 0 4px rgba(200,132,26,.12);
           background: #ffffff;
         }
 
-        .register-input.error {
-          border-color: #ef4444;
-          background: #fffafa;
-        }
-
-        .register-error-text {
+        .register-error {
           color: #991b1b;
-          font-size: 11px;
+          font-size: 12px;
           font-weight: 750;
-          line-height: 1.25;
+          line-height: 1.35;
         }
 
-        .register-rules {
-          margin: -1px 0 0;
-          padding: 9px 11px;
+        .register-hint {
+          padding: 10px 12px;
           border-radius: 13px;
           background: #fffaf2;
           border: 1px solid #f3eadc;
           color: #8a7558;
-          font-size: 11px;
-          line-height: 1.35;
+          font-size: 12px;
+          line-height: 1.45;
         }
 
         .register-button {
-          height: 40px;
+          height: 46px;
           border: none;
-          border-radius: 12px;
+          border-radius: 14px;
           background: linear-gradient(135deg, #d4911e, #b87318);
           color: #ffffff;
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 950;
           cursor: pointer;
-          box-shadow: 0 9px 20px rgba(200,132,26,.24);
+          box-shadow: 0 12px 26px rgba(200,132,26,.26);
           transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+          margin-top: 2px;
         }
 
         .register-button:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 13px 28px rgba(200,132,26,.32);
+          box-shadow: 0 16px 34px rgba(200,132,26,.34);
         }
 
         .register-button:disabled {
@@ -465,20 +456,20 @@ export default function RegisterPage() {
         }
 
         .register-footer {
-          margin: 0;
+          margin: 4px 0 0;
           display: flex;
           justify-content: center;
           gap: 6px;
           flex-wrap: wrap;
           color: #7a6a52;
-          font-size: 13px;
-          line-height: 1.4;
+          font-size: 14px;
+          line-height: 1.6;
         }
 
         .register-link {
           color: #9a5d0a;
-          font-size: 13px;
-          font-weight: 850;
+          font-size: 14px;
+          font-weight: 900;
           text-decoration: none;
           transition: opacity .2s ease;
         }
@@ -489,88 +480,69 @@ export default function RegisterPage() {
         }
 
         .register-back {
+          margin-top: 4px;
           display: flex;
           justify-content: center;
         }
 
         .register-note {
-          margin: 4px 0 0;
-          padding: 9px 11px;
-          border-radius: 13px;
+          margin: 8px 0 0;
+          padding: 12px 14px;
+          border-radius: 15px;
           background: #fffaf2;
           border: 1px solid #f3eadc;
           color: #8a7558;
-          font-size: 11px;
-          line-height: 1.35;
+          font-size: 12px;
+          line-height: 1.5;
           text-align: center;
         }
 
         @media (max-width: 900px) {
           .register-page {
             align-items: flex-start;
+            padding: 18px;
           }
 
           .register-shell {
             grid-template-columns: 1fr;
-            max-width: 660px;
+            max-width: 640px;
           }
 
           .register-left {
-            padding: 24px;
+            padding: 32px;
+            min-height: 320px;
           }
 
           .register-right {
-            padding: 24px;
-          }
-
-          .register-info-list {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            margin-top: 18px;
+            padding: 32px 26px;
           }
         }
 
         @media (max-width: 560px) {
           .register-page {
             padding: 12px;
-            align-items: flex-start;
           }
 
           .register-shell {
-            border-radius: 20px;
+            border-radius: 22px;
           }
 
           .register-left,
           .register-right {
-            padding: 18px;
+            padding: 24px 20px;
           }
 
           .register-logo {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-            font-size: 17px;
-            margin-bottom: 16px;
-          }
-
-          .register-title {
-            font-size: 36px;
-          }
-
-          .register-subtitle {
-            font-size: 12.5px;
-          }
-
-          .register-info-list {
-            grid-template-columns: 1fr;
+            width: 50px;
+            height: 50px;
+            border-radius: 16px;
+            font-size: 18px;
+            margin-bottom: 20px;
           }
 
           .register-input,
           .register-button {
-            height: 38px;
-          }
-
-          .register-note {
-            display: none;
+            height: 44px;
           }
         }
       `}</style>
@@ -587,8 +559,8 @@ export default function RegisterPage() {
             </h1>
 
             <p className="register-subtitle">
-              Krijo llogarinë tënde për të vazhduar me rezervimet dhe për ta organizuar festën
-              më lehtë.
+              Krijo llogarinë tënde për të vazhduar me rezervimet dhe për ta organizuar
+              festën më lehtë.
             </p>
 
             <div className="register-info-list">
@@ -615,7 +587,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="register-right">
-            <form className="register-form" onSubmit={handleSubmit} noValidate>
+            <form className="register-form" onSubmit={handleSubmit}>
               <div>
                 <h2 className="register-form-title">Regjistrohu</h2>
                 <p className="register-form-text">
@@ -623,115 +595,120 @@ export default function RegisterPage() {
                 </p>
               </div>
 
-              {successMessage && <p className="register-alert success">{successMessage}</p>}
-              {errors.general && <p className="register-alert error">{errors.general}</p>}
+              {successMessage && (
+                <p className="register-alert success">{successMessage}</p>
+              )}
+
+              {errors.general && (
+                <p className="register-alert error">{errors.general}</p>
+              )}
 
               <div className="register-field">
                 <label htmlFor="fullName" className="register-label">
                   Emri i plotë
                 </label>
-
                 <input
                   id="fullName"
-                  type="text"
                   name="fullName"
-                  placeholder="Shkruaj emrin e plotë"
+                  type="text"
+                  className="register-input"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className={`register-input ${errors.fullName ? 'error' : ''}`}
+                  placeholder="Shkruaj emrin e plotë"
+                  required
                 />
-
-                {errors.fullName && <span className="register-error-text">{errors.fullName}</span>}
+                {errors.fullName && (
+                  <span className="register-error">{errors.fullName}</span>
+                )}
               </div>
 
               <div className="register-field">
                 <label htmlFor="email" className="register-label">
                   Email
                 </label>
-
                 <input
                   id="email"
-                  type="email"
                   name="email"
-                  placeholder="Shkruaj emailin"
+                  type="email"
+                  className="register-input"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`register-input ${errors.email ? 'error' : ''}`}
+                  placeholder="email@example.com"
+                  required
                 />
-
-                {errors.email && <span className="register-error-text">{errors.email}</span>}
+                {errors.email && <span className="register-error">{errors.email}</span>}
               </div>
 
               <div className="register-field">
                 <label htmlFor="phone" className="register-label">
                   Numri i telefonit
                 </label>
-
                 <input
                   id="phone"
-                  type="tel"
                   name="phone"
-                  placeholder="+383 44 000 000"
+                  type="tel"
+                  className="register-input"
                   value={formData.phone}
                   onChange={handleChange}
-                  className={`register-input ${errors.phone ? 'error' : ''}`}
+                  placeholder="+383..."
+                  required
                 />
-
-                {errors.phone && <span className="register-error-text">{errors.phone}</span>}
+                {errors.phone && <span className="register-error">{errors.phone}</span>}
               </div>
 
               <div className="register-field">
                 <label htmlFor="password" className="register-label">
                   Fjalëkalimi
                 </label>
-
                 <input
                   id="password"
-                  type="password"
                   name="password"
-                  placeholder="Shkruaj fjalëkalimin"
+                  type="password"
+                  className="register-input"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`register-input ${errors.password ? 'error' : ''}`}
+                  placeholder="••••••••"
+                  required
                 />
-
-                {errors.password && <span className="register-error-text">{errors.password}</span>}
+                {errors.password && (
+                  <span className="register-error">{errors.password}</span>
+                )}
               </div>
 
               <div className="register-field">
                 <label htmlFor="confirmPassword" className="register-label">
                   Konfirmo fjalëkalimin
                 </label>
-
                 <input
                   id="confirmPassword"
-                  type="password"
                   name="confirmPassword"
-                  placeholder="Përsërite fjalëkalimin"
+                  type="password"
+                  className="register-input"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`register-input ${errors.confirmPassword ? 'error' : ''}`}
+                  placeholder="••••••••"
+                  required
                 />
-
                 {errors.confirmPassword && (
-                  <span className="register-error-text">{errors.confirmPassword}</span>
+                  <span className="register-error">{errors.confirmPassword}</span>
                 )}
               </div>
 
-              <p className="register-rules">
-                Fjalëkalimi: së paku 8 karaktere, shkronjë e madhe, e vogël, numër dhe karakter special.
-              </p>
+              <div className="register-hint">
+                Fjalëkalimi: së paku 8 karaktere, shkronjë e madhe, e vogël,
+                numër dhe karakter special.
+              </div>
 
-              <button type="submit" className="register-button" disabled={isSubmitting}>
-                {isSubmitting ? 'Duke u regjistruar...' : 'Krijo llogari'}
+              <button className="register-button" type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Duke krijuar...' : 'Krijo llogari'}
               </button>
 
-              <div className="register-footer">
-                <span>Keni llogari?</span>
+              <p className="register-footer">
+                Keni llogari?{' '}
                 <Link to="/signin" className="register-link">
                   Kyçuni
                 </Link>
-              </div>
+              </p>
 
               <div className="register-back">
                 <Link to="/" className="register-link">
@@ -739,9 +716,9 @@ export default function RegisterPage() {
                 </Link>
               </div>
 
-              <p className="register-note">
+              <div className="register-note">
                 Pas regjistrimit mund t’ju kërkohet verifikimi i emailit.
-              </p>
+              </div>
             </form>
           </div>
         </section>
