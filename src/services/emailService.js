@@ -22,7 +22,15 @@ function createEmailTransporter() {
 }
 
 function getFrontendUrl() {
-  return process.env.FRONTEND_URL || 'http://localhost:5173';
+  if (process.env.FRONTEND_URL) {
+    return process.env.FRONTEND_URL;
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://md-creative-event-booking-system.vercel.app';
+  }
+
+  return 'http://localhost:5173';
 }
 
 async function sendVerificationEmail({ to, fullName, verificationToken }) {
