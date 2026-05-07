@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { API_BASE_URL } from '../../utils/constants';
 
 type VerifyState = 'loading' | 'success' | 'info' | 'error';
 
@@ -19,7 +20,7 @@ export default function VerifyEmailPage() {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/auth/verify-email?token=${encodeURIComponent(token)}`,
+          `${API_BASE_URL}/auth/verify-email?token=${encodeURIComponent(token)}`,
         );
 
         const data = await response.json();
@@ -377,8 +378,8 @@ export default function VerifyEmailPage() {
             )}
 
             <p className="verify-note">
-              Verifikimi i emailit ndihmon që llogaria juaj të jetë më e sigurt dhe rezervimet të lidhen
-              saktë me të dhënat tuaja.
+              Verifikimi i emailit ndihmon që llogaria juaj të jetë më e sigurt dhe rezervimet
+              të lidhen saktë me të dhënat tuaja.
             </p>
           </div>
         </section>
