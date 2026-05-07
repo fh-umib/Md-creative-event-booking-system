@@ -21,6 +21,10 @@ function createEmailTransporter() {
   });
 }
 
+function getFrontendUrl() {
+  return process.env.FRONTEND_URL || 'http://localhost:5173';
+}
+
 async function sendVerificationEmail({ to, fullName, verificationToken }) {
   if (!to) {
     throw createHttpError('Recipient email is required.', 500);
@@ -31,7 +35,11 @@ async function sendVerificationEmail({ to, fullName, verificationToken }) {
   }
 
   const transporter = createEmailTransporter();
-  const verifyUrl = `http://localhost:5173/verify-email?token=${verificationToken}`;
+  const frontendUrl = getFrontendUrl();
+
+  const verifyUrl = `${frontendUrl}/verify-email?token=${encodeURIComponent(
+    verificationToken
+  )}`;
 
   await transporter.sendMail({
     from: `"MD Creative" <${process.env.EMAIL_USER}>`,
@@ -84,6 +92,7 @@ async function sendVerificationEmail({ to, fullName, verificationToken }) {
     `,
   });
 }
+
 async function sendResetPasswordEmail({ to, fullName, resetToken }) {
   if (!to) {
     throw createHttpError('Recipient email is required.', 500);
@@ -94,7 +103,11 @@ async function sendResetPasswordEmail({ to, fullName, resetToken }) {
   }
 
   const transporter = createEmailTransporter();
-  const resetUrl = `http://localhost:5173/reset-password?token=${resetToken}`;
+  const frontendUrl = getFrontendUrl();
+
+  const resetUrl = `${frontendUrl}/reset-password?token=${encodeURIComponent(
+    resetToken
+  )}`;
 
   await transporter.sendMail({
     from: `"MD Creative" <${process.env.EMAIL_USER}>`,
