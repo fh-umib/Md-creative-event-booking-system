@@ -13,7 +13,10 @@ function createEmailTransporter() {
   }
 
   return nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    family: 4,
     auth: {
       user: emailUser,
       pass: emailPass,
@@ -22,8 +25,9 @@ function createEmailTransporter() {
 }
 
 function getFrontendUrl() {
-  return 'https://md-creative-event-booking-system.vercel.app';
+  return process.env.FRONTEND_URL || 'https://md-creative-event-booking-system.vercel.app';
 }
+
 async function sendVerificationEmail({ to, fullName, verificationToken }) {
   if (!to) {
     throw createHttpError('Recipient email is required.', 500);
@@ -35,10 +39,7 @@ async function sendVerificationEmail({ to, fullName, verificationToken }) {
 
   const transporter = createEmailTransporter();
   const frontendUrl = getFrontendUrl();
-
-  const verifyUrl = `${frontendUrl}/verify-email?token=${encodeURIComponent(
-    verificationToken
-  )}`;
+  const verifyUrl = `${frontendUrl}/verify-email?token=${verificationToken}`;
 
   await transporter.sendMail({
     from: `"MD Creative" <${process.env.EMAIL_USER}>`,
@@ -103,10 +104,7 @@ async function sendResetPasswordEmail({ to, fullName, resetToken }) {
 
   const transporter = createEmailTransporter();
   const frontendUrl = getFrontendUrl();
-
-  const resetUrl = `${frontendUrl}/reset-password?token=${encodeURIComponent(
-    resetToken
-  )}`;
+  const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
   await transporter.sendMail({
     from: `"MD Creative" <${process.env.EMAIL_USER}>`,
