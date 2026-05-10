@@ -14,9 +14,13 @@ function createEmailTransporter() {
 
   return nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false,
     family: 4,
+    requireTLS: true,
+    connectionTimeout: 20000,
+    greetingTimeout: 20000,
+    socketTimeout: 30000,
     auth: {
       user: emailUser,
       pass: emailPass,
@@ -25,7 +29,10 @@ function createEmailTransporter() {
 }
 
 function getFrontendUrl() {
-  return process.env.FRONTEND_URL || 'https://md-creative-event-booking-system.vercel.app';
+  return (
+    process.env.FRONTEND_URL ||
+    'https://md-creative-event-booking-system.vercel.app'
+  );
 }
 
 async function sendVerificationEmail({ to, fullName, verificationToken }) {
