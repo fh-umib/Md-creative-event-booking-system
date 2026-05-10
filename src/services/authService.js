@@ -140,7 +140,7 @@ class AuthService {
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    const user = await userModel.createUser({
+    let user = await userModel.createUser({
       fullName,
       email,
       passwordHash,
@@ -151,14 +151,37 @@ class AuthService {
       verificationTokenExpires,
     });
 
-    await sendVerificationEmail({
-      to: email,
-      fullName,
-      verificationToken,
-    });
+    let verificationEmailSent = true;
+
+    try {
+      await sendVerificationEmail({
+        to: email,
+        fullName,
+        verificationToken,
+      });
+    } catch (error) {
+      verificationEmailSent = false;
+
+      console.error('Verification email failed:', {
+        email,
+        message: error.message,
+      });
+
+      /*
+        Për demo:
+        Nëse Gmail/SMTP dështon në Render, nuk e rrëzojmë regjistrimin.
+        E aktivizojmë llogarinë automatikisht që klienti të mund të kyçet.
+        Kjo e ndalon problemin "user u ruajt, por register kthen 500".
+      */
+      user = await userModel.verifyUserById(user.id);
+    }
 
     return {
       user: sanitizeUser(user),
+      verificationEmailSent,
+      message: verificationEmailSent
+        ? 'Account created successfully. Please check your email to verify your account.'
+        : 'Account created successfully. Verification email could not be sent, so the account was activated for demo purposes.',
     };
   }
 
@@ -220,10 +243,7 @@ class AuthService {
     }
 
     if (!user.is_verified) {
-      throw createHttpError(
-        'Please verify your email before signing in.',
-        403
-      );
+      throw createHttpError('Please verify your email before signing in.', 403);
     }
 
     const validPassword = await bcrypt.compare(password, user.password_hash);
@@ -239,93 +259,104 @@ class AuthService {
       token: generateToken(safeUser),
     };
   }
+
   async forgotPassword(data) {
-  const email = data?.email ? String(data.email).trim().toLowerCase() : '';
+    const email = data?.email ? String(data.email).trim().toLowerCase() : '';
 
-  if (!email) {
-    throw createHttpError('Email is required.', 400);
-  }
+    if (!email) {
+      throw createHttpError('Email is required.', 400);
+    }
 
-  if (!isValidEmail(email)) {
-    throw createHttpError('A valid email address is required.', 400);
-  }
+    if (!isValidEmail(email)) {
+      throw createHttpError('A valid email address is required.', 400);
+    }
 
-  const user = await userModel.findByEmail(email);
+    const user = await userModel.findByEmail(email);
 
-  // Për siguri, edhe nëse emaili nuk ekziston, kthejmë të njëjtin mesazh.
-  if (!user) {
+    if (!user) {
+      return {
+        message:
+          'If an account with that email exists, a password reset link has been sent.',
+      };
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000);
+
+    await userModel.setResetPasswordToken(user.id, resetToken, resetExpires);
+
+    try {
+      await sendResetPasswordEmail({
+        to: user.email,
+        fullName: user.full_name || user.fullName,
+        resetToken,
+      });
+    } catch (error) {
+      console.error('Reset password email failed:', {
+        email: user.email,
+        message: error.message,
+      });
+
+      /*
+        Për siguri, prapë kthejmë mesazh të përgjithshëm.
+        Kjo e ndalon forgot-password me ra 500 nëse Gmail dështon.
+      */
+    }
+
     return {
       message:
         'If an account with that email exists, a password reset link has been sent.',
     };
   }
 
-  
+  async resetPassword(data) {
+    const token = data?.token ? String(data.token).trim() : '';
+    const password = data?.password ? String(data.password) : '';
 
-  const resetToken = crypto.randomBytes(32).toString('hex');
-  const resetExpires = new Date(Date.now() + 60 * 60 * 1000);
+    if (!token) {
+      throw createHttpError('Reset token is required.', 400);
+    }
 
-  await userModel.setResetPasswordToken(user.id, resetToken, resetExpires);
+    if (!password) {
+      throw createHttpError('New password is required.', 400);
+    }
 
-  await sendResetPasswordEmail({
-    to: user.email,
-    fullName: user.full_name || user.fullName,
-    resetToken,
-  });
+    if (!isStrongPassword(password)) {
+      throw createHttpError(
+        'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.',
+        400
+      );
+    }
 
-  return {
-    message:
-      'If an account with that email exists, a password reset link has been sent.',
-  };
-}
-async resetPassword(data) {
-  const token = data?.token ? String(data.token).trim() : '';
-  const password = data?.password ? String(data.password) : '';
+    const user = await userModel.findByResetPasswordToken(token);
 
-  if (!token) {
-    throw createHttpError('Reset token is required.', 400);
-  }
+    if (!user) {
+      throw createHttpError(
+        'This reset link is invalid or has already been used.',
+        400
+      );
+    }
 
-  if (!password) {
-    throw createHttpError('New password is required.', 400);
-  }
+    if (
+      user.reset_password_expires &&
+      new Date(user.reset_password_expires).getTime() < Date.now()
+    ) {
+      await userModel.clearResetPasswordToken(user.id);
+      throw createHttpError('This reset link has expired.', 400);
+    }
 
-  if (!isStrongPassword(password)) {
-    throw createHttpError(
-      'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.',
-      400
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const updatedUser = await userModel.updatePasswordByUserId(
+      user.id,
+      passwordHash
     );
+
+    return {
+      message: 'Your password has been reset successfully.',
+      user: sanitizeUser(updatedUser),
+    };
   }
-
-  const user = await userModel.findByResetPasswordToken(token);
-
-  if (!user) {
-    throw createHttpError(
-      'This reset link is invalid or has already been used.',
-      400
-    );
-  }
-
-  if (
-    user.reset_password_expires &&
-    new Date(user.reset_password_expires).getTime() < Date.now()
-  ) {
-    await userModel.clearResetPasswordToken(user.id);
-    throw createHttpError('This reset link has expired.', 400);
-  }
-
-  const passwordHash = await bcrypt.hash(password, 10);
-
-  const updatedUser = await userModel.updatePasswordByUserId(
-    user.id,
-    passwordHash
-  );
-
-  return {
-    message: 'Your password has been reset successfully.',
-    user: sanitizeUser(updatedUser),
-  };
-}
 }
 
 module.exports = new AuthService();
