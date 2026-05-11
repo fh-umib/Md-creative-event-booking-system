@@ -1,61 +1,64 @@
-import type { BookingRecord, CreateBookingPayload } from '../../types';
+import { API_URL } from '../apiBase';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+export type BookingPayload = {
+  customerId?: number | null;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  eventTitle: string;
+  eventDate: string;
+  eventTime: string;
+  eventLocation: string;
+  guestCount?: number | null;
+  packageId?: number | null;
+  notes?: string | null;
+  selectedMascots?: number[];
+  selectedActivities?: number[];
+  selectedExtras?: number[];
+};
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  const json = await response.json();
+async function readJsonResponse(response: Response) {
+  const text = await response.text();
 
-  if (!response.ok || !json.success) {
-    throw new Error(json.message || 'Request failed.');
+  if (!text) {
+    return {};
   }
 
-  return json.data as T;
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(
+      'Serveri nuk ktheu përgjigje JSON. Kontrollo API URL dhe backend route.',
+    );
+  }
 }
 
-export const bookingService = {
-  async create(payload: CreateBookingPayload): Promise<BookingRecord> {
-    const response = await fetch(`${API_BASE_URL}/bookings`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
+export async function createBooking(payload: BookingPayload) {
+  const response = await fetch(`${API_URL}/bookings`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
 
-    return handleResponse<BookingRecord>(response);
-  },
+  const data = await readJsonResponse(response);
 
-  async getAll(): Promise<BookingRecord[]> {
-    const response = await fetch(`${API_BASE_URL}/bookings`);
-    return handleResponse<BookingRecord[]>(response);
-  },
+  if (!response.ok) {
+    throw new Error(data?.message || 'Rezervimi dështoi.');
+  }
 
-  async getById(id: number): Promise<BookingRecord> {
-    const response = await fetch(`${API_BASE_URL}/bookings/${id}`);
-    return handleResponse<BookingRecord>(response);
-  },
+  return data;
+}
 
-  async updateStatus(id: number, status: string): Promise<BookingRecord> {
-    const response = await fetch(`${API_BASE_URL}/bookings/${id}/status`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ status }),
-    });
+export async function getMyBookings(customerId: number) {
+  const response = await fetch(`${API_URL}/bookings/customer/${customerId}`);
 
-    return handleResponse<BookingRecord>(response);
-  },
+  const data = await readJsonResponse(response);
 
-  async updatePaymentStatus(id: number, paymentStatus: string): Promise<BookingRecord> {
-    const response = await fetch(`${API_BASE_URL}/bookings/${id}/payment-status`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ paymentStatus }),
-    });
+  if (!response.ok) {
+    throw new Error(data?.message || 'Rezervimet nuk u morën.');
+  }
 
-    return handleResponse<BookingRecord>(response);
-  },
-};
+  return data;
+}

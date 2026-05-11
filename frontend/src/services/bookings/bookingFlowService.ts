@@ -1,48 +1,55 @@
-import type {
-  BookingCategoryKey,
-  BookingCategoryOption,
-  BookingCustomizationConfig,
-  BookingFlowConfiguration,
-  Package,
-} from '../../types';
+import { API_URL } from '../apiBase';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+async function readJsonResponse(response: Response) {
+  const text = await response.text();
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  const json = await response.json();
-
-  if (!response.ok || !json.success) {
-    throw new Error(json.message || 'Request failed.');
+  if (!text) {
+    return {};
   }
 
-  return json.data as T;
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(
+      'Serveri nuk ktheu përgjigje JSON. Kontrollo API URL dhe backend route.',
+    );
+  }
 }
 
-export const bookingFlowService = {
-  async getCategories(): Promise<BookingCategoryOption[]> {
-    const response = await fetch(`${API_BASE_URL}/booking-flow/categories`);
-    return handleResponse<BookingCategoryOption[]>(response);
-  },
+export async function getBookingCategories() {
+  const response = await fetch(`${API_URL}/booking-flow/categories`);
 
-  async getPackagesByCategory(category: BookingCategoryKey): Promise<Package[]> {
-    const response = await fetch(`${API_BASE_URL}/booking-flow/packages/${category}`);
-    return handleResponse<Package[]>(response);
-  },
+  const data = await readJsonResponse(response);
 
-  async getCustomizationConfig(
-    category: BookingCategoryKey
-  ): Promise<BookingCustomizationConfig> {
-    const response = await fetch(
-      `${API_BASE_URL}/booking-flow/customization/${category}`
-    );
-    return handleResponse<BookingCustomizationConfig>(response);
-  },
+  if (!response.ok) {
+    throw new Error(data?.message || 'Kategoritë nuk u morën.');
+  }
 
-  async getFlowConfiguration(
-    category?: BookingCategoryKey
-  ): Promise<BookingFlowConfiguration> {
-    const query = category ? `?category=${category}` : '';
-    const response = await fetch(`${API_BASE_URL}/booking-flow/configuration${query}`);
-    return handleResponse<BookingFlowConfiguration>(response);
-  },
-};
+  return data;
+}
+
+export async function getPackagesByCategory(category: string) {
+  const response = await fetch(
+    `${API_URL}/booking-flow/packages/${encodeURIComponent(category)}`,
+  );
+
+  const data = await readJsonResponse(response);
+
+  if (!response.ok) {
+    throw new Error(data?.message || 'Paketat nuk u morën.');
+  }
+
+  return data;
+}
+
+export async function getBookingCustomization(packageId: number) {
+  const response = await fetch(`${API_URL}/booking-flow/customization/${packageId}`);
+
+  const data = await readJsonResponse(response);
+
+  if (!response.ok) {
+    throw new Error(data?.message || 'Opsionet e rezervimit nuk u morën.');
+  }
+
+  return data;
+}

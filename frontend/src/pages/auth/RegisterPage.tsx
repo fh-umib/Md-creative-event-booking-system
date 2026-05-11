@@ -20,6 +20,18 @@ type FormErrors = {
   general?: string;
 };
 
+type RegisterResponse = {
+  success?: boolean;
+  message?: string;
+  data?: {
+    user?: unknown;
+    verificationEmailSent?: boolean;
+    message?: string;
+  };
+  user?: unknown;
+  verificationEmailSent?: boolean;
+};
+
 const initialForm: FormData = {
   fullName: '',
   email: '',
@@ -45,6 +57,32 @@ function isStrongPassword(password: string) {
 function isValidPhone(phone: string) {
   const cleaned = phone.replace(/\s+/g, '');
   return /^\+?[0-9]{8,15}$/.test(cleaned);
+}
+
+function getApiBaseUrl() {
+  const cleanBaseUrl = API_BASE_URL.replace(/\/$/, '');
+
+  if (cleanBaseUrl.endsWith('/api')) {
+    return cleanBaseUrl;
+  }
+
+  return `${cleanBaseUrl}/api`;
+}
+
+async function readResponse(response: Response): Promise<RegisterResponse> {
+  const text = await response.text();
+
+  if (!text) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(text) as RegisterResponse;
+  } catch {
+    throw new Error(
+      'Serveri nuk ktheu përgjigje JSON. Kontrollo që API URL të përfundojë me /api.',
+    );
+  }
 }
 
 export default function RegisterPage() {
@@ -132,7 +170,9 @@ export default function RegisterPage() {
       setSuccessMessage('');
       setErrors({});
 
-      const response = await fetch(`${API_BASE_URL}/auth/client-register`, {
+      const apiBaseUrl = getApiBaseUrl();
+
+      const response = await fetch(`${apiBaseUrl}/auth/client-register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,16 +185,28 @@ export default function RegisterPage() {
         }),
       });
 
-      const data = await response.json();
+      const data = await readResponse(response);
 
       if (!response.ok) {
         throw new Error(data?.message || 'Regjistrimi dështoi.');
       }
 
-      setSuccessMessage(
-        data?.message ||
+      const verificationEmailSent =
+        data?.data?.verificationEmailSent ?? data?.verificationEmailSent;
+
+      const messageFromServer = data?.data?.message || data?.message;
+
+      if (messageFromServer) {
+        setSuccessMessage(messageFromServer);
+      } else if (verificationEmailSent === false) {
+        setSuccessMessage(
+          'Llogaria u krijua me sukses. Në versionin online, llogaria është aktivizuar automatikisht.',
+        );
+      } else {
+        setSuccessMessage(
           'Llogaria u krijua me sukses. Kontrolloni emailin për verifikim.',
-      );
+        );
+      }
 
       setFormData(initialForm);
     } catch (error) {
@@ -559,8 +611,8 @@ export default function RegisterPage() {
             </h1>
 
             <p className="register-subtitle">
-              Krijo llogarinë tënde për të vazhduar me rezervimet dhe për ta organizuar
-              festën më lehtë.
+              Krijo llogarinë tënde për të vazhduar me rezervimet dhe për ta
+              organizuar festën më lehtë.
             </p>
 
             <div className="register-info-list">
@@ -587,7 +639,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="register-right">
-            <form className="register-form" onSubmit={handleSubmit}>
+            <form className="register-form" onSubmit={handleSubmit} noValidate>
               <div>
                 <h2 className="register-form-title">Regjistrohu</h2>
                 <p className="register-form-text">
@@ -615,7 +667,6 @@ export default function RegisterPage() {
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder="Shkruaj emrin e plotë"
-                  required
                 />
                 {errors.fullName && (
                   <span className="register-error">{errors.fullName}</span>
@@ -634,9 +685,10 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="email@example.com"
-                  required
                 />
-                {errors.email && <span className="register-error">{errors.email}</span>}
+                {errors.email && (
+                  <span className="register-error">{errors.email}</span>
+                )}
               </div>
 
               <div className="register-field">
@@ -651,9 +703,10 @@ export default function RegisterPage() {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="+383..."
-                  required
                 />
-                {errors.phone && <span className="register-error">{errors.phone}</span>}
+                {errors.phone && (
+                  <span className="register-error">{errors.phone}</span>
+                )}
               </div>
 
               <div className="register-field">
@@ -668,7 +721,6 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  required
                 />
                 {errors.password && (
                   <span className="register-error">{errors.password}</span>
@@ -687,7 +739,6 @@ export default function RegisterPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  required
                 />
                 {errors.confirmPassword && (
                   <span className="register-error">{errors.confirmPassword}</span>
@@ -717,7 +768,8 @@ export default function RegisterPage() {
               </div>
 
               <div className="register-note">
-                Pas regjistrimit mund t’ju kërkohet verifikimi i emailit.
+                Në server lokal kërkohet verifikimi i emailit. Në Render,
+                llogaria aktivizohet automatikisht për demo.
               </div>
             </form>
           </div>

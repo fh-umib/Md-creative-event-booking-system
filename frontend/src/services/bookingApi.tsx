@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+import { API_URL } from './apiBase';
 
 export type PublicBookingPayload = {
   full_name: string;
@@ -16,8 +16,24 @@ export type PublicBookingPayload = {
   package_id: number | '';
 };
 
+async function readJsonResponse(response: Response) {
+  const text = await response.text();
+
+  if (!text) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(
+      'Serveri nuk ktheu përgjigje JSON. Kontrollo API URL dhe backend route.',
+    );
+  }
+}
+
 export async function createPublicBooking(payload: PublicBookingPayload) {
-  const response = await fetch(`${API_BASE_URL}/bookings`, {
+  const response = await fetch(`${API_URL}/bookings`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -28,10 +44,11 @@ export async function createPublicBooking(payload: PublicBookingPayload) {
     }),
   });
 
+  const data = await readJsonResponse(response);
+
   if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    throw new Error(data.message || 'Failed to create booking');
+    throw new Error(data?.message || 'Failed to create booking');
   }
 
-  return response.json();
+  return data;
 }

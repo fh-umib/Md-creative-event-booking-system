@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api/packages';
+import { API_URL } from './apiBase';
 
 export type PackageCategorySummary = {
   category: string;
@@ -23,11 +23,24 @@ export type PackageItem = {
 type ApiResponse<T> = {
   success: boolean;
   message?: string;
+  error?: string;
   data: T;
 };
 
 async function handleResponse<T>(response: Response): Promise<T> {
-  const result = await response.json().catch(() => null);
+  const text = await response.text();
+
+  let result: ApiResponse<T> | null = null;
+
+  if (text) {
+    try {
+      result = JSON.parse(text) as ApiResponse<T>;
+    } catch {
+      throw new Error(
+        'Serveri nuk ktheu përgjigje JSON. Kontrollo API URL dhe backend route.',
+      );
+    }
+  }
 
   if (!response.ok) {
     const message =
@@ -46,7 +59,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export async function getPublicPackages(): Promise<PackageItem[]> {
-  const response = await fetch(API_BASE_URL);
+  const response = await fetch(`${API_URL}/packages`);
   const result = await handleResponse<ApiResponse<PackageItem[]>>(response);
 
   return Array.isArray(result.data)
@@ -80,16 +93,18 @@ export async function getPackageCategories(): Promise<PackageCategorySummary[]> 
   });
 }
 
-export async function getPackagesByCategory(category: string): Promise<PackageItem[]> {
+export async function getPackagesByCategory(
+  category: string,
+): Promise<PackageItem[]> {
   const packages = await getPublicPackages();
 
   return packages.filter(
-    (item) => item.category.toLowerCase() === category.toLowerCase()
+    (item) => item.category.toLowerCase() === category.toLowerCase(),
   );
 }
 
 export async function getPackageById(id: string): Promise<PackageItem> {
-  const response = await fetch(`${API_BASE_URL}/${id}`);
+  const response = await fetch(`${API_URL}/packages/${id}`);
   const result = await handleResponse<ApiResponse<PackageItem>>(response);
 
   return result.data;

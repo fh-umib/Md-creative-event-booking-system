@@ -34,6 +34,10 @@ function sanitizeUser(user) {
   };
 }
 
+function isProductionEnvironment() {
+  return process.env.NODE_ENV === 'production';
+}
+
 class AuthService {
   async register(data) {
     const fullName = data?.fullName ? String(data.fullName).trim() : '';
@@ -137,51 +141,62 @@ class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    let user = await userModel.createUser({
+    /*
+      RENDER / PRODUCTION:
+      Në Render nuk kërkojmë email verification, sepse Gmail SMTP po bën timeout.
+      User-i krijohet menjëherë i verifikuar për demo/deployment.
+      
+      LOCAL:
+      Në server lokal e mbajmë email verification normalisht.
+    */
+    const shouldSkipEmailVerification = isProductionEnvironment();
+
+    const verificationToken = shouldSkipEmailVerification
+      ? null
+      : crypto.randomBytes(32).toString('hex');
+
+    const verificationTokenExpires = shouldSkipEmailVerification
+      ? null
+      : new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const user = await userModel.createUser({
       fullName,
       email,
       passwordHash,
       phone,
       role: 'Client',
-      isVerified: false,
+      isVerified: shouldSkipEmailVerification,
       verificationToken,
       verificationTokenExpires,
     });
 
-    let verificationEmailSent = true;
+    if (!shouldSkipEmailVerification) {
+      try {
+        await sendVerificationEmail({
+          to: email,
+          fullName,
+          verificationToken,
+        });
+      } catch (error) {
+        console.error('Verification email failed in local/development:', {
+          email,
+          message: error.message,
+        });
 
-    try {
-      await sendVerificationEmail({
-        to: email,
-        fullName,
-        verificationToken,
-      });
-    } catch (error) {
-      verificationEmailSent = false;
-
-      console.error('Verification email failed:', {
-        email,
-        message: error.message,
-      });
-
-      /*
-        Për demo:
-        Nëse Gmail/SMTP dështon në Render, nuk e rrëzojmë regjistrimin.
-        E aktivizojmë llogarinë automatikisht që klienti të mund të kyçet.
-        Kjo e ndalon problemin "user u ruajt, por register kthen 500".
-      */
-      user = await userModel.verifyUserById(user.id);
+        throw createHttpError(
+          'Account was created, but verification email could not be sent. Please check email configuration.',
+          500
+        );
+      }
     }
 
     return {
       user: sanitizeUser(user),
-      verificationEmailSent,
-      message: verificationEmailSent
-        ? 'Account created successfully. Please check your email to verify your account.'
-        : 'Account created successfully. Verification email could not be sent, so the account was activated for demo purposes.',
+      verificationEmailSent: !shouldSkipEmailVerification,
+      message: shouldSkipEmailVerification
+        ? 'Client account created successfully. You can sign in now.'
+        : 'Client account created successfully. Please check your email to verify your account.',
     };
   }
 
@@ -296,11 +311,6 @@ class AuthService {
         email: user.email,
         message: error.message,
       });
-
-      /*
-        Për siguri, prapë kthejmë mesazh të përgjithshëm.
-        Kjo e ndalon forgot-password me ra 500 nëse Gmail dështon.
-      */
     }
 
     return {
