@@ -62,3 +62,8 @@ export async function getMyBookings(customerId: number) {
 
   return data;
 }
+
+export const bookingService = {
+  createBooking,
+  getMyBookings,
+};

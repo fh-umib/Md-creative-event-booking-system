@@ -28,3 +28,10 @@ export const ADMIN_ROUTES = {
   mascots: '/admin/mascots',
   packages: '/admin/packages',
 } as const;
+
+export const STORAGE_KEYS = {
+  authToken: 'md_auth_token',
+  authUser: 'md_auth_user',
+  token: 'token',
+  user: 'user',
+} as const;
