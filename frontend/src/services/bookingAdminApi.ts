@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+import { API_URL } from './apiBase';
 
 export type AdminBooking = {
   id: number;
@@ -31,7 +31,10 @@ type ApiResponse<T> = {
 };
 
 function getAuthToken() {
-  return localStorage.getItem('md_auth_token');
+  return (
+    localStorage.getItem('md_auth_token') ||
+    localStorage.getItem('token')
+  );
 }
 
 function getAuthHeaders(includeJson = false): HeadersInit {
@@ -45,30 +48,49 @@ function getAuthHeaders(includeJson = false): HeadersInit {
 
 async function parseResponse<T>(
   response: Response,
-  fallbackMessage: string
+  fallbackMessage: string,
 ): Promise<T> {
-  const json = await response.json().catch(() => ({}));
+  const text = await response.text();
+
+  let json: ApiResponse<T> | T | { message?: string } = {};
+
+  if (text) {
+    try {
+      json = JSON.parse(text) as ApiResponse<T> | T | { message?: string };
+    } catch {
+      throw new Error(
+        'Serveri nuk ktheu përgjigje JSON. Kontrollo API URL dhe backend route.',
+      );
+    }
+  }
 
   if (!response.ok) {
     throw new Error((json as { message?: string }).message || fallbackMessage);
   }
 
-  const parsed = json as ApiResponse<T> | T;
-
   if (
-    typeof parsed === 'object' &&
-    parsed !== null &&
-    'data' in parsed
+    typeof json === 'object' &&
+    json !== null &&
+    'success' in json &&
+    (json as ApiResponse<T>).success === false
   ) {
-    return (parsed as ApiResponse<T>).data as T;
+    throw new Error((json as ApiResponse<T>).message || fallbackMessage);
   }
 
-  return parsed as T;
+  if (
+    typeof json === 'object' &&
+    json !== null &&
+    'data' in json
+  ) {
+    return (json as ApiResponse<T>).data as T;
+  }
+
+  return json as T;
 }
 
 export async function getAdminBookings(
   search = '',
-  status = ''
+  status = '',
 ): Promise<AdminBooking[]> {
   const params = new URLSearchParams();
 
@@ -83,66 +105,66 @@ export async function getAdminBookings(
   const query = params.toString();
 
   const response = await fetch(
-    `${API_BASE_URL}/admin/bookings${query ? `?${query}` : ''}`,
+    `${API_URL}/admin/bookings${query ? `?${query}` : ''}`,
     {
       headers: getAuthHeaders(),
-    }
+    },
   );
 
   return parseResponse<AdminBooking[]>(response, 'Failed to load bookings');
 }
 
 export async function getAdminBookingById(id: number): Promise<AdminBooking> {
-  const response = await fetch(`${API_BASE_URL}/admin/bookings/${id}`, {
+  const response = await fetch(`${API_URL}/admin/bookings/${id}`, {
     headers: getAuthHeaders(),
   });
 
   return parseResponse<AdminBooking>(
     response,
-    'Failed to load booking details'
+    'Failed to load booking details',
   );
 }
 
 export async function updateAdminBookingStatus(
   id: number,
-  status: 'Pending' | 'Approved' | 'Completed' | 'Cancelled'
+  status: 'Pending' | 'Approved' | 'Completed' | 'Cancelled',
 ): Promise<AdminBooking> {
   const response = await fetch(
-    `${API_BASE_URL}/admin/bookings/${id}/status`,
+    `${API_URL}/admin/bookings/${id}/status`,
     {
       method: 'PATCH',
       headers: getAuthHeaders(true),
       body: JSON.stringify({ status }),
-    }
+    },
   );
 
   return parseResponse<AdminBooking>(
     response,
-    'Failed to update booking status'
+    'Failed to update booking status',
   );
 }
 
 export async function updateAdminPaymentStatus(
   id: number,
-  payment_status: 'Unpaid' | 'Partially Paid' | 'Paid' | 'Refunded'
+  payment_status: 'Unpaid' | 'Partially Paid' | 'Paid' | 'Refunded',
 ): Promise<AdminBooking> {
   const response = await fetch(
-    `${API_BASE_URL}/admin/bookings/${id}/payment-status`,
+    `${API_URL}/admin/bookings/${id}/payment-status`,
     {
       method: 'PATCH',
       headers: getAuthHeaders(true),
       body: JSON.stringify({ payment_status }),
-    }
+    },
   );
 
   return parseResponse<AdminBooking>(
     response,
-    'Failed to update payment status'
+    'Failed to update payment status',
   );
 }
 
 export async function deleteAdminBooking(id: number): Promise<AdminBooking> {
-  const response = await fetch(`${API_BASE_URL}/admin/bookings/${id}`, {
+  const response = await fetch(`${API_URL}/admin/bookings/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
