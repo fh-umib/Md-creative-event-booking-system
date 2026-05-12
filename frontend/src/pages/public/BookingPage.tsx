@@ -121,6 +121,11 @@ function SuccessScreen({ username, onReset }: { username: string; onReset: () =>
   );
 }
 
+function timeToMinutes(time: string) {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
 export default function BookingPage() {
   const [form, setForm] = useState<BookingFormState>(initialForm);
   const [packages, setPackages] = useState<PackageItem[]>([]);
@@ -151,6 +156,21 @@ export default function BookingPage() {
     try {
       setSubmitting(true);
       setError('');
+
+      if (!form.start_time || !form.end_time) {
+        setError('Ju lutem plotësoni orën e fillimit dhe orën e përfundimit.');
+        setSubmitting(false);
+        return;
+      }
+
+      const startMinutes = timeToMinutes(form.start_time);
+      const endMinutes = timeToMinutes(form.end_time);
+
+      if (endMinutes <= startMinutes) {
+        setError('Ora e përfundimit duhet të jetë më vonë se ora e fillimit.');
+        setSubmitting(false);
+        return;
+      }
 
       await createPublicBooking(form);
 
@@ -320,6 +340,7 @@ export default function BookingPage() {
                       type="time"
                       value={form.start_time}
                       onChange={(event) => handleChange('start_time', event.target.value)}
+                      required
                     />
                   </Field>
 
@@ -329,6 +350,7 @@ export default function BookingPage() {
                       type="time"
                       value={form.end_time}
                       onChange={(event) => handleChange('end_time', event.target.value)}
+                      required
                     />
                   </Field>
                 </div>

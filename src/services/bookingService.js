@@ -26,6 +26,31 @@ function isPositiveInteger(value) {
   return Number.isInteger(numericValue) && numericValue > 0;
 }
 
+function timeToMinutes(value) {
+  if (!value) {
+    return null;
+  }
+
+  const normalizedValue = String(value).trim().replace('"', ':');
+  const [hoursText, minutesText] = normalizedValue.split(':');
+
+  const hours = Number(hoursText);
+  const minutes = Number(minutesText);
+
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    throw createHttpError('Time format is invalid.', 400);
+  }
+
+  return hours * 60 + minutes;
+}
+
 class BookingService {
   async createBooking(payload) {
     const {
@@ -80,7 +105,10 @@ class BookingService {
       }
     }
 
-    if (start_time && end_time && String(start_time) >= String(end_time)) {
+    const startMinutes = timeToMinutes(start_time);
+    const endMinutes = timeToMinutes(end_time);
+
+    if (startMinutes !== null && endMinutes !== null && endMinutes <= startMinutes) {
       throw createHttpError('End time must be later than start time.', 400);
     }
 

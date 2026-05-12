@@ -32,7 +32,39 @@ async function readJsonResponse(response: Response) {
   }
 }
 
+function timeToMinutes(time: string) {
+  const [hours, minutes] = time.split(':').map(Number);
+
+  if (
+    Number.isNaN(hours) ||
+    Number.isNaN(minutes) ||
+    hours < 0 ||
+    hours > 23 ||
+    minutes < 0 ||
+    minutes > 59
+  ) {
+    throw new Error('Formati i orës nuk është valid.');
+  }
+
+  return hours * 60 + minutes;
+}
+
+function validateBookingTimes(payload: PublicBookingPayload) {
+  if (!payload.start_time || !payload.end_time) {
+    throw new Error('Ju lutem plotësoni orën e fillimit dhe orën e përfundimit.');
+  }
+
+  const startMinutes = timeToMinutes(payload.start_time);
+  const endMinutes = timeToMinutes(payload.end_time);
+
+  if (endMinutes <= startMinutes) {
+    throw new Error('Ora e përfundimit duhet të jetë më vonë se ora e fillimit.');
+  }
+}
+
 export async function createPublicBooking(payload: PublicBookingPayload) {
+  validateBookingTimes(payload);
+
   const response = await fetch(`${API_URL}/bookings`, {
     method: 'POST',
     headers: {
