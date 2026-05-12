@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-
 const navItems = [
   { label: 'Ballina', path: '/' },
   { label: 'Dekorime', path: '/decorations' },
@@ -12,10 +11,10 @@ const navItems = [
   { label: 'Galeria', path: '/gallery' },
   { label: 'Ekipi Ynë', path: '/our-team' },
   { label: 'Vlerësimet', path: '/reviews' },
-   { label: 'Admin', path: '/admin/login' },
+  { label: 'Admin', path: '/admin/login' },
 ];
 
-const EMAIL = 'mdcreative.bookin@gmail.com';
+const EMAIL = 'mdcreative.booking@gmail.com';
 const PHONE_DISPLAY = '+383 44 378 786';
 const PHONE_LINK = '+38344378786';
 
@@ -362,12 +361,15 @@ export default function PublicLayout() {
           right: 14px;
           z-index: 1300;
           width: min(360px, calc(100vw - 28px));
+          max-height: calc(100dvh - 88px);
           background: #fff;
           border: 1px solid #e8ddd0;
           border-radius: 24px;
           box-shadow: 0 20px 60px rgba(26, 18, 11, .22);
           overflow: hidden;
           animation: pl-dropIn .22s ease both;
+          display: flex;
+          flex-direction: column;
         }
 
         @keyframes pl-dropIn {
@@ -383,15 +385,16 @@ export default function PublicLayout() {
         }
 
         .pl-dropdown-head {
-          padding: 18px 18px 14px;
+          padding: 14px 16px 10px;
           background: linear-gradient(135deg, #1a120b 0%, #2c1a0a 100%);
           color: #fff;
+          flex-shrink: 0;
         }
 
         .pl-dropdown-kicker {
-          margin: 0 0 7px;
+          margin: 0 0 4px;
           color: #c8841a;
-          font-size: 10px;
+          font-size: 9px;
           font-weight: 900;
           letter-spacing: .16em;
           text-transform: uppercase;
@@ -400,16 +403,18 @@ export default function PublicLayout() {
         .pl-dropdown-title {
           margin: 0;
           font-family: 'Cormorant Garamond', serif;
-          font-size: 26px;
-          line-height: 1.05;
+          font-size: 22px;
+          line-height: 1;
           font-weight: 700;
         }
 
         .pl-dropdown-nav {
-          padding: 12px;
+          padding: 8px 10px 7px;
           display: grid;
-          gap: 6px;
-          overflow: visible;
+          gap: 3px;
+          overflow-y: auto;
+          flex: 1 1 auto;
+          min-height: 0;
         }
 
         .pl-dropdown-link {
@@ -419,10 +424,11 @@ export default function PublicLayout() {
           gap: 10px;
           text-decoration: none;
           color: #1a120b;
-          font-size: 14px;
+          font-size: 12.5px;
           font-weight: 800;
-          padding: 10px 13px;
-          border-radius: 14px;
+          padding: 6px 10px;
+          min-height: 31px;
+          border-radius: 12px;
           background: #fff;
           border: 1px solid transparent;
           transition: background .2s ease, border-color .2s ease, color .2s ease;
@@ -440,18 +446,19 @@ export default function PublicLayout() {
         }
 
         .pl-dropdown-actions {
-          padding: 0 12px 12px;
+          padding: 0 10px 8px;
           display: grid;
-          gap: 8px;
+          gap: 6px;
+          flex-shrink: 0;
         }
 
         .pl-dropdown-action {
-          height: 42px;
-          border-radius: 14px;
+          height: 34px;
+          border-radius: 12px;
           border: none;
           cursor: pointer;
           font-family: 'DM Sans', sans-serif;
-          font-size: 13px;
+          font-size: 12px;
           font-weight: 900;
         }
 
@@ -467,23 +474,26 @@ export default function PublicLayout() {
         }
 
         .pl-dropdown-contact {
-          padding: 13px 16px 15px;
+          padding: 8px 12px 10px;
           background: #faf7f2;
           border-top: 1px solid #e8ddd0;
+          flex-shrink: 0;
         }
 
         .pl-dropdown-contact p {
-          margin: 0 0 6px;
+          margin: 0 0 4px;
           color: #7a6a52;
-          font-size: 12px;
-          line-height: 1.5;
+          font-size: 10.8px;
+          line-height: 1.35;
         }
 
         .pl-dropdown-contact a {
           color: #92640e;
-          font-size: 12px;
-          font-weight: 800;
+          font-size: 10.8px;
+          font-weight: 900;
           text-decoration: none;
+          line-height: 1.25;
+          word-break: break-word;
         }
 
         .pl-main {
@@ -766,43 +776,11 @@ export default function PublicLayout() {
           }
 
           .pl-dropdown {
-            top: 74px;
-            right: 12px;
-            width: calc(100vw - 24px);
-            border-radius: 22px;
-          }
-
-          .pl-dropdown-head {
-            padding: 16px 17px 12px;
-          }
-
-          .pl-dropdown-title {
-            font-size: 24px;
-          }
-
-          .pl-dropdown-nav {
-            padding: 11px;
-            gap: 5px;
-          }
-
-          .pl-dropdown-link {
-            font-size: 13px;
-            padding: 9px 12px;
-            border-radius: 13px;
-          }
-
-          .pl-dropdown-actions {
-            padding: 0 11px 11px;
-            gap: 7px;
-          }
-
-          .pl-dropdown-action {
-            height: 40px;
-            font-size: 12.5px;
-          }
-
-          .pl-dropdown-contact {
-            padding: 11px 15px 13px;
+            top: 72px;
+            right: 10px;
+            width: calc(100vw - 20px);
+            max-height: calc(100dvh - 82px);
+            border-radius: 21px;
           }
 
           .pl-footer-cta {
@@ -862,21 +840,58 @@ export default function PublicLayout() {
           }
 
           .pl-dropdown {
-            top: 72px;
+            top: 70px;
+            right: 8px;
+            width: calc(100vw - 16px);
+            max-height: calc(100dvh - 78px);
+            border-radius: 19px;
+          }
+
+          .pl-dropdown-head {
+            padding: 11px 13px 8px;
+          }
+
+          .pl-dropdown-kicker {
+            font-size: 8.5px;
+          }
+
+          .pl-dropdown-title {
+            font-size: 19px;
+          }
+
+          .pl-dropdown-nav {
+            padding: 7px 8px 6px;
+            gap: 2px;
           }
 
           .pl-dropdown-link {
-            font-size: 12.5px;
-            padding: 8px 11px;
+            font-size: 11.3px;
+            padding: 5px 8px;
+            min-height: 28px;
+          }
+
+          .pl-dropdown-actions {
+            padding: 0 8px 7px;
+            gap: 5px;
           }
 
           .pl-dropdown-action {
-            height: 38px;
+            height: 31px;
+            font-size: 11px;
           }
 
-          .pl-dropdown-contact p,
+          .pl-dropdown-contact {
+            padding: 7px 10px 8px;
+          }
+
+          .pl-dropdown-contact p {
+            font-size: 10px;
+            margin-bottom: 3px;
+            line-height: 1.28;
+          }
+
           .pl-dropdown-contact a {
-            font-size: 11.5px;
+            font-size: 10px;
           }
         }
       `}</style>
