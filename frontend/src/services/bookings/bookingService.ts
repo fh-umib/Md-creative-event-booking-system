@@ -33,6 +33,18 @@ async function readJsonResponse(response: Response) {
   }
 }
 
+export async function getAll() {
+  const response = await fetch(`${API_URL}/bookings`);
+
+  const data = await readJsonResponse(response);
+
+  if (!response.ok) {
+    throw new Error(data?.message || 'Rezervimet nuk u morën.');
+  }
+
+  return data;
+}
+
 export async function createBooking(payload: BookingPayload) {
   const response = await fetch(`${API_URL}/bookings`, {
     method: 'POST',
@@ -51,6 +63,10 @@ export async function createBooking(payload: BookingPayload) {
   return data;
 }
 
+export async function create(payload: BookingPayload) {
+  return createBooking(payload);
+}
+
 export async function getMyBookings(customerId: number) {
   const response = await fetch(`${API_URL}/bookings/customer/${customerId}`);
 
@@ -63,7 +79,28 @@ export async function getMyBookings(customerId: number) {
   return data;
 }
 
+export async function updateStatus(id: number, status: string) {
+  const response = await fetch(`${API_URL}/bookings/${id}/status`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  const data = await readJsonResponse(response);
+
+  if (!response.ok) {
+    throw new Error(data?.message || 'Statusi i rezervimit nuk u përditësua.');
+  }
+
+  return data;
+}
+
 export const bookingService = {
+  getAll,
+  create,
   createBooking,
   getMyBookings,
+  updateStatus,
 };

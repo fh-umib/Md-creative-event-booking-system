@@ -30,6 +30,8 @@ export const ADMIN_ROUTES = {
 } as const;
 
 export const STORAGE_KEYS = {
+  TOKEN: 'md_auth_token',
+  USER: 'md_auth_user',
   authToken: 'md_auth_token',
   authUser: 'md_auth_user',
   token: 'token',
