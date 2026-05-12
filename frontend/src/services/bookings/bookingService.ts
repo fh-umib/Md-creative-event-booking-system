@@ -1,20 +1,64 @@
 import { API_URL } from '../apiBase';
 
 export type BookingPayload = {
+  id?: number;
   customerId?: number | null;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  eventTitle: string;
-  eventDate: string;
-  eventTime: string;
-  eventLocation: string;
+  customer_id?: number | null;
+
+  customerName?: string;
+  customer_name?: string;
+
+  customerEmail?: string;
+  customer_email?: string;
+
+  customerPhone?: string;
+  customer_phone?: string;
+
+  full_name?: string;
+  email?: string;
+  phone?: string;
+
+  eventTitle?: string;
+  event_title?: string;
+
+  eventType?: string;
+  event_type?: string;
+
+  category?: string;
+
+  eventDate?: string;
+  event_date?: string;
+
+  eventTime?: string;
+  event_time?: string;
+
+  start_time?: string;
+  end_time?: string;
+
+  eventLocation?: string;
+  event_location?: string;
+
+  venueName?: string;
+  venue_name?: string;
+
+  venueAddress?: string;
+  venue_address?: string;
+
   guestCount?: number | null;
+  guest_count?: number | null;
+
   packageId?: number | null;
+  package_id?: number | null | '';
+
   notes?: string | null;
+  special_requests?: string | null;
+
   selectedMascots?: number[];
   selectedActivities?: number[];
   selectedExtras?: number[];
+
+  status?: string;
+  payment_status?: string;
 };
 
 async function readJsonResponse(response: Response) {
@@ -46,12 +90,17 @@ export async function getAll() {
 }
 
 export async function createBooking(payload: BookingPayload) {
+  const cleanedPayload = {
+    ...payload,
+    package_id: payload.package_id === '' ? null : payload.package_id,
+  };
+
   const response = await fetch(`${API_URL}/bookings`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(cleanedPayload),
   });
 
   const data = await readJsonResponse(response);
