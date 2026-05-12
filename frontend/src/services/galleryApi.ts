@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+import { API_URL } from './apiBase';
 
 export type GalleryAlbum = {
   id: number;
@@ -59,7 +59,7 @@ type ApiResponse<T> = {
 };
 
 function getAuthToken() {
-  return localStorage.getItem('md_auth_token');
+  return localStorage.getItem('md_auth_token') || localStorage.getItem('token');
 }
 
 function getAuthHeaders(includeJson = false): HeadersInit {
@@ -73,25 +73,44 @@ function getAuthHeaders(includeJson = false): HeadersInit {
 
 async function handleResponse<T>(
   response: Response,
-  fallbackMessage = 'Request failed'
+  fallbackMessage = 'Request failed',
 ): Promise<T> {
-  const json = await response.json().catch(() => ({}));
+  const text = await response.text();
+
+  let json: ApiResponse<T> | T | { message?: string } = {};
+
+  if (text) {
+    try {
+      json = JSON.parse(text) as ApiResponse<T> | T | { message?: string };
+    } catch {
+      throw new Error(
+        'Serveri nuk ktheu përgjigje JSON. Kontrollo API URL dhe backend route.',
+      );
+    }
+  }
 
   if (!response.ok) {
     throw new Error((json as { message?: string }).message || fallbackMessage);
   }
 
-  const parsed = json as ApiResponse<T> | T;
-
   if (
-    typeof parsed === 'object' &&
-    parsed !== null &&
-    'data' in parsed
+    typeof json === 'object' &&
+    json !== null &&
+    'success' in json &&
+    (json as ApiResponse<T>).success === false
   ) {
-    return (parsed as ApiResponse<T>).data as T;
+    throw new Error((json as ApiResponse<T>).message || fallbackMessage);
   }
 
-  return parsed as T;
+  if (
+    typeof json === 'object' &&
+    json !== null &&
+    'data' in json
+  ) {
+    return (json as ApiResponse<T>).data as T;
+  }
+
+  return json as T;
 }
 
 /* =========================
@@ -99,15 +118,25 @@ async function handleResponse<T>(
 ========================= */
 
 export async function getPublicGalleryAlbums(): Promise<GalleryAlbum[]> {
-  const response = await fetch(`${API_BASE_URL}/gallery`);
-  return handleResponse<GalleryAlbum[]>(response, 'Failed to load gallery');
+  const response = await fetch(`${API_URL}/gallery`);
+
+  return handleResponse<GalleryAlbum[]>(
+    response,
+    'Failed to load gallery',
+  );
 }
 
 export async function getPublicGalleryAlbumBySlug(
-  slug: string
+  slug: string,
 ): Promise<GalleryAlbumDetails> {
-  const response = await fetch(`${API_BASE_URL}/gallery/${slug}`);
-  return handleResponse<GalleryAlbumDetails>(response, 'Failed to load album');
+  const response = await fetch(
+    `${API_URL}/gallery/${encodeURIComponent(slug)}`,
+  );
+
+  return handleResponse<GalleryAlbumDetails>(
+    response,
+    'Failed to load album',
+  );
 }
 
 /* =========================
@@ -115,71 +144,91 @@ export async function getPublicGalleryAlbumBySlug(
 ========================= */
 
 export async function getAdminGalleryAlbums(
-  params?: { search?: string; category?: string; published?: string }
+  params?: { search?: string; category?: string; published?: string },
 ): Promise<GalleryAlbum[]> {
   const searchParams = new URLSearchParams();
 
-  if (params?.search) searchParams.set('search', params.search);
-  if (params?.category) searchParams.set('category', params.category);
-  if (params?.published) searchParams.set('published', params.published);
+  if (params?.search?.trim()) {
+    searchParams.set('search', params.search.trim());
+  }
+
+  if (params?.category?.trim()) {
+    searchParams.set('category', params.category.trim());
+  }
+
+  if (params?.published?.trim()) {
+    searchParams.set('published', params.published.trim());
+  }
 
   const query = searchParams.toString();
-  const url = query
-    ? `${API_BASE_URL}/admin/gallery?${query}`
-    : `${API_BASE_URL}/admin/gallery`;
 
-  const response = await fetch(url, {
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(
+    `${API_URL}/admin/gallery${query ? `?${query}` : ''}`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
 
-  return handleResponse<GalleryAlbum[]>(response, 'Failed to load gallery');
+  return handleResponse<GalleryAlbum[]>(
+    response,
+    'Failed to load gallery',
+  );
 }
 
 export async function getAdminGalleryAlbumById(
-  id: number
+  id: number,
 ): Promise<GalleryAlbumDetails> {
-  const response = await fetch(`${API_BASE_URL}/admin/gallery/${id}`, {
+  const response = await fetch(`${API_URL}/admin/gallery/${id}`, {
     headers: getAuthHeaders(),
   });
 
   return handleResponse<GalleryAlbumDetails>(
     response,
-    'Failed to load album details'
+    'Failed to load album details',
   );
 }
 
 export async function createGalleryAlbum(
-  payload: AdminGalleryAlbumPayload
+  payload: AdminGalleryAlbumPayload,
 ): Promise<GalleryAlbum> {
-  const response = await fetch(`${API_BASE_URL}/admin/gallery`, {
+  const response = await fetch(`${API_URL}/admin/gallery`, {
     method: 'POST',
     headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  return handleResponse<GalleryAlbum>(response, 'Failed to create album');
+  return handleResponse<GalleryAlbum>(
+    response,
+    'Failed to create album',
+  );
 }
 
 export async function updateGalleryAlbum(
   id: number,
-  payload: AdminGalleryAlbumPayload
+  payload: AdminGalleryAlbumPayload,
 ): Promise<GalleryAlbum> {
-  const response = await fetch(`${API_BASE_URL}/admin/gallery/${id}`, {
+  const response = await fetch(`${API_URL}/admin/gallery/${id}`, {
     method: 'PUT',
     headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  return handleResponse<GalleryAlbum>(response, 'Failed to update album');
+  return handleResponse<GalleryAlbum>(
+    response,
+    'Failed to update album',
+  );
 }
 
 export async function deleteGalleryAlbum(id: number): Promise<GalleryAlbum> {
-  const response = await fetch(`${API_BASE_URL}/admin/gallery/${id}`, {
+  const response = await fetch(`${API_URL}/admin/gallery/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
 
-  return handleResponse<GalleryAlbum>(response, 'Failed to delete album');
+  return handleResponse<GalleryAlbum>(
+    response,
+    'Failed to delete album',
+  );
 }
 
 /* =========================
@@ -187,35 +236,44 @@ export async function deleteGalleryAlbum(id: number): Promise<GalleryAlbum> {
 ========================= */
 
 export async function createGalleryPhoto(
-  payload: AdminGalleryPhotoPayload
+  payload: AdminGalleryPhotoPayload,
 ): Promise<GalleryPhoto> {
-  const response = await fetch(`${API_BASE_URL}/admin/gallery/photos`, {
+  const response = await fetch(`${API_URL}/admin/gallery/photos`, {
     method: 'POST',
     headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  return handleResponse<GalleryPhoto>(response, 'Failed to create photo');
+  return handleResponse<GalleryPhoto>(
+    response,
+    'Failed to create photo',
+  );
 }
 
 export async function updateGalleryPhoto(
   id: number,
-  payload: Omit<AdminGalleryPhotoPayload, 'album_id'> & { album_id?: number }
+  payload: Omit<AdminGalleryPhotoPayload, 'album_id'> & { album_id?: number },
 ): Promise<GalleryPhoto> {
-  const response = await fetch(`${API_BASE_URL}/admin/gallery/photos/${id}`, {
+  const response = await fetch(`${API_URL}/admin/gallery/photos/${id}`, {
     method: 'PUT',
     headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  return handleResponse<GalleryPhoto>(response, 'Failed to update photo');
+  return handleResponse<GalleryPhoto>(
+    response,
+    'Failed to update photo',
+  );
 }
 
 export async function deleteGalleryPhoto(id: number): Promise<GalleryPhoto> {
-  const response = await fetch(`${API_BASE_URL}/admin/gallery/photos/${id}`, {
+  const response = await fetch(`${API_URL}/admin/gallery/photos/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
 
-  return handleResponse<GalleryPhoto>(response, 'Failed to delete photo');
+  return handleResponse<GalleryPhoto>(
+    response,
+    'Failed to delete photo',
+  );
 }
