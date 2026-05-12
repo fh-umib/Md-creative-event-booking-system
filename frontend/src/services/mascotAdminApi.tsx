@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+import { API_URL } from './apiBase';
 
 export type Mascot = {
   id: number;
@@ -34,7 +34,7 @@ type ApiResponse<T> = {
 };
 
 function getAuthToken() {
-  return localStorage.getItem('md_auth_token');
+  return localStorage.getItem('md_auth_token') || localStorage.getItem('token');
 }
 
 function getAuthHeaders(includeJson = false): HeadersInit {
@@ -46,24 +46,46 @@ function getAuthHeaders(includeJson = false): HeadersInit {
   };
 }
 
-async function parseResponse<T>(response: Response, fallbackMessage: string): Promise<T> {
-  const json = await response.json().catch(() => ({}));
+async function parseResponse<T>(
+  response: Response,
+  fallbackMessage: string,
+): Promise<T> {
+  const text = await response.text();
+
+  let json: ApiResponse<T> | T | { message?: string } = {};
+
+  if (text) {
+    try {
+      json = JSON.parse(text) as ApiResponse<T> | T | { message?: string };
+    } catch {
+      throw new Error(
+        'Serveri nuk ktheu përgjigje JSON. Kontrollo API URL dhe backend route.',
+      );
+    }
+  }
 
   if (!response.ok) {
     throw new Error((json as { message?: string }).message || fallbackMessage);
   }
 
-  const parsed = json as ApiResponse<T> | T;
-
   if (
-    typeof parsed === 'object' &&
-    parsed !== null &&
-    'data' in parsed
+    typeof json === 'object' &&
+    json !== null &&
+    'success' in json &&
+    (json as ApiResponse<T>).success === false
   ) {
-    return (parsed as ApiResponse<T>).data as T;
+    throw new Error((json as ApiResponse<T>).message || fallbackMessage);
   }
 
-  return parsed as T;
+  if (
+    typeof json === 'object' &&
+    json !== null &&
+    'data' in json
+  ) {
+    return (json as ApiResponse<T>).data as T;
+  }
+
+  return json as T;
 }
 
 function normalizePayload(payload: MascotPayload) {
@@ -75,7 +97,7 @@ function normalizePayload(payload: MascotPayload) {
 }
 
 export async function getAdminMascots(): Promise<Mascot[]> {
-  const response = await fetch(`${API_BASE_URL}/admin/mascots`, {
+  const response = await fetch(`${API_URL}/admin/mascots`, {
     headers: getAuthHeaders(),
   });
 
@@ -83,7 +105,7 @@ export async function getAdminMascots(): Promise<Mascot[]> {
 }
 
 export async function createMascot(payload: MascotPayload): Promise<Mascot> {
-  const response = await fetch(`${API_BASE_URL}/admin/mascots`, {
+  const response = await fetch(`${API_URL}/admin/mascots`, {
     method: 'POST',
     headers: getAuthHeaders(true),
     body: JSON.stringify(normalizePayload(payload)),
@@ -94,9 +116,9 @@ export async function createMascot(payload: MascotPayload): Promise<Mascot> {
 
 export async function updateMascot(
   id: number,
-  payload: MascotPayload
+  payload: MascotPayload,
 ): Promise<Mascot> {
-  const response = await fetch(`${API_BASE_URL}/admin/mascots/${id}`, {
+  const response = await fetch(`${API_URL}/admin/mascots/${id}`, {
     method: 'PUT',
     headers: getAuthHeaders(true),
     body: JSON.stringify(normalizePayload(payload)),
@@ -106,7 +128,7 @@ export async function updateMascot(
 }
 
 export async function deleteMascot(id: number): Promise<Mascot> {
-  const response = await fetch(`${API_BASE_URL}/admin/mascots/${id}`, {
+  const response = await fetch(`${API_URL}/admin/mascots/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
