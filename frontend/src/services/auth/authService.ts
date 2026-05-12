@@ -1,9 +1,13 @@
+import { API_URL } from '../apiBase';
+
 export interface AuthUser {
   id: number;
-  fullName: string;
+  fullName?: string;
+  full_name?: string;
   email: string;
   role: string;
-  isActive: boolean;
+  isActive?: boolean;
+  is_active?: boolean;
   phone?: string | null;
 }
 
@@ -19,12 +23,30 @@ interface RawAuthResponse {
     user: AuthUser;
     token: string;
   };
+  user?: AuthUser;
+  token?: string;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+async function readJsonResponse(response: Response) {
+  const text = await response.text();
+
+  if (!text) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(
+      'Serveri nuk ktheu përgjigje JSON. Kontrollo API URL dhe backend route.',
+    );
+  }
+}
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+
+  const response = await fetch(`${API_URL}${cleanPath}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -32,10 +54,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     },
   });
 
-  const data = await response.json().catch(() => ({}));
+  const data = await readJsonResponse(response);
 
   if (!response.ok) {
-    throw new Error((data as { message?: string }).message || 'Request failed.');
+    throw new Error(
+      (data as { message?: string })?.message || 'Request failed.',
+    );
   }
 
   return data as T;
@@ -43,18 +67,24 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export const authService = {
   async login(payload: LoginRequest): Promise<{ user: AuthUser; token: string }> {
-    const response = await request<RawAuthResponse>('/api/auth/login', {
+    const response = await request<RawAuthResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        email: payload.email.trim().toLowerCase(),
+        password: payload.password,
+      }),
     });
 
-    if (!response.success || !response.data?.token || !response.data?.user) {
+    const token = response.data?.token || response.token;
+    const user = response.data?.user || response.user;
+
+    if (!response.success || !token || !user) {
       throw new Error(response.message || 'Login failed.');
     }
 
     return {
-      user: response.data.user,
-      token: response.data.token,
+      user,
+      token,
     };
   },
 };

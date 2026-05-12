@@ -7,34 +7,46 @@ export default function AdminLoginPage() {
   const location = useLocation();
   const { login } = useAuth();
 
-  const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
+  const from = (location.state as { from?: { pathname?: string } } | null)?.from
+    ?.pathname;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError('');
 
-    if (!email.trim() || !password.trim()) {
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    if (!cleanEmail || !cleanPassword) {
       setError('Emaili dhe fjalëkalimi janë të detyrueshëm.');
       return;
     }
 
-    setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
 
-    const result = await login(email.trim(), password);
+      const result = await login(cleanEmail, cleanPassword);
 
-    setIsSubmitting(false);
+      if (!result.success) {
+        setError(
+          result.message || 'Emaili ose fjalëkalimi i adminit nuk është i saktë.',
+        );
+        return;
+      }
 
-    if (!result.success) {
-      setError(result.message || 'Emaili ose fjalëkalimi i adminit nuk është i saktë.');
-      return;
+      navigate(from || '/admin/dashboard', { replace: true });
+    } catch {
+      setError(
+        'Kyçja në admin dështoi. Kontrollo lidhjen me backend-in dhe provo përsëri.',
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    navigate(from || '/admin/dashboard', { replace: true });
   };
 
   return (
@@ -63,16 +75,23 @@ export default function AdminLoginPage() {
             type="email"
             placeholder="Emaili i adminit"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setError('');
+            }}
             style={inputStyle}
             autoComplete="email"
+            inputMode="email"
           />
 
           <input
             type="password"
             placeholder="Fjalëkalimi i adminit"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              setError('');
+            }}
             style={inputStyle}
             autoComplete="current-password"
           />
@@ -95,13 +114,14 @@ export default function AdminLoginPage() {
 }
 
 const pageStyle: React.CSSProperties = {
-  minHeight: '100vh',
+  minHeight: '100dvh',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   background:
     'radial-gradient(circle at top, rgba(200,132,26,0.18), transparent 34%), linear-gradient(135deg, #1a120b 0%, #2c1a0a 55%, #120c07 100%)',
-  padding: '24px',
+  padding: '18px',
+  boxSizing: 'border-box',
 };
 
 const cardStyle: React.CSSProperties = {
@@ -109,9 +129,10 @@ const cardStyle: React.CSSProperties = {
   maxWidth: '440px',
   backgroundColor: '#fffaf3',
   borderRadius: '26px',
-  padding: '34px 30px',
+  padding: 'clamp(22px, 5vw, 34px) clamp(18px, 5vw, 30px)',
   boxShadow: '0 22px 60px rgba(0, 0, 0, 0.24)',
   border: '1px solid rgba(200,132,26,0.22)',
+  boxSizing: 'border-box',
 };
 
 const logoWrapStyle: React.CSSProperties = {
@@ -124,6 +145,7 @@ const logoWrapStyle: React.CSSProperties = {
 const logoStyle: React.CSSProperties = {
   width: '52px',
   height: '52px',
+  minWidth: '52px',
   borderRadius: '16px',
   background: 'linear-gradient(135deg, #d4911e 0%, #b87318 100%)',
   color: '#ffffff',
@@ -166,7 +188,8 @@ const badgeStyle: React.CSSProperties = {
 
 const titleStyle: React.CSSProperties = {
   margin: 0,
-  fontSize: '32px',
+  fontSize: 'clamp(27px, 7vw, 32px)',
+  lineHeight: 1.1,
   fontWeight: 900,
   color: '#1a120b',
 };
@@ -186,17 +209,20 @@ const formStyle: React.CSSProperties = {
 };
 
 const inputStyle: React.CSSProperties = {
+  width: '100%',
   height: '52px',
   borderRadius: '15px',
   border: '1.5px solid #e6d9c4',
   backgroundColor: '#ffffff',
   padding: '0 15px',
-  fontSize: '15px',
+  fontSize: '16px',
   outline: 'none',
   color: '#1a120b',
+  boxSizing: 'border-box',
 };
 
 const buttonStyle: React.CSSProperties = {
+  width: '100%',
   height: '52px',
   border: 'none',
   borderRadius: '15px',
