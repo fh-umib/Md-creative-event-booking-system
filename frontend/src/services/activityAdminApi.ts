@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+import { API_URL } from './apiBase';
 
 export type Activity = {
   id: number;
@@ -25,7 +25,7 @@ type ApiResponse<T> = {
 };
 
 function getAuthToken() {
-  return localStorage.getItem('md_auth_token');
+  return localStorage.getItem('md_auth_token') || localStorage.getItem('token');
 }
 
 function getAuthHeaders(includeJson = false): HeadersInit {
@@ -39,25 +39,48 @@ function getAuthHeaders(includeJson = false): HeadersInit {
 
 async function parseResponse<T>(
   response: Response,
-  fallbackMessage: string
+  fallbackMessage: string,
 ): Promise<T> {
-  const json = await response.json().catch(() => ({}));
+  const text = await response.text();
+
+  let json: ApiResponse<T> | T | { message?: string } = {};
+
+  if (text) {
+    try {
+      json = JSON.parse(text) as ApiResponse<T> | T | { message?: string };
+    } catch {
+      throw new Error(
+        'Serveri nuk ktheu përgjigje JSON. Kontrollo API URL dhe backend route.',
+      );
+    }
+  }
 
   if (!response.ok) {
     throw new Error((json as { message?: string }).message || fallbackMessage);
   }
 
-  const parsed = json as ApiResponse<T> | T;
-
-  if (typeof parsed === 'object' && parsed !== null && 'data' in parsed) {
-    return (parsed as ApiResponse<T>).data as T;
+  if (
+    typeof json === 'object' &&
+    json !== null &&
+    'success' in json &&
+    (json as ApiResponse<T>).success === false
+  ) {
+    throw new Error((json as ApiResponse<T>).message || fallbackMessage);
   }
 
-  return parsed as T;
+  if (
+    typeof json === 'object' &&
+    json !== null &&
+    'data' in json
+  ) {
+    return (json as ApiResponse<T>).data as T;
+  }
+
+  return json as T;
 }
 
 export async function getAdminActivities(): Promise<Activity[]> {
-  const response = await fetch(`${API_BASE_URL}/admin/activities`, {
+  const response = await fetch(`${API_URL}/admin/activities`, {
     headers: getAuthHeaders(),
   });
 
@@ -65,7 +88,7 @@ export async function getAdminActivities(): Promise<Activity[]> {
 }
 
 export async function createActivity(payload: ActivityPayload): Promise<Activity> {
-  const response = await fetch(`${API_BASE_URL}/admin/activities`, {
+  const response = await fetch(`${API_URL}/admin/activities`, {
     method: 'POST',
     headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
@@ -76,9 +99,9 @@ export async function createActivity(payload: ActivityPayload): Promise<Activity
 
 export async function updateActivity(
   id: number,
-  payload: ActivityPayload
+  payload: ActivityPayload,
 ): Promise<Activity> {
-  const response = await fetch(`${API_BASE_URL}/admin/activities/${id}`, {
+  const response = await fetch(`${API_URL}/admin/activities/${id}`, {
     method: 'PUT',
     headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
@@ -88,7 +111,7 @@ export async function updateActivity(
 }
 
 export async function deleteActivity(id: number): Promise<Activity> {
-  const response = await fetch(`${API_BASE_URL}/admin/activities/${id}`, {
+  const response = await fetch(`${API_URL}/admin/activities/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
