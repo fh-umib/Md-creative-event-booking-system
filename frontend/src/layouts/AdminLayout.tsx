@@ -97,6 +97,7 @@ export default function AdminLayout() {
           font-size: 18px;
           box-shadow: 0 10px 28px rgba(212,145,30,.35);
           letter-spacing: .4px;
+          flex-shrink: 0;
         }
 
         .admin-brand-title {
@@ -343,15 +344,20 @@ export default function AdminLayout() {
             position: fixed;
             top: 0;
             left: 0;
-            height: 100vh;
+            height: 100dvh;
+            min-height: 100dvh;
             width: min(286px, 86vw);
             transform: translateX(-105%);
             transition: transform .28s ease;
-            overflow-y: auto;
+            overflow: hidden;
           }
 
           .admin-sidebar.open {
             transform: translateX(0);
+          }
+
+          .admin-sidebar > div:first-child {
+            min-height: 0;
           }
 
           .admin-overlay {
@@ -401,8 +407,70 @@ export default function AdminLayout() {
         }
 
         @media (max-width: 560px) {
+          .admin-sidebar {
+            width: 66vw;
+            max-width: 270px;
+            padding: 13px 12px 12px;
+          }
+
+          .admin-logo-row {
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 4px 4px 10px;
+          }
+
+          .admin-logo-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            font-size: 15px;
+          }
+
+          .admin-brand-title {
+            font-size: 15px;
+          }
+
+          .admin-brand-subtitle {
+            font-size: 8px;
+            letter-spacing: .14em;
+          }
+
+          .admin-nav {
+            gap: 3px;
+            padding: 0;
+          }
+
+          .admin-nav-link {
+            padding: 7px 9px;
+            min-height: 34px;
+            border-radius: 12px;
+            font-size: 12px;
+            gap: 9px;
+          }
+
+          .admin-nav-icon {
+            width: 6px;
+            height: 6px;
+            box-shadow: 0 0 0 3px rgba(212,145,30,.10);
+          }
+
+          .admin-sidebar-footer {
+            padding-top: 9px;
+            margin-top: 8px;
+          }
+
+          .admin-mini-card {
+            display: none;
+          }
+
+          .admin-logout-button {
+            height: 38px;
+            border-radius: 13px;
+            font-size: 12.5px;
+          }
+
           .admin-topbar {
-            min-height: 74px;
+            min-height: 70px;
           }
 
           .admin-topbar-title {
@@ -416,18 +484,26 @@ export default function AdminLayout() {
           .admin-main {
             padding: 14px;
           }
+        }
 
-          .admin-logo-row {
-            margin-bottom: 18px;
+        @media (max-width: 390px) {
+          .admin-sidebar {
+            width: 69vw;
+            padding: 11px 10px;
           }
 
           .admin-nav-link {
-            padding: 10px 11px;
-            font-size: 13px;
+            padding: 6px 8px;
+            min-height: 31px;
+            font-size: 11.5px;
           }
 
-          .admin-mini-card {
-            display: none;
+          .admin-logo-row {
+            margin-bottom: 8px;
+          }
+
+          .admin-logout-button {
+            height: 36px;
           }
         }
       `}</style>
