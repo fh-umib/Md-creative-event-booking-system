@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+import { API_URL } from './apiBase';
 
 export type Decoration = {
   id: number;
@@ -35,7 +35,7 @@ type ApiResponse<T> = {
 };
 
 function getAuthToken() {
-  return localStorage.getItem('md_auth_token');
+  return localStorage.getItem('md_auth_token') || localStorage.getItem('token');
 }
 
 function getAuthHeaders(includeJson = false): HeadersInit {
@@ -49,75 +49,116 @@ function getAuthHeaders(includeJson = false): HeadersInit {
 
 async function parseResponse<T>(
   response: Response,
-  fallbackMessage: string
+  fallbackMessage: string,
 ): Promise<T> {
-  const json = await response.json().catch(() => ({}));
+  const text = await response.text();
+
+  let json: ApiResponse<T> | T | { message?: string } = {};
+
+  if (text) {
+    try {
+      json = JSON.parse(text) as ApiResponse<T> | T | { message?: string };
+    } catch {
+      throw new Error(
+        'Serveri nuk ktheu përgjigje JSON. Kontrollo API URL dhe backend route.',
+      );
+    }
+  }
 
   if (!response.ok) {
     throw new Error((json as { message?: string }).message || fallbackMessage);
   }
 
-  const parsed = json as ApiResponse<T> | T;
-
   if (
-    typeof parsed === 'object' &&
-    parsed !== null &&
-    'data' in parsed
+    typeof json === 'object' &&
+    json !== null &&
+    'success' in json &&
+    (json as ApiResponse<T>).success === false
   ) {
-    return (parsed as ApiResponse<T>).data as T;
+    throw new Error((json as ApiResponse<T>).message || fallbackMessage);
   }
 
-  return parsed as T;
+  if (
+    typeof json === 'object' &&
+    json !== null &&
+    'data' in json
+  ) {
+    return (json as ApiResponse<T>).data as T;
+  }
+
+  return json as T;
 }
 
 export async function getPublicDecorations(): Promise<Decoration[]> {
-  const response = await fetch(`${API_BASE_URL}/decorations`);
-  return parseResponse<Decoration[]>(response, 'Failed to load decorations');
+  const response = await fetch(`${API_URL}/decorations`);
+
+  return parseResponse<Decoration[]>(
+    response,
+    'Failed to load decorations',
+  );
 }
 
 export async function getDecorationBySlug(slug: string): Promise<Decoration> {
-  const response = await fetch(`${API_BASE_URL}/decorations/slug/${slug}`);
-  return parseResponse<Decoration>(response, 'Failed to load decoration');
+  const response = await fetch(
+    `${API_URL}/decorations/slug/${encodeURIComponent(slug)}`,
+  );
+
+  return parseResponse<Decoration>(
+    response,
+    'Failed to load decoration',
+  );
 }
 
 export async function getAdminDecorations(): Promise<Decoration[]> {
-  const response = await fetch(`${API_BASE_URL}/admin/decorations`, {
+  const response = await fetch(`${API_URL}/admin/decorations`, {
     headers: getAuthHeaders(),
   });
 
-  return parseResponse<Decoration[]>(response, 'Failed to load admin decorations');
+  return parseResponse<Decoration[]>(
+    response,
+    'Failed to load admin decorations',
+  );
 }
 
 export async function createDecoration(
-  payload: DecorationPayload
+  payload: DecorationPayload,
 ): Promise<Decoration> {
-  const response = await fetch(`${API_BASE_URL}/admin/decorations`, {
+  const response = await fetch(`${API_URL}/admin/decorations`, {
     method: 'POST',
     headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  return parseResponse<Decoration>(response, 'Failed to create decoration');
+  return parseResponse<Decoration>(
+    response,
+    'Failed to create decoration',
+  );
 }
 
 export async function updateDecoration(
   id: number,
-  payload: DecorationPayload
+  payload: DecorationPayload,
 ): Promise<Decoration> {
-  const response = await fetch(`${API_BASE_URL}/admin/decorations/${id}`, {
+  const response = await fetch(`${API_URL}/admin/decorations/${id}`, {
     method: 'PUT',
     headers: getAuthHeaders(true),
     body: JSON.stringify(payload),
   });
 
-  return parseResponse<Decoration>(response, 'Failed to update decoration');
+  return parseResponse<Decoration>(
+    response,
+    'Failed to update decoration',
+  );
 }
 
 export async function deleteDecoration(id: number): Promise<Decoration> {
-  const response = await fetch(`${API_BASE_URL}/admin/decorations/${id}`, {
+  const response = await fetch(`${API_URL}/admin/decorations/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });
 
-  return parseResponse<Decoration>(response, 'Failed to delete decoration');
+  return parseResponse<Decoration>(
+    response,
+    'Failed to delete decoration',
+  );
 }
