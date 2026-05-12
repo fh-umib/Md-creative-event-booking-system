@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SVGProps } from 'react';
 
 type Album = {
@@ -326,13 +326,91 @@ function ScrollToTop() {
   );
 }
 
+function AnimatedStatNumber({
+  value,
+  suffix = '',
+}: {
+  value: number;
+  suffix?: string;
+}) {
+  const [displayValue, setDisplayValue] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
+  const numberRef = useRef<HTMLSpanElement | null>(null);
+
+  useEffect(() => {
+    const element = numberRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+
+        if (entry.isIntersecting) {
+          setHasStarted(true);
+          observer.disconnect();
+        }
+      },
+      {
+        threshold: 0.35,
+      },
+    );
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!hasStarted) {
+      return;
+    }
+
+    let frameId: number;
+    let startTime: number | null = null;
+    const duration = 1600;
+
+    const animate = (currentTime: number) => {
+      if (startTime === null) {
+        startTime = currentTime;
+      }
+
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      const nextValue = Math.round(easedProgress * value);
+
+      setDisplayValue(nextValue);
+
+      if (progress < 1) {
+        frameId = requestAnimationFrame(animate);
+      } else {
+        setDisplayValue(value);
+      }
+    };
+
+    setDisplayValue(0);
+    frameId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(frameId);
+  }, [hasStarted, value]);
+
+  return (
+    <span ref={numberRef} className="gallery-serif gallery-stat-number">
+      {displayValue}
+      {suffix}
+    </span>
+  );
+}
+
 export default function GalleryPage() {
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
   const totalPhotos = useMemo(
     () => albums.reduce((total, album) => total + album.photos.length, 0),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -785,7 +863,7 @@ export default function GalleryPage() {
         .gallery-stats-section {
           position: relative;
           z-index: 4;
-          margin-top: -42px;
+          margin-top: 34px;
           padding: 0 0 44px;
         }
 
@@ -830,6 +908,7 @@ export default function GalleryPage() {
           font-size: clamp(30px, 4vw, 44px);
           font-weight: 700;
           line-height: 1;
+          min-height: 44px;
         }
 
         .gallery-stat-label {
@@ -1559,11 +1638,13 @@ export default function GalleryPage() {
           }
 
           .gallery-stats-section {
-            margin-top: -26px;
+            margin-top: 22px;
+            padding-bottom: 34px;
           }
 
           .gallery-stats {
             grid-template-columns: 1fr;
+            border-radius: 22px;
           }
 
           .gallery-stat {
@@ -1755,7 +1836,7 @@ export default function GalleryPage() {
                 <div className="gallery-stat-icon">
                   <GoldIcon name="grid" />
                 </div>
-                <span className="gallery-serif gallery-stat-number">{albums.length}</span>
+                <AnimatedStatNumber value={albums.length} />
                 <span className="gallery-stat-label">Albume të organizuara</span>
               </div>
 
@@ -1763,7 +1844,7 @@ export default function GalleryPage() {
                 <div className="gallery-stat-icon">
                   <GoldIcon name="camera" />
                 </div>
-                <span className="gallery-serif gallery-stat-number">{totalPhotos}+</span>
+                <AnimatedStatNumber value={totalPhotos} suffix="+" />
                 <span className="gallery-stat-label">Foto të përzgjedhura</span>
               </div>
 
@@ -1771,7 +1852,7 @@ export default function GalleryPage() {
                 <div className="gallery-stat-icon">
                   <GoldIcon name="sparkles" />
                 </div>
-                <span className="gallery-serif gallery-stat-number">100%</span>
+                <AnimatedStatNumber value={100} suffix="%" />
                 <span className="gallery-stat-label">Detaje të kuruara</span>
               </div>
             </div>
