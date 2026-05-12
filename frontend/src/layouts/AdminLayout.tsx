@@ -212,13 +212,25 @@ export default function AdminLayout() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
+          gap: 10px;
         }
 
         .admin-logout-button:hover {
           transform: translateY(-2px);
           box-shadow: 0 10px 24px rgba(0,0,0,.22);
           background: #fff7e8;
+        }
+
+        .admin-logout-icon {
+          width: 26px;
+          height: 26px;
+          border-radius: 999px;
+          background: rgba(212,145,30,.14);
+          color: #d4911e;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
         }
 
         .admin-content-wrapper {
@@ -467,6 +479,12 @@ export default function AdminLayout() {
             height: 38px;
             border-radius: 13px;
             font-size: 12.5px;
+            gap: 8px;
+          }
+
+          .admin-logout-icon {
+            width: 23px;
+            height: 23px;
           }
 
           .admin-topbar {
@@ -505,6 +523,11 @@ export default function AdminLayout() {
           .admin-logout-button {
             height: 36px;
           }
+
+          .admin-logout-icon {
+            width: 22px;
+            height: 22px;
+          }
         }
       `}</style>
 
@@ -519,6 +542,7 @@ export default function AdminLayout() {
           <div>
             <div className="admin-logo-row">
               <div className="admin-logo-box">MD</div>
+
               <div>
                 <div className="admin-brand-title">MD Creative</div>
                 <div className="admin-brand-subtitle">Admin Panel</div>
@@ -552,8 +576,34 @@ export default function AdminLayout() {
               </p>
             </div>
 
-            <button type="button" className="admin-logout-button" onClick={handleLogout}>
-              <span>↩</span>
+            <button
+              type="button"
+              className="admin-logout-button"
+              onClick={handleLogout}
+            >
+              <span className="admin-logout-icon" aria-hidden="true">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M10 6L4 12L10 18"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M5 12H16"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M15 4H19C19.55 4 20 4.45 20 5V19C20 19.55 19.55 20 19 20H15"
+                    stroke="currentColor"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </span>
               Dil nga paneli
             </button>
           </div>
@@ -582,6 +632,7 @@ export default function AdminLayout() {
                 <h1 className="admin-topbar-title">
                   {currentPage?.label || 'Paneli i Adminit'}
                 </h1>
+
                 <p className="admin-topbar-text">
                   Menaxho rezervimet, shërbimet, përmbajtjen dhe analizat e MD Creative.
                 </p>
